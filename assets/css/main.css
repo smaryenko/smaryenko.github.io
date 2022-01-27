@@ -3944,6 +3944,7 @@ input, select, textarea {
 		z-index: 100;
 		text-align: center;
 		line-height: 50px;
+		-webkit-tap-highlight-color: transparent;
 	}
 	#scroll span {
 		position:absolute;
