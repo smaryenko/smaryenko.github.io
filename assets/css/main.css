@@ -3002,7 +3002,7 @@ input, select, textarea {
 		-ms-flex-direction: row;
 		flex-direction: row;
 		min-height: 30em;
-		width: 50vw;
+		width: 50%;
 		float: left;
 	}
 
