@@ -25,7 +25,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-	:root {
+	:root:not([data-theme="light"]) {
 		--bg: #0c0a09;
 		--surface: #1c1917;
 		--border: #292524;
@@ -48,6 +48,30 @@
 		--shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
 		--shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45);
 	}
+}
+
+:root[data-theme="dark"] {
+	--bg: #0c0a09;
+	--surface: #1c1917;
+	--border: #292524;
+	--text: #f5f5f4;
+	--muted: #a8a29e;
+	--accent: #818cf8;
+	--accent-hover: #a5b4fc;
+	--accent-text: #0c0a09;
+	--glow: rgba(129, 140, 248, 0.14);
+	--blob-1: rgba(99, 102, 241, 0.45);
+	--blob-2: rgba(20, 184, 166, 0.30);
+	--blob-3: rgba(236, 72, 153, 0.28);
+	--lines: rgba(165, 180, 252, 0.09);
+	--glass-bg: linear-gradient(135deg, rgba(129, 140, 248, 0.22), rgba(236, 72, 153, 0.10));
+	--glass-bg-hover: linear-gradient(135deg, rgba(129, 140, 248, 0.34), rgba(236, 72, 153, 0.18));
+	--glass-border: rgba(165, 180, 252, 0.35);
+	--glass-text: #e0e7ff;
+	--glass-highlight: rgba(255, 255, 255, 0.18);
+	--glass-glow: rgba(129, 140, 248, 0.35);
+	--shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
+	--shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 /* Base */
@@ -155,6 +179,87 @@ a {
 	transform: translateY(-2px);
 }
 
+/* Hover/focus tooltips: <a data-tip="…"> */
+[data-tip] {
+	position: relative;
+}
+
+[data-tip]::after {
+	content: attr(data-tip);
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% + 8px);
+	z-index: 30;
+	padding: 0.3rem 0.6rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	color: var(--text);
+	font: 500 0.75rem/1.3 "Inter", system-ui, sans-serif;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	translate: -50% 4px;
+	transition: opacity 0.15s ease, translate 0.15s ease;
+}
+
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+	opacity: 1;
+	translate: -50% 0;
+}
+
+/* Tooltip below (for buttons at the top of the screen) */
+[data-tip-pos="below"]::after {
+	bottom: auto;
+	top: calc(100% + 8px);
+}
+
+/* Tooltip to the left (for buttons at the screen's right edge) */
+[data-tip-pos="left"]::after {
+	left: auto;
+	right: calc(100% + 8px);
+	bottom: 50%;
+	translate: 4px 50%;
+}
+
+[data-tip-pos="left"]:hover::after,
+[data-tip-pos="left"]:focus-visible::after {
+	translate: 0 50%;
+}
+
+/* Hover/focus tooltips: <a data-tip="…"> */
+[data-tip] {
+	position: relative;
+}
+
+[data-tip]::after {
+	content: attr(data-tip);
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% + 8px);
+	z-index: 30;
+	padding: 0.3rem 0.6rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	color: var(--text);
+	font: 500 0.75rem/1.3 "Inter", system-ui, sans-serif;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	translate: -50% 4px;
+	transition: opacity 0.15s ease, translate 0.15s ease;
+}
+
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+	opacity: 1;
+	translate: -50% 0;
+}
+
 .icons svg {
 	width: 1.2rem;
 	height: 1.2rem;
@@ -194,6 +299,13 @@ a {
 .hero .container {
 	position: relative;
 	z-index: 1;
+}
+
+/* Shrink text blocks to their content so they don't cover the grid's hover area */
+.hero h1,
+.hero .role,
+.hero .icons {
+	width: fit-content;
 }
 
 /* Hero: pass/fail heatmap (drawn by site.js) */
@@ -285,6 +397,114 @@ a {
 
 .footer .icons {
 	justify-content: center;
+}
+
+/* Theme toggle */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+.theme-toggle {
+	position: fixed;
+	top: 1.25rem;
+	right: 1.5rem;
+	z-index: 10;
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	border: 1px solid var(--glass-border);
+	border-radius: 50%;
+	background: var(--glass-bg);
+	-webkit-backdrop-filter: blur(12px) saturate(160%);
+	backdrop-filter: blur(12px) saturate(160%);
+	box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 16px -6px var(--glass-glow);
+	color: var(--glass-text);
+	cursor: pointer;
+	transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle[hidden] { display: none; }
+
+.theme-toggle:hover {
+	background: var(--glass-bg-hover);
+	transform: rotate(-15deg);
+}
+
+.theme-toggle svg {
+	grid-area: 1 / 1;
+	width: 1.2rem;
+	height: 1.2rem;
+	transition: opacity 0.3s ease, transform 0.4s ease;
+}
+
+/* Show the moon in light mode, the sun in dark mode */
+.theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.5); }
+.is-dark .theme-toggle .icon-sun { opacity: 1; transform: none; }
+.is-dark .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.5); }
+
+/* Grid tooltip + toast */
+.grid-tip {
+	position: absolute;
+	z-index: 2;
+	padding: 0.35rem 0.6rem;
+	border: 1px solid var(--glass-border);
+	border-radius: 8px;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	color: var(--text);
+	font: 500 0.75rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	transform: translate(-50%, calc(-100% - 10px));
+	transition: opacity 0.15s ease;
+}
+
+.grid-tip.is-visible { opacity: 1; }
+.grid-tip .fail { color: #db2777; }
+.grid-tip .pass { color: var(--accent); }
+
+.hero.is-fixable { cursor: pointer; }
+
+.toast {
+	position: fixed;
+	left: 50%;
+	bottom: 1.5rem;
+	z-index: 20;
+	padding: 0.7rem 1.2rem;
+	border: 1px solid var(--glass-border);
+	border-radius: 999px;
+	background: var(--glass-bg);
+	-webkit-backdrop-filter: blur(12px) saturate(160%);
+	backdrop-filter: blur(12px) saturate(160%);
+	color: var(--glass-text);
+	font: 600 0.9rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+	/* Size to the text and only break where the message has "\n" */
+	width: max-content;
+	max-width: calc(100vw - 2rem);
+	white-space: pre-line;
+	text-align: center;
+	opacity: 0;
+	transform: translate(-50%, 10px);
+	transition: opacity 0.3s ease, transform 0.3s ease;
+	pointer-events: none;
+}
+
+.toast.is-visible {
+	opacity: 1;
+	transform: translate(-50%, 0);
+}
+
+/* Project cards fade/slide in once as they scroll into view (class added by site.js).
+   Uses `translate` (not `transform`) so the hover lift still works. */
+.reveal .project:not(.is-in) {
+	opacity: 0;
+	translate: 0 40px;
+}
+
+.reveal .project {
+	transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.6s ease, translate 0.6s ease;
 }
 
 /* Back to top */
@@ -507,21 +727,39 @@ body::after {
 
 /* Dark mode: soften bright project images, restore on hover/focus */
 @media (prefers-color-scheme: dark) {
-	.project-image {
+	:root:not([data-theme="light"]) .project-image {
 		background: #e7e5e4;
 	}
 
-	.project-image img {
+	:root:not([data-theme="light"]) .project-image img {
 		filter: brightness(0.9) contrast(0.97);
 		transition: filter 0.3s ease, transform 0.4s ease;
 	}
 
-	.project:hover .project-image img,
-	.project:focus-within .project-image img {
+	:root:not([data-theme="light"]) .project:hover .project-image img,
+	:root:not([data-theme="light"]) .project:focus-within .project-image img {
 		filter: none;
 	}
 
-	.project:hover .project-image {
+	:root:not([data-theme="light"]) .project:hover .project-image {
 		background: #ffffff;
 	}
+}
+
+:root[data-theme="dark"] .project-image {
+	background: #e7e5e4;
+}
+
+:root[data-theme="dark"] .project-image img {
+	filter: brightness(0.9) contrast(0.97);
+	transition: filter 0.3s ease, transform 0.4s ease;
+}
+
+:root[data-theme="dark"] .project:hover .project-image img,
+:root[data-theme="dark"] .project:focus-within .project-image img {
+	filter: none;
+}
+
+:root[data-theme="dark"] .project:hover .project-image {
+	background: #ffffff;
 }
