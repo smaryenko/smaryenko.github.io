@@ -26,7 +26,7 @@ var site = (function () {
 			return t ? t === 'dark' : systemDark.matches;
 		},
 		// Small status message at the bottom of the screen.
-		toast: function (text) {
+		toast: function (text, duration) {
 			if (!toastEl) {
 				toastEl = document.createElement('div');
 				toastEl.className = 'toast';
@@ -37,7 +37,7 @@ var site = (function () {
 			toastEl.textContent = text;
 			toastEl.classList.add('is-visible');
 			clearTimeout(toastTimer);
-			toastTimer = setTimeout(function () { toastEl.classList.remove('is-visible'); }, 2600);
+			toastTimer = setTimeout(function () { toastEl.classList.remove('is-visible'); }, duration || 2600);
 		}
 	};
 })();
@@ -375,7 +375,10 @@ var site = (function () {
 		fixedCount++;
 		hero.classList.remove('is-fixable');
 		updateTip();
-		site.toast(fixedCount === 1 ? 'Bug fixed.\nNice catch ✓' : fixedCount + ' bugs fixed ✓');
+		if (fixedCount === 1) site.toast('Bug fixed.\nNice catch ✓');
+		// 42: the Answer to the Ultimate Question (and a nudge towards automation).
+		else if (fixedCount === 42) site.toast('42 bugs fixed by hand.\nThe answer is clear: automate it 🤖', 6000);
+		else site.toast(fixedCount + ' bugs fixed ✓');
 		if (!animating()) draw(performance.now());
 	});
 
