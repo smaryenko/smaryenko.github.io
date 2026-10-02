@@ -462,8 +462,12 @@ a {
 }
 
 .grid-tip.is-visible { opacity: 1; }
-.grid-tip .fail { color: #db2777; }
-.grid-tip .pass { color: var(--accent); }
+.grid-tip .fail { color: #dc2626; }
+.grid-tip .pass { color: #16a34a; }
+.grid-tip .queued { color: #4f46e5; }
+.is-dark .grid-tip .fail { color: #f87171; }
+.is-dark .grid-tip .pass { color: #4ade80; }
+.is-dark .grid-tip .queued { color: #818cf8; }
 
 .hero.is-fixable { cursor: pointer; }
 

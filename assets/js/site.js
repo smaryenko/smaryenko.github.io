@@ -93,21 +93,58 @@ var site = (function () {
 	var cells = [], points = [], size, step, raf, last = 0, waveStart = 0;
 	var pointer = null, hovered = -1, fixedCount = 0, konamiStart = -1;
 
-	// RGB palettes: base dot, two "pass" colours and "fail".
+	// RGB palettes. Grey base = no status, indigo = queued, green = passed, red = failed.
 	function palette() {
 		return site.isDark()
-			? { base: [168, 162, 158], pass: [129, 140, 248], alt: [45, 212, 191], fail: [244, 114, 182], baseA: 0.12 }
-			: { base: [120, 113, 108], pass: [79, 70, 229], alt: [20, 184, 166], fail: [236, 72, 153], baseA: 0.14 };
+			? { base: [168, 162, 158], queued: [129, 140, 248], pass: [74, 222, 128], fail: [248, 113, 113], baseA: 0.12 }
+			: { base: [120, 113, 108], queued: [79, 70, 229], pass: [22, 163, 74], fail: [220, 38, 38], baseA: 0.14 };
 	}
 	var pal = palette();
 
-	function pick() {
-		var r = Math.random();
-		return r < 0.04 ? 'fail' : r < 0.35 ? 'alt' : 'pass';
+	// Test lifecycle: none -> queued -> pass (80%) | fail (20%) -> none.
+	// How long each state lasts, in ms [min, max]. Failures stay longer so they can be clicked.
+	var HOLD = { none: [1500, 9000], queued: [1000, 3000], pass: [2000, 5000], fail: [5000, 10000] };
+	var BRIGHT = { none: 0, queued: 0.6, pass: 0.85, fail: 0.9 };
+	var BLEND = 450; // colour crossfade between states, ms
+
+	function rand(range) {
+		return range[0] + Math.random() * (range[1] - range[0]);
 	}
 
+	function setKind(c, kind, now, hold) {
+		// Remember the colour we're coming from so we can crossfade.
+		c.prev = c.kind === 'none' ? kind : c.kind;
+		if (kind === 'none') c.prev = c.kind === 'none' ? c.prev : c.kind;
+		c.kind = kind;
+		c.changed = now;
+		c.until = now + (hold || rand(HOLD[kind]));
+		if (kind === 'pass') c.ms = 5 + ((Math.random() * 400) | 0);
+	}
+
+	function advance(c, now) {
+		if (c.kind === 'none') setKind(c, 'queued', now);
+		else if (c.kind === 'queued') setKind(c, Math.random() < 0.8 ? 'pass' : 'fail', now);
+		else setKind(c, 'none', now);
+	}
+
+	var start0 = performance.now();
 	for (var i = 0; i < TOTAL; i++) {
-		cells.push({ v: Math.random() * 0.3, target: 0, kind: pick(), ms: 0 });
+		var c0 = { kind: 'none', prev: 'queued', v: 0, changed: start0, until: 0, ms: 0 };
+		// Stagger the start so dots don't all move in lockstep.
+		c0.until = start0 + Math.random() * 6000;
+		cells.push(c0);
+	}
+
+	// Current colour of a dot, crossfading from its previous state.
+	function colorOf(c, t) {
+		if (c.kind === 'none') return pal[c.prev];
+		var m = Math.min(1, Math.max(0, (t - c.changed) / BLEND));
+		var a = pal[c.prev], b = pal[c.kind];
+		return [
+			Math.round(a[0] + (b[0] - a[0]) * m),
+			Math.round(a[1] + (b[1] - a[1]) * m),
+			Math.round(a[2] + (b[2] - a[2]) * m)
+		];
 	}
 
 	// Work out where each dot lands on screen (relative to the hero), taking
@@ -137,7 +174,7 @@ var site = (function () {
 		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 		step = size / COLS;
 		project();
-		draw(last);
+		draw(performance.now());
 	}
 
 	function draw(t) {
@@ -149,25 +186,33 @@ var site = (function () {
 			var c = cells[i];
 			var col = i % COLS, row = (i / COLS) | 0;
 			var d = (col + row) / (COLS * 2);
+			// The sweeping wave and cursor glow only brighten the grey base dot,
+			// so they never fake a test state.
 			var boost = Math.max(0, 1 - Math.abs(d - wave) * 9) * 0.7;
-
-			// Cursor glow: dots near the pointer light up.
+			var glow = 0;
 			if (pointer && points[i]) {
 				var dist = Math.hypot(points[i].x - pointer.x, points[i].y - pointer.y);
-				boost = Math.max(boost, (1 - dist / 90) * 0.8);
+				glow = Math.max(0, 1 - dist / 90);
 			}
-			if (i === hovered) boost = 1;
-
-			var a = Math.min(1, c.v + Math.max(0, boost));
 			var x = col * step + step / 2, y = row * step + step / 2;
+			var rgb = colorOf(c, t);
 
-			ctx.fillStyle = 'rgba(' + pal.base + ',' + pal.baseA + ')';
+			ctx.fillStyle = 'rgba(' + pal.base + ',' + (pal.baseA + glow * 0.35 + boost * 0.15) + ')';
 			ctx.beginPath();
-			ctx.arc(x, y, r, 0, 6.283);
+			ctx.arc(x, y, r * (1 + glow * 0.3), 0, 6.283);
 			ctx.fill();
 
+			// Hovered dot: ring in its state colour (grey if no status).
+			if (i === hovered) {
+				ctx.strokeStyle = 'rgba(' + (c.kind === 'none' ? pal.base : rgb) + ',0.9)';
+				ctx.lineWidth = 1.5;
+				ctx.beginPath();
+				ctx.arc(x, y, r * 2.2, 0, 6.283);
+				ctx.stroke();
+			}
+
+			var a = c.v;
 			if (a > 0.02) {
-				var rgb = pal[c.kind];
 				ctx.fillStyle = 'rgba(' + rgb + ',' + (a * 0.18) + ')';
 				ctx.beginPath();
 				ctx.arc(x, y, r * 2.6, 0, 6.283);
@@ -184,46 +229,39 @@ var site = (function () {
 		var dt = Math.min(64, t - last);
 		last = t;
 
-		if (konamiStart >= 0) {
-			konamiFrame(t - konamiStart);
-		} else {
-			// Light up a few random dots.
-			for (var n = 0; n < 3; n++) {
-				var j = (Math.random() * TOTAL) | 0;
-				if (j === hovered) continue;
-				var c = cells[j];
-				c.target = Math.random() < 0.5 ? 0.5 + Math.random() * 0.5 : 0;
-				c.kind = pick();
-				c.ms = 5 + ((Math.random() * 400) | 0);
-			}
-		}
+		if (konamiStart >= 0) konamiFrame(t, t - konamiStart);
 
-		// Ease every dot toward its target. Failures linger longer so they can be clicked.
-		var k = 1 - Math.pow(0.04, dt / 1000);
+		// Move each dot through its lifecycle and ease its brightness.
+		var k = 1 - Math.pow(0.02, dt / 1000);
 		for (var i = 0; i < TOTAL; i++) {
-			var cell = cells[i];
-			cell.v += (cell.target - cell.v) * k;
-			var fade = cell.kind === 'fail' ? 0.0015 : 0.004;
-			if (konamiStart < 0 && i !== hovered && cell.target > 0 && Math.random() < fade) cell.target = 0;
+			var c = cells[i];
+			if (konamiStart < 0 && t >= c.until) advance(c, t);
+			c.v += (BRIGHT[c.kind] - c.v) * k;
 		}
 
 		if (t - waveStart > 7000) waveStart = t;
 		draw(t);
+		// Keep the tooltip in sync with the hovered dot's live state.
+		if (hovered >= 0) {
+			updateTip();
+			hero.classList.toggle('is-fixable', isFailing(hovered));
+		}
 		raf = requestAnimationFrame(frame);
 	}
 
 	// Konami code: everything fails, then a wave fixes all tests.
-	function konamiFrame(e) {
+	function konamiFrame(t, e) {
 		var progress = (e - 1200) / 1600;
 		for (var i = 0; i < TOTAL; i++) {
 			var c = cells[i];
 			var d = ((i % COLS) + ((i / COLS) | 0)) / (COLS * 2);
-			c.target = 0.85;
-			c.kind = progress > d ? (i % 3 ? 'pass' : 'alt') : 'fail';
+			var want = e < 1200 ? 'fail' : progress > d ? 'pass' : 'fail';
+			if (c.kind !== want) setKind(c, want, t);
 		}
 		if (e > 3400) {
 			konamiStart = -1;
-			cells.forEach(function (c) { c.target = 0; });
+			// Let everything finish its run, then fade back out at staggered times.
+			cells.forEach(function (c) { c.until = t + 800 + Math.random() * 2500; });
 			site.toast('All ' + TOTAL + ' tests fixed ✓');
 		}
 	}
@@ -232,15 +270,30 @@ var site = (function () {
 		return !site.reduceMotion.matches && !document.hidden;
 	}
 
+	// Static snapshot for reduced motion: a random mix of states, no animation.
+	function snapshot() {
+		var now = performance.now();
+		cells.forEach(function (c) {
+			var r = Math.random();
+			var kind = r < 0.6 ? 'none' : r < 0.72 ? 'queued' : r < 0.92 ? 'pass' : 'fail';
+			setKind(c, kind, now - BLEND);
+			c.prev = kind === 'none' ? 'queued' : kind;
+			c.v = BRIGHT[kind];
+		});
+		draw(now);
+	}
+
 	function start() {
 		cancelAnimationFrame(raf);
 		if (!animating()) {
-			cells.forEach(function (c) { c.v = c.target = Math.random() < 0.3 ? 0.6 : 0; });
-			draw(-1e9);
+			snapshot();
 			return;
 		}
-		last = performance.now();
-		waveStart = last;
+		var now = performance.now();
+		// Coming back from a hidden tab: shift timers so dots don't all jump at once.
+		cells.forEach(function (c) { if (c.until < now) c.until = now + Math.random() * 3000; });
+		last = now;
+		waveStart = now;
 		raf = requestAnimationFrame(frame);
 	}
 
@@ -261,17 +314,14 @@ var site = (function () {
 	function label(i) {
 		var c = cells[i];
 		var id = 'test_' + String(i + 1).padStart(3, '0');
-		if (c.kind === 'fail' && c.v > 0.25) {
-			return '<span class="fail">✗ ' + id + '</span> · failed · click to fix';
-		}
-		if (c.v > 0.25) {
-			return '<span class="pass">✓ ' + id + '</span> · passed · ' + (c.ms || 42) + 'ms';
-		}
-		return '○ ' + id + ' · queued';
+		if (c.kind === 'fail') return '<span class="fail">✗ ' + id + '</span> · failed · click to fix';
+		if (c.kind === 'pass') return '<span class="pass">✓ ' + id + '</span> · passed · ' + c.ms + 'ms';
+		if (c.kind === 'queued') return '<span class="queued">◷ ' + id + '</span> · queued';
+		return '○ ' + id + ' · no status';
 	}
 
 	function isFailing(i) {
-		return i >= 0 && cells[i].kind === 'fail' && cells[i].v > 0.25;
+		return i >= 0 && cells[i].kind === 'fail';
 	}
 
 	function updateTip() {
@@ -298,7 +348,7 @@ var site = (function () {
 		hovered = overContent(e.target) ? -1 : nearest(pointer.x, pointer.y);
 		hero.classList.toggle('is-fixable', isFailing(hovered));
 		updateTip();
-		if (!animating()) draw(-1e9);
+		if (!animating()) draw(performance.now());
 	});
 
 	hero.addEventListener('pointerleave', function () {
@@ -306,7 +356,7 @@ var site = (function () {
 		hovered = -1;
 		hero.classList.remove('is-fixable');
 		updateTip();
-		if (!animating()) draw(-1e9);
+		if (!animating()) draw(performance.now());
 	});
 
 	hero.addEventListener('click', function (e) {
@@ -318,20 +368,22 @@ var site = (function () {
 		var radius = Math.max(28, step * 1.6);
 		var i = nearest(e.clientX - rect.left, e.clientY - rect.top, radius, true);
 		if (i < 0) return;
-		cells[i].kind = 'pass';
-		cells[i].v = cells[i].target = 1;
+		// Fixed: turn green, hold a little longer, then back to no status.
+		setKind(cells[i], 'pass', performance.now(), 3500);
 		cells[i].ms = 12 + ((Math.random() * 60) | 0);
+		if (!animating()) cells[i].v = BRIGHT.pass;
 		fixedCount++;
 		hero.classList.remove('is-fixable');
 		updateTip();
 		site.toast(fixedCount === 1 ? 'Bug fixed.\nNice catch ✓' : fixedCount + ' bugs fixed ✓');
-		if (!animating()) draw(-1e9);
+		if (!animating()) draw(performance.now());
 	});
 
 	document.addEventListener('konami', function () {
 		if (!animating()) {
-			cells.forEach(function (c) { c.kind = 'pass'; c.v = c.target = 0.7; });
-			draw(-1e9);
+			var now = performance.now();
+			cells.forEach(function (c) { setKind(c, 'pass', now - BLEND); c.prev = 'pass'; c.v = BRIGHT.pass; });
+			draw(now);
 			site.toast('All ' + TOTAL + ' tests fixed ✓');
 			return;
 		}
@@ -346,7 +398,7 @@ var site = (function () {
 	site.reduceMotion.addEventListener('change', start);
 	document.addEventListener('themechange', function () {
 		pal = palette();
-		draw(animating() ? last : -1e9);
+		draw(performance.now());
 	});
 })();
 
