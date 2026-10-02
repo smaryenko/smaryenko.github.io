@@ -362,7 +362,7 @@ var site = (function () {
 	hero.addEventListener('click', function (e) {
 		// Only real controls block a click; text can be tapped through
 		// (on mobile the grid sits behind the heading).
-		if (e.target.closest && e.target.closest('a, button')) return;
+		if (e.target.closest && e.target.closest('a, button, .letter')) return;
 		var rect = hero.getBoundingClientRect();
 		// Generous radius so a fingertip near a failing dot still hits it.
 		var radius = Math.max(28, step * 1.6);
@@ -455,4 +455,83 @@ var site = (function () {
 		'font: 700 20px Georgia, serif; color: #4f46e5;',
 		'font: 13px ui-monospace, Menlo, monospace; color: inherit;'
 	);
+})();
+
+// Name easter egg: click the letters T, E, S, T in the name (any S works).
+// A wrong letter resets the sequence. Success runs a little "test" over the name.
+(function () {
+	var h1 = document.querySelector('.hero h1');
+	if (!h1) return;
+
+	var name = h1.textContent.trim();
+	var target = ['t', 'e', 's', 't'];
+	var pos = 0, running = false, index = 0;
+
+	// Split the name into letter spans (words kept together so they don't break).
+	// Screen readers still get the plain name from aria-label.
+	h1.setAttribute('aria-label', name);
+	h1.textContent = '';
+	name.split(' ').forEach(function (word, w) {
+		if (w) h1.appendChild(document.createTextNode(' '));
+		var wordEl = document.createElement('span');
+		wordEl.className = 'word';
+		wordEl.setAttribute('aria-hidden', 'true');
+		word.split('').forEach(function (ch) {
+			var l = document.createElement('span');
+			l.className = 'letter';
+			l.textContent = ch;
+			l.style.setProperty('--i', index++);
+			wordEl.appendChild(l);
+		});
+		h1.appendChild(wordEl);
+	});
+
+	function clearHits() {
+		h1.querySelectorAll('.is-hit').forEach(function (l) { l.classList.remove('is-hit'); });
+	}
+
+	function miss(letter) {
+		pos = 0;
+		clearHits();
+		letter.classList.remove('is-miss');
+		void letter.offsetWidth; // restart the shake animation
+		letter.classList.add('is-miss');
+		clearTimeout(letter._missTimer);
+		letter._missTimer = setTimeout(function () { letter.classList.remove('is-miss'); }, 450);
+	}
+
+	h1.addEventListener('click', function (e) {
+		var letter = e.target.closest('.letter');
+		if (!letter || running) return;
+		var ch = letter.textContent.toLowerCase();
+
+		if (ch !== target[pos]) {
+			// A "t" can always start a fresh attempt.
+			if (ch === 't') {
+				clearHits();
+				pos = 1;
+				letter.classList.add('is-hit');
+			} else {
+				miss(letter);
+			}
+			return;
+		}
+
+		letter.classList.add('is-hit');
+		pos++;
+		if (pos < target.length) return;
+
+		// All four found: run the name like a test suite.
+		pos = 0;
+		running = true;
+		setTimeout(function () {
+			clearHits();
+			h1.classList.add('name-run');
+		}, 250);
+		setTimeout(function () {
+			h1.classList.remove('name-run');
+			running = false;
+		}, 250 + 1400 + index * 55);
+	});
+
 })();

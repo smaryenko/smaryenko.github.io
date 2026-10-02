@@ -285,6 +285,63 @@ a {
 	letter-spacing: -0.01em;
 }
 
+/* Name easter egg (letters split by site.js) */
+.hero h1 {
+	--run-pass: #16a34a;
+	--run-fail: #dc2626;
+}
+
+.is-dark .hero h1 {
+	--run-pass: #4ade80;
+	--run-fail: #f87171;
+}
+
+.hero h1 .word {
+	white-space: nowrap;
+}
+
+.hero h1 .letter {
+	display: inline-block;
+	transition: color 0.2s ease;
+}
+
+.hero h1 .letter.is-hit {
+	color: var(--run-pass);
+}
+
+.hero h1 .letter.is-miss {
+	animation: letter-miss 0.4s ease;
+}
+
+.hero h1.name-run .letter {
+	animation: letter-run 1.4s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+	animation-delay: calc(var(--i) * 55ms);
+}
+
+@keyframes letter-miss {
+	0%, 100% { translate: 0; color: inherit; }
+	20%, 60% { translate: -0.06em 0; color: var(--run-fail); }
+	40%, 80% { translate: 0.06em 0; color: var(--run-fail); }
+}
+
+/* Each letter "runs": queued (indigo) -> jumps -> passes (green) -> settles */
+@keyframes letter-run {
+	0% { translate: 0; rotate: 0deg; color: inherit; }
+	20% { translate: 0 -0.22em; rotate: -6deg; color: var(--accent); }
+	45% { translate: 0 0.05em; rotate: 3deg; color: var(--run-pass); }
+	65% { translate: 0 -0.05em; rotate: 0deg; color: var(--run-pass); }
+	100% { translate: 0; rotate: 0deg; color: inherit; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hero h1 .letter.is-miss { animation: none; color: var(--run-fail); }
+
+	@keyframes letter-run {
+		0%, 100% { color: inherit; }
+		30%, 70% { color: var(--run-pass); }
+	}
+}
+
 .hero .role {
 	margin: 1rem 0 2rem;
 	max-width: 36rem;
