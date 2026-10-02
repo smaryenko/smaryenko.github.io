@@ -535,3 +535,11 @@ var site = (function () {
 	});
 
 })();
+
+// Tab title while the visitor is away.
+(function () {
+	var title = document.title;
+	document.addEventListener('visibilitychange', function () {
+		document.title = document.hidden ? '🧪 Tests still running…' : title;
+	});
+})();
