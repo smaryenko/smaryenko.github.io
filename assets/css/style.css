@@ -528,6 +528,84 @@ a {
 
 .hero.is-fixable { cursor: pointer; }
 
+/* 404 overlay: failed test report */
+.report {
+	width: min(36rem, calc(100vw - 2rem));
+	padding: 0;
+	border: 1px solid var(--glass-border);
+	border-left: 4px solid #dc2626;
+	border-radius: 12px;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	color: var(--text);
+	font: 0.85rem/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.report::backdrop {
+	background: rgb(0 0 0 / 0.45);
+	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(4px);
+}
+
+.report[open] { animation: report-in 0.25s ease; }
+
+@keyframes report-in {
+	from { opacity: 0; transform: translateY(12px); }
+}
+
+.report-head {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 1rem 1.25rem;
+	border-bottom: 1px solid var(--glass-border);
+}
+
+.report-head h2 {
+	flex: 1;
+	margin: 0;
+	font: 600 0.95rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.report-badge {
+	padding: 0.15rem 0.5rem;
+	border-radius: 4px;
+	background: #dc2626;
+	color: #fff;
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+}
+
+.report-time { opacity: 0.6; font-size: 0.75rem; }
+
+.report-body {
+	margin: 0;
+	padding: 1.25rem;
+	overflow-x: auto;
+	font: inherit;
+	white-space: pre;
+}
+
+.report-error { color: #dc2626; font-weight: 700; }
+.report-fail { color: #dc2626; }
+.report-pass { color: #16a34a; }
+.report-path { color: #4f46e5; }
+.report-dim { opacity: 0.6; }
+.is-dark .report { border-left-color: #f87171; }
+.is-dark .report-error, .is-dark .report-fail { color: #f87171; }
+.is-dark .report-pass { color: #4ade80; }
+.is-dark .report-path { color: #818cf8; }
+
+.report-actions {
+	margin: 0;
+	padding: 0 1.25rem 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.report[open] { animation: none; }
+}
+
 .toast {
 	position: fixed;
 	left: 50%;
@@ -823,4 +901,184 @@ body::after {
 
 :root[data-theme="dark"] .project:hover .project-image {
 	background: #ffffff;
+}
+
+/* Hidden terminal (toggle with ` key) */
+.term {
+	position: fixed;
+	left: 50%;
+	bottom: 1.5rem;
+	z-index: 30;
+	display: flex;
+	flex-direction: column;
+	width: min(34rem, calc(100vw - 2rem));
+	/* Grow to fit the output; only scroll once it no longer fits the screen. */
+	max-height: calc(100vh - 3rem);
+	border: 1px solid #333;
+	border-radius: 10px;
+	background: #111;
+	box-shadow: 0 20px 50px rgb(0 0 0 / 0.4);
+	color: #d4d4d4;
+	font: 0.85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+	opacity: 0;
+	visibility: hidden;
+	transform: translate(-50%, 16px);
+	transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.term.is-open {
+	opacity: 1;
+	visibility: visible;
+	transform: translate(-50%, 0);
+}
+
+.term-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.4rem 0.75rem;
+	border-bottom: 1px solid #333;
+	color: #888;
+	font-size: 0.75rem;
+}
+
+.term-close {
+	border: 0;
+	background: none;
+	color: inherit;
+	font-size: 1.1rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.term-close:hover, .term-close:focus-visible { color: #fff; }
+
+.term-out {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 0.75rem;
+	white-space: pre-wrap;
+}
+
+.term-out > div + div { margin-top: 0.5rem; }
+.term-cmd { color: #4ade80; }
+.term-err { color: #f87171; }
+.term-dim { color: #888; }
+
+.term-line {
+	display: flex;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0.5rem 0.75rem;
+	border-top: 1px solid #333;
+	color: #4ade80;
+}
+
+.term-line input {
+	flex: 1;
+	border: 0;
+	outline: 0;
+	background: none;
+	color: #fff;
+	font: inherit;
+	caret-color: #4ade80;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.term { transition: none; }
+}
+
+/* Show visibility right away when opening (so the input can take focus),
+   but keep it during the fade-out when closing. */
+.term.is-open {
+	transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s;
+}
+
+/* Theme toggle easter egg: Windows 98 style "not responding" freeze */
+.is-frozen, .is-frozen * { cursor: wait !important; }
+.is-frozen { overflow: hidden; }
+
+.freeze {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+	/* Catches every click so the page underneath can't be used. */
+	background: rgb(255 255 255 / 0.25);
+}
+
+.win {
+	width: min(24rem, 100%);
+	padding: 3px;
+	background: #c0c0c0;
+	color: #000;
+	font: 12px/1.4 Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
+	box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff, 4px 4px 0 rgb(0 0 0 / 0.3);
+}
+
+.win-title {
+	padding: 3px 4px;
+	background: linear-gradient(90deg, #000080, #1084d0);
+	color: #fff;
+	font-weight: 700;
+}
+
+.win-body {
+	display: flex;
+	gap: 12px;
+	padding: 14px 10px 8px;
+}
+
+.win-body p { margin: 0; }
+
+.win-icon {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #ffcc00;
+	border: 1px solid #806600;
+	font: 700 20px/1 Arial, sans-serif;
+}
+
+.win-progress {
+	height: 16px;
+	margin: 4px 10px 10px;
+	padding: 2px;
+	background: #fff;
+	box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+}
+
+/* Chunky blocks like the classic progress bar */
+.win-progress span {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: repeating-linear-gradient(90deg, #000080 0 8px, transparent 8px 10px);
+	animation: win-progress linear forwards;
+}
+
+@keyframes win-progress { to { width: 100%; } }
+
+.win-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 6px;
+	padding: 0 10px 8px;
+}
+
+.win-actions button {
+	min-width: 75px;
+	padding: 4px 8px;
+	border: 0;
+	background: #c0c0c0;
+	color: #808080;
+	font: inherit;
+	text-shadow: 1px 1px #fff;
+	box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
 }

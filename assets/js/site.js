@@ -1,3 +1,7 @@
+// TODO:
+// There is absolutely nothing interesting
+// at /assets/secret-test.json
+
 // Show the back-to-top button after scrolling past 100px.
 (function () {
 	var button = document.getElementById('scroll');
@@ -38,6 +42,15 @@ var site = (function () {
 			toastEl.classList.add('is-visible');
 			clearTimeout(toastTimer);
 			toastTimer = setTimeout(function () { toastEl.classList.remove('is-visible'); }, duration || 2600);
+		},
+		// "Page not found" overlay styled as a failed test report (opened from test_404).
+		openNotFound: function () {
+			var dialog = document.getElementById('not-found');
+			if (!dialog || dialog.open) return;
+			dialog.querySelector('.report-time').textContent = (40 + Math.random() * 400 | 0) + 'ms';
+			dialog.showModal();
+			// Let the browser Back button close the overlay too.
+			history.pushState({ notFound: true }, '', '#404');
 		}
 	};
 })();
@@ -65,7 +78,17 @@ var site = (function () {
 
 	if (button) {
 		button.hidden = false;
+		var clicks = [];
 		button.addEventListener('click', function () {
+			// Easter egg: 10 toggles within 5 seconds "freezes" the page, Windows 98 style.
+			var now = Date.now();
+			clicks = clicks.filter(function (t) { return now - t < 5000; });
+			clicks.push(now);
+			if (clicks.length >= 10) {
+				clicks = [];
+				freeze();
+				return;
+			}
 			var next = site.isDark() ? 'light' : 'dark';
 			if (document.startViewTransition && !site.reduceMotion.matches) {
 				document.startViewTransition(function () { setTheme(next); });
@@ -73,6 +96,54 @@ var site = (function () {
 				setTheme(next);
 			}
 		});
+	}
+
+	// Old-Windows "not responding" dialog that blocks mouse and keyboard for 5 seconds.
+	function freeze() {
+		var seconds = 5;
+		var overlay = document.createElement('div');
+		overlay.className = 'freeze';
+		overlay.innerHTML =
+			'<div class="win" role="alertdialog" aria-modal="true" aria-labelledby="win-title" aria-describedby="win-text">' +
+			'<div class="win-title" id="win-title">Theme Switcher</div>' +
+			'<div class="win-body">' +
+			'<div class="win-icon" aria-hidden="true">!</div>' +
+			'<p id="win-text">Theme Switcher is not responding.<br>' +
+			'Too many light switches detected. Keyboard and mouse are disabled while it cools down.<br><br>' +
+			'Please wait <b class="win-count">' + seconds + '</b> seconds...</p>' +
+			'</div>' +
+			'<div class="win-progress" aria-hidden="true"><span></span></div>' +
+			'<div class="win-actions"><button type="button" disabled>End Task</button><button type="button" disabled>Wait</button></div>' +
+			'</div>';
+		document.body.appendChild(overlay);
+		document.documentElement.classList.add('is-frozen');
+		var count = overlay.querySelector('.win-count');
+		var bar = overlay.querySelector('.win-progress span');
+		// Restart the progress animation so it lasts exactly 5s.
+		bar.style.animationDuration = seconds + 's';
+
+		// Swallow every key until the timer runs out.
+		function block(e) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
+		}
+		window.addEventListener('keydown', block, true);
+		window.addEventListener('keyup', block, true);
+		window.addEventListener('keypress', block, true);
+		if (document.activeElement) document.activeElement.blur();
+
+		var timer = setInterval(function () {
+			seconds--;
+			count.textContent = seconds;
+			if (seconds > 0) return;
+			clearInterval(timer);
+			window.removeEventListener('keydown', block, true);
+			window.removeEventListener('keyup', block, true);
+			window.removeEventListener('keypress', block, true);
+			overlay.remove();
+			document.documentElement.classList.remove('is-frozen');
+			site.toast('Theme Switcher has recovered.\nPlease toggle responsibly.', 4000);
+		}, 1000);
 	}
 
 	site.systemDark.addEventListener('change', apply);
@@ -90,6 +161,7 @@ var site = (function () {
 
 	var ctx = canvas.getContext('2d');
 	var COLS = 22, TOTAL = COLS * COLS;
+	var NOT_FOUND = 403; // index of test_404
 	var cells = [], points = [], size, step, raf, last = 0, waveStart = 0;
 	var pointer = null, hovered = -1, fixedCount = 0, konamiStart = -1;
 
@@ -244,7 +316,7 @@ var site = (function () {
 		// Keep the tooltip in sync with the hovered dot's live state.
 		if (hovered >= 0) {
 			updateTip();
-			hero.classList.toggle('is-fixable', isFailing(hovered));
+			hero.classList.toggle('is-fixable', isClickable(hovered));
 		}
 		raf = requestAnimationFrame(frame);
 	}
@@ -324,6 +396,21 @@ var site = (function () {
 		return i >= 0 && cells[i].kind === 'fail';
 	}
 
+	// Live grid results, used by the hidden terminal's "tests" command.
+	site.testStats = function () {
+		var s = { total: TOTAL, pass: 0, fail: 0, queued: 0, none: 0, failed: [] };
+		cells.forEach(function (c, i) {
+			s[c.kind]++;
+			if (c.kind === 'fail') s.failed.push('test_' + String(i + 1).padStart(3, '0'));
+		});
+		return s;
+	};
+
+	// Clickable dots: failing ones, plus test_404 (opens the not-found report).
+	function isClickable(i) {
+		return i === NOT_FOUND || isFailing(i);
+	}
+
 	function updateTip() {
 		if (!tip) return;
 		if (hovered < 0) {
@@ -346,7 +433,7 @@ var site = (function () {
 		var rect = hero.getBoundingClientRect();
 		pointer = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 		hovered = overContent(e.target) ? -1 : nearest(pointer.x, pointer.y);
-		hero.classList.toggle('is-fixable', isFailing(hovered));
+		hero.classList.toggle('is-fixable', isClickable(hovered));
 		updateTip();
 		if (!animating()) draw(performance.now());
 	});
@@ -364,10 +451,17 @@ var site = (function () {
 		// (on mobile the grid sits behind the heading).
 		if (e.target.closest && e.target.closest('a, button, .letter')) return;
 		var rect = hero.getBoundingClientRect();
-		// Generous radius so a fingertip near a failing dot still hits it.
-		var radius = Math.max(28, step * 1.6);
-		var i = nearest(e.clientX - rect.left, e.clientY - rect.top, radius, true);
-		if (i < 0) return;
+		// Pick the dot actually under the pointer (any status), then only fix it
+		// if it's failing, so clicking a queued/passed dot never fixes a neighbour.
+		// Touch gets a slightly larger radius for fingertips.
+		var radius = e.pointerType === 'touch' ? Math.max(18, step * 0.9) : undefined;
+		var i = nearest(e.clientX - rect.left, e.clientY - rect.top, radius);
+		// Easter egg: test_404 opens the "page not found" report, whatever its status.
+		if (i === NOT_FOUND) {
+			site.openNotFound();
+			return;
+		}
+		if (!isFailing(i)) return;
 		// Fixed: turn green, hold a little longer, then back to no status.
 		setKind(cells[i], 'pass', performance.now(), 3500);
 		cells[i].ms = 12 + ((Math.random() * 60) | 0);
@@ -542,4 +636,171 @@ var site = (function () {
 	document.addEventListener('visibilitychange', function () {
 		document.title = document.hidden ? '🧪 Tests still running…' : title;
 	});
+})();
+
+// 404 overlay: close via button, Esc, backdrop click or browser Back.
+(function () {
+	var dialog = document.getElementById('not-found');
+	if (!dialog) return;
+
+	// Clicking the dimmed backdrop (outside the report) closes it.
+	dialog.addEventListener('click', function (e) {
+		if (e.target === dialog) dialog.close();
+	});
+
+	// Closed by button/Esc/backdrop: drop the #404 history entry we pushed.
+	dialog.addEventListener('close', function () {
+		if (history.state && history.state.notFound) history.back();
+	});
+
+	// Closed by browser Back: the entry is already gone, just hide the dialog.
+	window.addEventListener('popstate', function () {
+		if (dialog.open) dialog.close();
+	});
+
+	// Opening the page directly at #404 (e.g. a shared link) shows the report.
+	if (location.hash === '#404') {
+		history.replaceState(null, '', location.pathname + location.search);
+		site.openNotFound();
+	}
+})();
+
+// Hidden terminal: type "help" anywhere (or press the key left of 1), Esc to close.
+(function () {
+	var term, out, input, history = [], histPos = 0;
+
+	var commands = {
+		help: function () {
+			return 'Available commands:\n\n' +
+				['about', 'tests', 'bugs', 'coffee', 'sudo', 'rm -rf /', 'konami', '42', 'clear', 'exit'].join('\n');
+		},
+		about: function () {
+			return 'Stanislav Maryenko\nSoftware Developer in Test and Data Quality Analyst.\nBreaks things professionally, so you don\'t have to.';
+		},
+		tests: function () {
+			// Report what the hero grid is actually showing right now.
+			if (!site.testStats) return 'No test runner found.';
+			var s = site.testStats();
+			var text = 'Running ' + s.total + ' tests...\n\n' +
+				s.pass + ' passed, ' + s.fail + ' failed, ' + s.queued + ' queued, ' + s.none + ' not run';
+			if (s.fail) {
+				text += '\n\nFailed:\n' + s.failed.map(function (id) { return '  ✗ ' + id; }).join('\n') +
+					'\n\nClick the red dots on the page to fix them.';
+			} else {
+				text += '\n\nAll green. Suspicious.';
+			}
+			return text;
+		},
+		bugs: function () { return '42 bugs currently known.'; },
+		coffee: function () { return 'ERROR: Coffee machine not connected.'; },
+		sudo: function () { return 'Nice try.'; },
+		'rm -rf /': function () { return 'Permission denied.\n\nQA saved the day.'; },
+		konami: function () {
+			return '↑ ↑ ↓ ↓ ← → ← → B A\n\n' +
+				'Close the terminal (Esc) and enter it on the page.\n' +
+				'Shortcuts are for developers. QA does it by hand.';
+		},
+		42: function () { return 'The Answer to the Ultimate Question of Life, the Universe, and Everything.\nStill waiting on the question. Ticket is in the backlog.'; },
+		clear: function () { out.textContent = ''; return ''; },
+		exit: function () { close(); return ''; }
+	};
+
+	function print(text, cls) {
+		var line = document.createElement('div');
+		if (cls) line.className = cls;
+		line.textContent = text;
+		out.appendChild(line);
+		out.scrollTop = out.scrollHeight;
+	}
+
+	function run(raw) {
+		var cmd = raw.trim().replace(/\s+/g, ' ');
+		print('> ' + raw, 'term-cmd');
+		if (!cmd) return;
+		history.push(cmd);
+		histPos = history.length;
+		// "sudo anything" is still a nice try.
+		var fn = commands[cmd] || (/^sudo\b/.test(cmd) && commands.sudo);
+		var result = fn ? fn() : 'command not found: ' + cmd + '\nType "help" for available commands.';
+		if (result) print(result, fn ? '' : 'term-err');
+	}
+
+	function build() {
+		term = document.createElement('div');
+		term.className = 'term';
+		term.setAttribute('role', 'dialog');
+		term.setAttribute('aria-label', 'Hidden terminal');
+		term.innerHTML =
+			'<div class="term-bar"><span>qa@smaryenko: ~</span>' +
+			'<button type="button" class="term-close" aria-label="Close terminal">×</button></div>' +
+			'<div class="term-out" aria-live="polite"></div>' +
+			'<form class="term-line"><label for="term-input" aria-hidden="true">&gt;</label>' +
+			'<input id="term-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Command" /></form>';
+		document.body.appendChild(term);
+		out = term.querySelector('.term-out');
+		input = term.querySelector('input');
+		print('Welcome, curious visitor. Type "help" to begin.', 'term-dim');
+
+		term.querySelector('.term-close').addEventListener('click', close);
+		term.querySelector('form').addEventListener('submit', function (e) {
+			e.preventDefault();
+			run(input.value);
+			input.value = '';
+		});
+		input.addEventListener('keydown', function (e) {
+			// Keep terminal typing from triggering page shortcuts (e.g. Konami).
+			e.stopPropagation();
+			if (e.key === 'Escape' || e.code === 'Backquote' || e.code === 'IntlBackslash' || e.key === '`') { e.preventDefault(); close(); }
+			else if (e.key === 'ArrowUp' && histPos > 0) { e.preventDefault(); input.value = history[--histPos]; }
+			else if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				histPos = Math.min(history.length, histPos + 1);
+				input.value = history[histPos] || '';
+			}
+		});
+	}
+
+	function open() {
+		if (!term) build();
+		// Drop focus from whatever had it (e.g. a link), then focus the prompt once
+		// the panel is visible. Elements with visibility: hidden can't take focus,
+		// so wait a frame for the .is-open styles to apply.
+		if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+		term.classList.add('is-open');
+		input.focus({ preventScroll: true });
+		requestAnimationFrame(function () {
+			if (document.activeElement !== input) input.focus({ preventScroll: true });
+		});
+	}
+
+	function close() {
+		if (term) term.classList.remove('is-open');
+	}
+
+	// Two triggers:
+	//  - the key left of "1" / above Tab, by physical position (works on any layout);
+	//  - typing the word "help" anywhere on the page (no special key needed).
+	var typed = '';
+	document.addEventListener('keydown', function (e) {
+		if (e.ctrlKey || e.metaKey || e.altKey) return;
+		var t = e.target;
+		if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+		var isOpen = term && term.classList.contains('is-open');
+		if (e.code === 'Backquote' || e.code === 'IntlBackslash' || e.key === '`') {
+			e.preventDefault();
+			if (isOpen) close(); else open();
+			return;
+		}
+		if (e.key.length !== 1) return;
+		typed = (typed + e.key.toLowerCase()).slice(-4);
+		if (typed === 'help' && !isOpen) {
+			// Don't let the final "p" land in the freshly focused prompt.
+			e.preventDefault();
+			typed = '';
+			open();
+			run('help');
+		}
+	});
+
+	site.openTerminal = open;
 })();

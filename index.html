@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<!--
+	If you're reading this:
+	congratulations, you're either a developer,
+	a recruiter, or extremely bored.
+
+	Check site.js.
+-->
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
@@ -202,6 +209,28 @@
 				</ul>
 			</div>
 		</footer>
+
+		<!-- 404 overlay: a failed test report, opened by clicking test_404 in the hero grid -->
+		<dialog id="not-found" class="report" aria-labelledby="report-title">
+			<header class="report-head">
+				<span class="report-badge">FAILED</span>
+				<h2 id="report-title">test_404 · page_should_exist</h2>
+				<span class="report-time"></span>
+			</header>
+			<pre class="report-body"><span class="report-error">AssertionError: expected page to exist</span>
+
+  <span class="report-dim">expected:</span> <span class="report-pass">200 OK</span>
+  <span class="report-dim">received:</span> <span class="report-fail">404 Not Found</span>
+
+  <span class="report-dim">at</span> Browser.navigate (<span class="report-path">smaryenko.github.io/???</span>)
+  <span class="report-dim">at</span> Visitor.click (<span class="report-path">hero/test-grid:404</span>)
+  <span class="report-dim">at</span> Curiosity.explore (<span class="report-path">human.js:1</span>)
+
+<span class="report-dim">1 failed, 483 passed · flaky? probably not.</span></pre>
+			<form method="dialog" class="report-actions">
+				<button type="submit" class="button" autofocus>← Go back</button>
+			</form>
+		</dialog>
 
 		<script src="assets/js/site.js" defer></script>
 	</body>
