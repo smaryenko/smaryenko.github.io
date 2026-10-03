@@ -19,24 +19,46 @@
 		<meta property="og:url" content="https://smaryenko.github.io/" />
 		<meta property="og:title" content="Stanislav Maryenko" />
 		<meta property="og:description" content="Software Developer in Test and Data Quality Analyst. Data analysis pet projects and test automation frameworks." />
-		<meta property="og:image" content="https://smaryenko.github.io/images/og.png" />
+		<meta property="og:image" content="https://smaryenko.github.io/images/og.jpg" />
+		<meta property="og:image:type" content="image/jpeg" />
 		<meta property="og:image:width" content="1200" />
 		<meta property="og:image:height" content="630" />
 		<meta property="og:image:alt" content="Stanislav Maryenko, Software Developer in Test and Data Quality Analyst" />
 		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:image" content="https://smaryenko.github.io/images/og.png" />
+		<meta name="twitter:image" content="https://smaryenko.github.io/images/og.jpg" />
+
+		<meta name="twitter:title" content="Stanislav Maryenko" />
+		<meta name="twitter:description" content="Software Developer in Test and Data Quality Analyst. Data analysis pet projects and test automation frameworks." />
+		<link rel="canonical" href="https://smaryenko.github.io/" />
+		<meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
 
 		<link rel="icon" type="image/png" href="images/favicon.png" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" />
+		<link rel="apple-touch-icon" href="images/favicon.png" />
 		<link rel="stylesheet" href="assets/css/style.css" />
-		<!-- Apply saved theme before first paint to avoid a flash -->
+		<!-- Apply the theme before first paint to avoid a flash -->
 		<script>
-			try {
-				var t = localStorage.getItem('theme');
-				if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-			} catch (e) {}
+			(function () {
+				var root = document.documentElement, t = null;
+				try { t = localStorage.getItem('theme'); } catch (e) {}
+				if (t === 'light' || t === 'dark') root.dataset.theme = t;
+				var dark = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+				root.classList.toggle('is-dark', dark);
+			})();
+		</script>
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "Person",
+				"name": "Stanislav Maryenko",
+				"jobTitle": "Software Developer in Test and Data Quality Analyst",
+				"url": "https://smaryenko.github.io/",
+				"image": "https://smaryenko.github.io/images/og.jpg",
+				"sameAs": [
+					"https://github.com/smaryenko",
+					"https://www.linkedin.com/in/stanislavmaryenko"
+				]
+			}
 		</script>
 	</head>
 	<body>
@@ -91,9 +113,9 @@
 					<p class="role">Software Developer in Test and Data Quality Analyst</p>
 					<ul class="icons">
 						<li><a href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
-						<li><a href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
-						<li><a href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
-						<li><a href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
+						<li><a href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
+						<li><a href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in new tab)" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
+						<li><a href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive, new tab)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
 					</ul>
 					<a href="#one" class="button">Pet Projects</a>
 				</div>
@@ -115,83 +137,83 @@
 					</header>
 
 					<article class="project">
-						<a href="https://smaryenko.github.io/myndigo/" target="_blank" rel="noopener noreferrer" class="project-image project-image--shot" tabindex="-1"><img src="images/myndigo.jpg" alt="Screenshot of the Myndigo home page" loading="lazy" /></a>
+						<div class="project-image project-image--shot"><img src="images/myndigo.jpg" width="800" height="500" alt="Screenshot of the Myndigo home page" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>Myndigo</h2>
+							<h3>Myndigo</h3>
 							<p>Web app that helps families of children with autism keep important information in one place and share it instantly via QR code or NFC (React, TypeScript)</p>
-							<a href="https://smaryenko.github.io/myndigo/" target="_blank" rel="noopener noreferrer" class="button">Open app</a>
+							<a href="https://smaryenko.github.io/myndigo/" target="_blank" rel="noopener noreferrer" class="button">Open app<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://smaryenko.github.io/cars/" target="_blank" rel="noopener noreferrer" class="project-image project-image--shot" tabindex="-1"><img src="images/cars.jpg" alt="Screenshot of the Cars Character Swiper app" loading="lazy" /></a>
+						<div class="project-image project-image--shot"><img src="images/cars.jpg" width="800" height="500" alt="Screenshot of the Cars Character Swiper app" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>Cars Character Swiper</h2>
+							<h3>Cars Character Swiper</h3>
 							<p>Browse 700+ Pixar Cars characters in a swipeable slideshow (plain HTML, CSS and JavaScript)</p>
-							<a href="https://smaryenko.github.io/cars/" target="_blank" rel="noopener noreferrer" class="button">Open app</a>
+							<a href="https://smaryenko.github.io/cars/" target="_blank" rel="noopener noreferrer" class="button">Open app<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://smaryenko.github.io/school/" target="_blank" rel="noopener noreferrer" class="project-image project-image--shot" tabindex="-1"><img src="images/school.jpg" alt="Screenshot of the Numicon Explorer app" loading="lazy" /></a>
+						<div class="project-image project-image--shot"><img src="images/school.jpg" width="800" height="500" alt="Screenshot of the Numicon Explorer app" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>Numicon Explorer</h2>
+							<h3>Numicon Explorer</h3>
 							<p>Interactive maths app for kids: learn Numicon shapes, drag two shapes together to see their sum, and practise with quizzes</p>
-							<a href="https://smaryenko.github.io/school/" target="_blank" rel="noopener noreferrer" class="button">Open app</a>
+							<a href="https://smaryenko.github.io/school/" target="_blank" rel="noopener noreferrer" class="button">Open app<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/goodreads/goodreads_2021.ipynb" target="_blank" rel="noopener noreferrer" class="project-image" tabindex="-1"><img src="images/goodreads.png" alt="Goodreads logo" loading="lazy" /></a>
+						<div class="project-image"><img src="images/goodreads.png" width="197" height="43" alt="Goodreads logo" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>Goodreads statistics 2021</h2>
+							<h3>Goodreads statistics 2021</h3>
 							<p>Dive into books rating statistics and check if there is correlation between my and people ratings</p>
-							<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/goodreads/goodreads_2021.ipynb" target="_blank" rel="noopener noreferrer" class="button">Learn more</a>
+							<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/goodreads/goodreads_2021.ipynb" target="_blank" rel="noopener noreferrer" class="button">Learn more<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://public.tableau.com/app/profile/stanislav.maryenko/viz/Datajobsalaries/Datajobssalaries" target="_blank" rel="noopener noreferrer" class="project-image" tabindex="-1"><img src="images/tableau.png" alt="Tableau logo" loading="lazy" /></a>
+						<div class="project-image"><img src="images/tableau.png" width="393" height="226" alt="Tableau logo" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>Data jobs salaries visualization</h2>
+							<h3>Data jobs salaries visualization</h3>
 							<p>Visualization of data related jobs salaries using Tableau</p>
-							<a href="https://public.tableau.com/app/profile/stanislav.maryenko/viz/Datajobsalaries/Datajobssalaries" target="_blank" rel="noopener noreferrer" class="button">Learn more</a>
+							<a href="https://public.tableau.com/app/profile/stanislav.maryenko/viz/Datajobsalaries/Datajobssalaries" target="_blank" rel="noopener noreferrer" class="button">Learn more<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/nhl/NHL.ipynb" target="_blank" rel="noopener noreferrer" class="project-image" tabindex="-1"><img src="images/nhl.svg" alt="NHL logo" loading="lazy" /></a>
+						<div class="project-image"><img src="images/nhl.svg" width="960" height="640" alt="NHL logo" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>NHL players birth month bias</h2>
+							<h3>NHL players birth month bias</h3>
 							<p>Check if the study about NHL bias in favour of players born earlier in the year is actually true for current players (season 21-22)</p>
-							<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/nhl/NHL.ipynb" target="_blank" rel="noopener noreferrer" class="button">Learn more</a>
+							<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/nhl/NHL.ipynb" target="_blank" rel="noopener noreferrer" class="button">Learn more<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/wine/Wine.ipynb" target="_blank" rel="noopener noreferrer" class="project-image" tabindex="-1"><img src="images/wine.png" alt="Wine bottle illustration" loading="lazy" /></a>
+						<div class="project-image"><img src="images/wine.png" width="352" height="352" alt="Wine bottle illustration" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>Wine reviews data visualization</h2>
+							<h3>Wine reviews data visualization</h3>
 							<p>Using words cloud visualization with custom background for wine reviews data</p>
-							<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/wine/Wine.ipynb" target="_blank" rel="noopener noreferrer" class="button">Learn more</a>
+							<a href="https://nbviewer.org/github/smaryenko/notebooks/blob/main/wine/Wine.ipynb" target="_blank" rel="noopener noreferrer" class="button">Learn more<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://github.com/smaryenko/serenity" target="_blank" rel="noopener noreferrer" class="project-image" tabindex="-1"><img src="images/java.png" alt="Java logo" loading="lazy" /></a>
+						<div class="project-image"><img src="images/java.png" width="379" height="512" alt="Java logo" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>Java Test Framework skeleton</h2>
+							<h3>Java Test Framework skeleton</h3>
 							<p>Test Automation Framework base for Frontend and Backend testing (based on Serenity)</p>
-							<a href="https://github.com/smaryenko/serenity" target="_blank" rel="noopener noreferrer" class="button">Learn more</a>
+							<a href="https://github.com/smaryenko/serenity" target="_blank" rel="noopener noreferrer" class="button">Learn more<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 
 					<article class="project">
-						<a href="https://github.com/smaryenko/Trello" target="_blank" rel="noopener noreferrer" class="project-image" tabindex="-1"><img src="images/csharp.svg" alt="C# logo" loading="lazy" /></a>
+						<div class="project-image"><img src="images/csharp.svg" width="758" height="861" alt="C# logo" loading="lazy" /></div>
 						<div class="project-body">
-							<h2>C# Test Framework skeleton</h2>
+							<h3>C# Test Framework skeleton</h3>
 							<p>Test Automation Framework base for Frontend and Backend testing (based on .NET core and NUnit)</p>
-							<a href="https://github.com/smaryenko/Trello" target="_blank" rel="noopener noreferrer" class="button">Learn more</a>
+							<a href="https://github.com/smaryenko/Trello" target="_blank" rel="noopener noreferrer" class="button">Learn more<span class="sr-only"> (opens in new tab)</span></a>
 						</div>
 					</article>
 				</div>
@@ -203,9 +225,9 @@
 			<div class="container">
 				<ul class="icons">
 					<li><a href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
-					<li><a href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
-					<li><a href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
-					<li><a href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
+					<li><a href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
+					<li><a href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in new tab)" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
+					<li><a href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive, new tab)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
 				</ul>
 			</div>
 		</footer>
@@ -232,6 +254,42 @@
 			</form>
 		</dialog>
 
+		<!-- Hidden terminal (cloned by terminal.js on first open) -->
+		<template id="term-template">
+			<dialog class="term" aria-label="Hidden terminal">
+				<div class="term-bar">
+					<span>qa@smaryenko: ~</span>
+					<button type="button" class="term-close" aria-label="Close terminal">×</button>
+				</div>
+				<div class="term-out" aria-live="polite"></div>
+				<form class="term-line">
+					<label for="term-input" aria-hidden="true">&gt;</label>
+					<input id="term-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Command" />
+				</form>
+			</dialog>
+		</template>
+
+		<!-- Theme toggle freeze (cloned by theme.js after 10 quick toggles) -->
+		<template id="freeze-template">
+			<div class="freeze">
+				<div class="win" role="alertdialog" aria-modal="true" aria-labelledby="win-title" aria-describedby="win-text" tabindex="-1">
+					<div class="win-title" id="win-title">Theme Switcher</div>
+					<div class="win-body">
+						<div class="win-icon" aria-hidden="true">!</div>
+						<p id="win-text">Theme Switcher is not responding.<br />
+						Too many light switches detected. Keyboard and mouse are disabled while it cools down.<br /><br />
+						Please wait <b class="win-count"></b> seconds...</p>
+					</div>
+					<div class="win-progress" aria-hidden="true"><span></span></div>
+					<div class="win-actions"><button type="button" disabled>End Task</button><button type="button" disabled>Wait</button></div>
+				</div>
+			</div>
+		</template>
+
 		<script src="assets/js/site.js" defer></script>
+		<script src="assets/js/theme.js" defer></script>
+		<script src="assets/js/grid.js" defer></script>
+		<script src="assets/js/terminal.js" defer></script>
+		<script src="assets/js/utils.js" defer></script>
 	</body>
 </html>

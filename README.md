@@ -8,8 +8,14 @@ Live at <https://smaryenko.github.io/>.
 
 - `index.html`: the whole page
 - `assets/css/style.css`: styles, including light/dark themes
-- `assets/js/site.js`: theme toggle, interactive test grid, card reveal and easter eggs
-- `images/`: project images, favicon and social preview (`og.png`)
+- `assets/js/`: plain deferred scripts, loaded in order from `index.html`
+  - `site.js`: shared helpers on `window.site` (theme check, toast, 404 overlay)
+  - `theme.js`: light/dark toggle
+  - `grid.js`: interactive test grid in the hero
+  - `terminal.js`: hidden terminal
+  - `utils.js`: back-to-top, card reveal, 404 handling, Konami code, name easter egg
+- `assets/fonts/`: self-hosted Inter and Fraunces (latin subset)
+- `images/`: project images, favicon and social preview (`og.jpg`)
 
 No build step. Open `index.html` in a browser, or push to `main` to publish via GitHub Pages.
 
