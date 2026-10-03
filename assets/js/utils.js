@@ -1,5 +1,5 @@
 // Small page behaviours: back-to-top, card reveal, 404 overlay, tab title,
-// the Konami code, the DevTools greeting and the name easter egg.
+// the Konami code, the DevTools greeting, the name easter egg and the dead pixel.
 (() => {
 	// Show the back-to-top button after scrolling past 100px.
 	{
@@ -185,5 +185,46 @@
 				}, 250 + 1400 + index * 55);
 			});
 		}
+	}
+
+	// Dead pixel: a single pixel fixed on the screen. Clicking/tapping within ±1px shows a toast.
+	{
+		// Mouse: ±3px around the pixel. Finger taps are far less precise, so allow more.
+		const TOLERANCE = 4;
+		const TOUCH_TOLERANCE = 12;
+		const coarse = window.matchMedia('(pointer: coarse)');
+		let x = 0, y = 0;
+
+		const px = document.createElement('div');
+		px.className = 'dead-pixel';
+		px.setAttribute('aria-hidden', 'true');
+		document.body.appendChild(px);
+
+		// Fraction of the viewport, rounded to whole pixels so it stays crisp.
+		const place = () => {
+			x = Math.round(window.innerWidth * 0.53);
+			y = Math.round(window.innerHeight * 0.25);
+			px.style.left = x + 'px';
+			px.style.top = y + 'px';
+		};
+		place();
+		window.addEventListener('resize', place);
+
+		// Hit-tested on the document (capture), so it works even if something sits on top.
+		// Once found, the pixel is "fixed" until the next page load.
+		const onClick = (e) => {
+			// Measure the real on-screen position at click time (avoids stale coords
+			// after mobile toolbar resizes, zoom, etc.).
+			const r = px.getBoundingClientRect();
+			const tol = coarse.matches ? TOUCH_TOLERANCE : TOLERANCE;
+			const dx = e.clientX - (r.left + r.width / 2);
+			const dy = e.clientY - (r.top + r.height / 2);
+			if (Math.abs(dx) > 0.5 + tol || Math.abs(dy) > 0.5 + tol) return;
+			px.remove();
+			window.removeEventListener('resize', place);
+			document.removeEventListener('click', onClick, true);
+			site.toast('Dead pixel fixed ✓\nNo need to replace your screen yet', 4000);
+		};
+		document.addEventListener('click', onClick, true);
 	}
 })();

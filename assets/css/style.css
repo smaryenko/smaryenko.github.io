@@ -643,6 +643,22 @@ a {
 	transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.6s ease, translate 0.6s ease;
 }
 
+/* Dead pixel easter egg (hit testing is done in JS, so it never blocks clicks) */
+.dead-pixel {
+	position: fixed;
+	width: 1px;
+	height: 1px;
+	background: #000;
+	opacity: 0.35;
+	pointer-events: none;
+	z-index: 9999;
+}
+
+.is-dark .dead-pixel {
+	background: #c8c8ff; /* faint bluish "stuck" pixel that blends with the dark hero glow */
+	opacity: 0.4;
+}
+
 /* Back to top */
 .to-top {
 	position: fixed;

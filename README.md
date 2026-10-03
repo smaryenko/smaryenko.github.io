@@ -13,7 +13,7 @@ Live at <https://smaryenko.github.io/>.
   - `theme.js`: light/dark toggle
   - `grid.js`: interactive test grid in the hero
   - `terminal.js`: hidden terminal
-  - `utils.js`: back-to-top, card reveal, 404 handling, Konami code, name easter egg
+  - `utils.js`: back-to-top, card reveal, 404 handling
 - `assets/fonts/`: self-hosted Inter and Fraunces (latin subset)
 - `images/`: project images, favicon and social preview (`og.jpg`)
 
