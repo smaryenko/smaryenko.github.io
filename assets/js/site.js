@@ -802,5 +802,33 @@ var site = (function () {
 		}
 	});
 
+	// Touch trigger (no keyboard on phones): long-press the name in the hero.
+	var heading = document.querySelector('.hero h1');
+	if (heading) {
+		var pressTimer, startX, startY;
+		heading.addEventListener('pointerdown', function (e) {
+			if (e.pointerType !== 'touch') return;
+			startX = e.clientX;
+			startY = e.clientY;
+			clearTimeout(pressTimer);
+			pressTimer = setTimeout(function () {
+				if (navigator.vibrate) navigator.vibrate(30);
+				open();
+				run('help');
+			}, 800);
+		});
+		heading.addEventListener('pointermove', function (e) {
+			// A scroll or swipe isn't a long-press.
+			if (Math.hypot(e.clientX - startX, e.clientY - startY) > 10) clearTimeout(pressTimer);
+		});
+		['pointerup', 'pointercancel', 'pointerleave'].forEach(function (type) {
+			heading.addEventListener(type, function () { clearTimeout(pressTimer); });
+		});
+		// Stop the system copy/lookup menu from popping up on long-press.
+		heading.addEventListener('contextmenu', function (e) {
+			if (window.matchMedia('(hover: none)').matches) e.preventDefault();
+		});
+	}
+
 	site.openTerminal = open;
 })();

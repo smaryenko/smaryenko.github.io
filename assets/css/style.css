@@ -483,6 +483,17 @@ a {
 
 .theme-toggle[hidden] { display: none; }
 
+/* Rapid taps on mobile: no text selection, tap flash, callout or double-tap zoom. */
+.theme-toggle {
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+}
+
+.theme-toggle svg { pointer-events: none; }
+
 .theme-toggle:hover {
 	background: var(--glass-bg-hover);
 	transform: rotate(-15deg);
@@ -499,6 +510,11 @@ a {
 .theme-toggle .icon-sun { opacity: 0; transform: rotate(-90deg) scale(0.5); }
 .is-dark .theme-toggle .icon-sun { opacity: 1; transform: none; }
 .is-dark .theme-toggle .icon-moon { opacity: 0; transform: rotate(90deg) scale(0.5); }
+
+/* Hover tilt sticks after a tap on touch screens, so only use it with a real pointer. */
+@media (hover: none) {
+	.theme-toggle:hover { background: var(--glass-bg); transform: none; }
+}
 
 /* Grid tooltip + toast */
 .grid-tip {
@@ -903,7 +919,16 @@ body::after {
 	background: #ffffff;
 }
 
-/* Hidden terminal (toggle with ` key) */
+/* Long-press on the name opens the terminal on touch screens: no selection or callout. */
+@media (hover: none) {
+	.hero h1 {
+		-webkit-user-select: none;
+		user-select: none;
+		-webkit-touch-callout: none;
+	}
+}
+
+/* Hidden terminal (type "help", or long-press the name on touch screens) */
 .term {
 	position: fixed;
 	left: 50%;
