@@ -250,7 +250,7 @@
 		// Clickable dots: failing ones, plus test_404 (opens the not-found report).
 		const isClickable = (i) => i === NOT_FOUND || isFailing(i);
 
-		// Live grid results, used by the hidden terminal's "tests" command.
+		// Live grid results, exposed on the site API for anyone poking at the console.
 		site.testStats = () => {
 			const s = { total: TOTAL, pass: 0, fail: 0, queued: 0, none: 0, failed: [] };
 			cells.forEach((c, i) => {

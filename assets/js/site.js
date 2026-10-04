@@ -4,7 +4,7 @@
 
 (() => {
 	// Shared state and helpers used by the other scripts (window.site).
-	// Scripts also hang cross-module hooks on `site` (testStats, openTerminal, runTerminal).
+	// Scripts also hang cross-module hooks on `site` (openTerminal, runTerminal, testStats).
 
 	const root = document.documentElement;
 	const systemDark = window.matchMedia('(prefers-color-scheme: dark)');

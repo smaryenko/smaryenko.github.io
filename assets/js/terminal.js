@@ -72,17 +72,7 @@
 		return tree;
 	}
 
-	// Top-level `ls`: directories first, then files, sorted and spaced out.
-	function listTop(node) {
-		const names = Object.keys(node).sort((a, b) => {
-			const da = node[a] !== null, db = node[b] !== null;
-			if (da !== db) return da ? -1 : 1; // dirs before files
-			return a.localeCompare(b);
-		});
-		return names.map((n) => (node[n] !== null ? n + '/' : n)).join('   ');
-	}
-
-	// Recursive `tree`: Unicode branch characters, dirs before files per level.
+	// Recursive `ls`: Unicode branch characters, dirs before files per level.
 	function renderTree(node, prefix) {
 		const names = Object.keys(node).sort((a, b) => {
 			const da = node[a] !== null, db = node[b] !== null;
@@ -194,32 +184,16 @@
 
 	const commands = {
 		help: () => 'Available commands:\n\n' +
-			['about', 'ls', 'tree', 'jump', 'tests', 'bugs', 'coffee', 'sudo', 'rm -rf /', 'konami', '42', 'clear', 'exit'].join('\n'),
-		ls: () => listTop(buildTree()),
-		tree: () => '.\n' + renderTree(buildTree(), '').replace(/\n$/, ''),
+			['about', 'ls', 'jump', 'coffee', 'sudo', 'rm -rf /', 'konami', '42', 'clear', 'exit'].join('\n'),
+		ls: () => '.\n' + renderTree(buildTree(), '').replace(/\n$/, ''),
 		about: () => 'Stanislav Maryenko\nSoftware Developer in Test and Data Quality Analyst.\nBreaks things professionally, so you don\'t have to.',
-		tests: () => {
-			// Report what the hero grid is actually showing right now.
-			if (!site.testStats) return 'No test runner found.';
-			const s = site.testStats();
-			let text = 'Running ' + s.total + ' tests...\n\n' +
-				s.pass + ' passed, ' + s.fail + ' failed, ' + s.queued + ' queued, ' + s.none + ' not run';
-			if (s.fail) {
-				text += '\n\nFailed:\n' + s.failed.map((id) => '  ✗ ' + id).join('\n') +
-					'\n\nClick the red dots on the page to fix them.';
-			} else {
-				text += '\n\nAll green. Suspicious.';
-			}
-			return text;
-		},
-		bugs: () => '42 bugs currently known.',
 		coffee: () => 'ERROR: Coffee machine not connected.',
 		sudo: () => 'Nice try.',
 		'rm -rf /': () => 'Permission denied.\n\nQA saved the day.',
 		konami: () => '↑ ↑ ↓ ↓ ← → ← → B A\n\n' +
 			'Close the terminal (Esc) and enter it on the page.\n' +
 			'Shortcuts are for developers. QA does it by hand.',
-		42: () => 'The Answer to the Ultimate Question of Life, the Universe, and Everything.\nStill waiting on the question. Ticket is in the backlog.',
+		42: () => 'The Answer to the Ultimate Question of Life, the Universe, and Everything.\nStill waiting on the question. Ticket is in the backlog.\n\nCoincidentally, 42 tests are failing. Close the terminal and fix them by hand (click the red dots).',
 		clear: () => { out.textContent = ''; return ''; },
 		exit: () => { close(); return ''; }
 	};

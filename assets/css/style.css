@@ -336,6 +336,11 @@ a {
 .letter-deco[data-kind="xmas"] {
 	translate: -42% 0.16em;
 	rotate: -14deg;
+	animation-name: deco-pop, deco-sway;
+	animation-duration: 0.5s, 3s;
+	animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease-in-out;
+	animation-iteration-count: 1, infinite;
+	animation-delay: 0s, 0.5s;
 }
 
 @keyframes deco-pop {
@@ -348,9 +353,16 @@ a {
 	50% { translate: -50% -0.02em; }
 }
 
+/* Santa hat sways around its resting -14deg tilt (the pom-pom leads the swing). */
+@keyframes deco-sway {
+	0%, 100% { rotate: -14deg; }
+	50% { rotate: -6deg; }
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.letter-deco { animation: none; opacity: 1; scale: 1; }
 	.letter-deco[data-kind="birthday"] { animation: none; }
+	.letter-deco[data-kind="xmas"] { animation: none; }
 }
 
 .hero .role {
