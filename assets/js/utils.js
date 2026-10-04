@@ -89,25 +89,21 @@
 	}
 
 	// A hello for anyone who opens DevTools.
+	// Printed from `pageshow`, which fires on EVERY display of the page: a fresh
+	// load AND a back/forward-cache (bfcache) restore. The earlier alternating
+	// behaviour was bfcache — on a restored page the scripts don't re-run, so a
+	// one-shot console.log/`load` greeting is skipped, making it blink in and out
+	// every other refresh. `pageshow` runs in both cases, so it's consistent.
+	// The `help` DevTools getter is installed in site.js (first script) so the
+	// global exists before anyone can type it during load.
 	if (window.console) {
-		console.log(
-			'%cHi there 👋%c\n\nFound a bug? You\'re my kind of person.\nSay hello: gotheg@gmail.com\n\nPsst: type help to open the console.',
-			'font: 700 20px Georgia, serif; color: #4f46e5;',
-			'font: 13px ui-monospace, Menlo, monospace; color: inherit;'
-		);
-
-		// Typing `help` in DevTools reads this getter, which opens the hidden terminal.
-		try {
-			Object.defineProperty(window, 'help', {
-				configurable: true,
-				get() {
-					if (!site.openTerminal) return 'Console not ready yet.';
-					site.openTerminal();
-					site.runTerminal('help');
-					return 'Opened the console on the page ↓';
-				}
-			});
-		} catch (e) {}
+		window.addEventListener('pageshow', () => {
+			console.log(
+				'%cHi there 👋%c\n\nFound a bug? You\'re my kind of person.\nSay hello: gotheg@gmail.com\n\nPsst: type help to open the console.',
+				'font: 700 20px Georgia, serif; color: #4f46e5;',
+				'font: 13px ui-monospace, Menlo, monospace; color: inherit;'
+			);
+		});
 	}
 
 	// Name easter egg: click the letters T, E, S, T in the name (any S works).
@@ -212,19 +208,30 @@
 
 		// Hit-tested on the document (capture), so it works even if something sits on top.
 		// Once found, the pixel is "fixed" until the next page load.
-		const onClick = (e) => {
-			// Measure the real on-screen position at click time (avoids stale coords
-			// after mobile toolbar resizes, zoom, etc.).
+		// Measure the real on-screen position each time (avoids stale coords
+		// after mobile toolbar resizes, zoom, etc.).
+		const isHit = (e) => {
 			const r = px.getBoundingClientRect();
 			const tol = coarse.matches ? TOUCH_TOLERANCE : TOLERANCE;
 			const dx = e.clientX - (r.left + r.width / 2);
 			const dy = e.clientY - (r.top + r.height / 2);
-			if (Math.abs(dx) > 0.5 + tol || Math.abs(dy) > 0.5 + tol) return;
+			return Math.abs(dx) <= 0.5 + tol && Math.abs(dy) <= 0.5 + tol;
+		};
+
+		// Pointer (hand) cursor over the hit area, so it reads as clickable.
+		const root = document.documentElement;
+		const onMove = (e) => root.classList.toggle('on-dead-pixel', isHit(e));
+
+		const onClick = (e) => {
+			if (!isHit(e)) return;
 			px.remove();
+			root.classList.remove('on-dead-pixel');
 			window.removeEventListener('resize', place);
+			document.removeEventListener('mousemove', onMove);
 			document.removeEventListener('click', onClick, true);
 			site.toast('Dead pixel fixed ✓\nNo need to replace your screen yet', 4000);
 		};
+		document.addEventListener('mousemove', onMove, { passive: true });
 		document.addEventListener('click', onClick, true);
 	}
 })();

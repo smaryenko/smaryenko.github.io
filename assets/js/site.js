@@ -42,6 +42,11 @@
 			if (!dialog || dialog.open) return;
 			dialog.querySelector('.report-time').textContent = ((40 + Math.random() * 400) | 0) + 'ms';
 			dialog.showModal();
+			// Focus the "Go back" button once the dialog is actually open. Done here
+			// rather than with a static `autofocus` attribute, which the browser
+			// refuses (and warns about) when the page loads with a URL fragment.
+			const back = dialog.querySelector('.report-actions button');
+			if (back) back.focus();
 			// Let the browser Back button close the overlay too.
 			history.pushState({ notFound: true }, '', '#404');
 		}
@@ -51,4 +56,21 @@
 	site.testId = (i) => 'test_' + String(i + 1).padStart(3, '0');
 
 	window.site = site;
+
+	// Typing `help` in DevTools reads this getter, which opens the hidden terminal.
+	// Defined here (the first script) so the global exists as early as possible:
+	// if it's only installed by the last script, typing `help` during load throws
+	// "ReferenceError: help is not defined". The getter tolerates the terminal not
+	// being ready yet (terminal.js sets site.openTerminal later).
+	try {
+		Object.defineProperty(window, 'help', {
+			configurable: true,
+			get() {
+				if (!site.openTerminal) return 'Console warming up — try help again in a second.';
+				site.openTerminal();
+				if (site.runTerminal) site.runTerminal('help');
+				return 'Opened the console on the page ↓';
+			}
+		});
+	} catch (e) {}
 })();
