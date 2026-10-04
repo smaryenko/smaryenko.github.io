@@ -80,6 +80,6 @@
 		}, 1000);
 	}
 
-	site.systemDark.addEventListener('change', apply);
+	site.onMediaChange(site.systemDark, apply);
 	apply();
 })();

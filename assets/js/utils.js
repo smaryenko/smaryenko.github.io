@@ -43,13 +43,18 @@
 				if (e.target === dialog) dialog.close();
 			});
 
-			// Closed by button/Esc/backdrop: drop the #404 history entry we pushed.
+			// Closed by button/Esc/backdrop: drop the #404 history entry we pushed,
+			// but only if it's still ours and still current.
 			dialog.addEventListener('close', () => {
+				if (!site.notFoundEntry) return;
+				site.notFoundEntry = false;
 				if (history.state && history.state.notFound) history.back();
 			});
 
-			// Closed by browser Back: the entry is already gone, just hide the dialog.
+			// Closed by browser Back: the entry is already gone, so mark it as no
+			// longer ours before closing (the close handler then won't go back again).
 			window.addEventListener('popstate', () => {
+				site.notFoundEntry = false;
 				if (dialog.open) dialog.close();
 			});
 
@@ -190,7 +195,7 @@
 		// Mouse: ±4px around the pixel. Finger taps are far less precise, so allow more.
 		const TOLERANCE = 4;
 		const TOUCH_TOLERANCE = 12;
-		const coarse = window.matchMedia('(pointer: coarse)');
+		const coarse = site.media('(pointer: coarse)');
 		let x = 0, y = 0;
 
 		const px = document.createElement('div');
@@ -349,18 +354,14 @@
 
 	// Resize-as-input egg: squeeze the window below the minimum width OR height
 	// and a responsive test "fails", taking over the whole screen with a failure
-	// report; grow it back and the page comes back. The browser chrome (or
-	// DevTools' device toolbar) is the controller.
+	// report; grow it back and the page comes back. The browser window edge
+	// (or a docked DevTools panel squeezing the page) is the controller.
 	//
-	// We measure the real painted size (visualViewport first, which is accurate
-	// inside DevTools device mode where window.innerWidth/Height can lag), listen
-	// on both viewport and window resize, and poll on rAF as a last-resort
-	// fallback for emulators that don't dispatch a resize at all.
-	//
-	// We DON'T gate on pointer type: DevTools mobile emulation reports a coarse
-	// pointer, which is exactly where people try this. Instead we only start
-	// reacting once the page has been seen at a comfortable size, so a real phone
-	// that loads small doesn't fire a bogus "FAILED" on arrival.
+	// On touch devices (and DevTools device mode, which emulates touch) only
+	// the width counts, so keyboards, toolbars and landscape never trigger it;
+	// real phones are always at least 320px wide. We measure the painted size
+	// (visualViewport first) and only react once the page has been seen at a
+	// comfortable size, so a small window on load doesn't fail on arrival.
 	{
 		const MIN_W = 320;
 		const MIN_H = 480;
@@ -369,8 +370,12 @@
 		let lastW = -1, lastH = -1;
 
 		const vv = window.visualViewport;
-		const width = () => Math.round((vv && vv.width) || window.innerWidth);
-		const height = () => Math.round((vv && vv.height) || window.innerHeight);
+		// Multiply by scale so pinch-zoom (which shrinks the visual viewport but
+		// not the layout) isn't mistaken for a small screen. Ctrl/Cmd +/- zoom
+		// still counts, since that genuinely reflows the page.
+		const scale = () => (vv && vv.scale) || 1;
+		const width = () => Math.round(vv ? vv.width * scale() : window.innerWidth);
+		const height = () => Math.round(vv ? vv.height * scale() : window.innerHeight);
 
 		let overlay = null;
 
@@ -378,7 +383,7 @@
 		// viewport is too small. It's an overlay (fixed, inset:0) rather than a
 		// real replacement of document.body, so the rest of the page — and every
 		// other egg — survives untouched and comes right back on resize.
-		const show = (w, h) => {
+		const show = (w, h, heightCounts) => {
 			if (!overlay) {
 				overlay = document.createElement('div');
 				overlay.className = 'responsive-fail';
@@ -388,7 +393,7 @@
 				document.body.appendChild(overlay);
 			}
 			// Mark whichever axis (or both) is under its threshold.
-			const wBad = w < MIN_W, hBad = h < MIN_H;
+			const wBad = w < MIN_W, hBad = heightCounts && h < MIN_H;
 			const wCls = wBad ? 'report-fail' : 'report-pass';
 			const hCls = hBad ? 'report-fail' : 'report-pass';
 			const axis = wBad && hBad ? 'width and height' : wBad ? 'width' : 'height';
@@ -417,13 +422,23 @@
 			if (overlay) { overlay.remove(); overlay = null; }
 		};
 
+		// Desktop (mouse/trackpad) checks width AND height. Touch devices check
+		// width only: on a real phone the height shrinks all the time (on-screen
+		// keyboard, browser toolbars, landscape), but the width never drops below
+		// 320px. DevTools device mode also reports touch, so there the egg is
+		// triggered by dragging the width below 320px.
+		const desktop = site.media('(hover: hover) and (pointer: fine)');
+
 		const check = () => {
-			const w = width(), h = height();
-			if (w === lastW && h === lastH) return; // nothing changed; cheap rAF
+			const w = width();
+			// On touch, report the real height but never fail on it.
+			const h = height();
+			if (w === lastW && h === lastH) return; // nothing changed
 			const changed = lastW !== -1; // -1 means this is the very first measure
 			lastW = w; lastH = h;
 
-			const ok = w >= MIN_W && h >= MIN_H;
+			const heightCounts = desktop.matches;
+			const ok = w >= MIN_W && (!heightCounts || h >= MIN_H);
 			if (ok) everOk = true;
 			// React once we've either seen a comfortable size OR observed the size
 			// actively change (someone is dragging the edge / the device toolbar).
@@ -433,22 +448,29 @@
 
 			if (!ok) {
 				failing = true;
-				show(w, h); // keep the numbers current as it shrinks further
+				show(w, h, heightCounts); // keep the numbers current as it shrinks further
 			} else if (failing) {
 				failing = false;
 				hide();
 			}
 		};
 
-		window.addEventListener('resize', check, { passive: true });
+		// Coalesce bursts of resize/scroll events into one check per frame.
+		let queued = false;
+		const schedule = () => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(() => { queued = false; check(); });
+		};
+
+		window.addEventListener('resize', schedule, { passive: true });
 		if (vv) {
-			vv.addEventListener('resize', check, { passive: true });
-			vv.addEventListener('scroll', check, { passive: true });
+			vv.addEventListener('resize', schedule, { passive: true });
+			vv.addEventListener('scroll', schedule, { passive: true });
 		}
-		// Fallback poll: some device emulators resize the frame without firing an
-		// event the page can hear. rAF only does work when the size changed.
-		const tick = () => { check(); requestAnimationFrame(tick); };
-		requestAnimationFrame(tick);
+		// Input type can change (DevTools device mode toggled, tablet docked).
+		site.onMediaChange(desktop, () => { lastW = lastH = -1; schedule(); });
+		check();
 	}
 
 	// Selector inspector egg: hold Alt (Option on Mac) and hover any element to
@@ -456,7 +478,7 @@
 	// the target plus a floating "By.cssSelector(...)" label by the cursor.
 	// Pure read-only; it never changes the page. Pointer only (needs a hover).
 	{
-		const coarse = window.matchMedia('(pointer: coarse)');
+		const coarse = site.media('(pointer: coarse)');
 		if (!coarse.matches) {
 			const root = document.documentElement;
 			let armed = false;      // Alt is currently held

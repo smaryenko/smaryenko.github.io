@@ -52,6 +52,71 @@
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
+/* Fallback for browsers without light-dark(): a custom property accepts any
+   value, so the tokens above would silently resolve to nothing. Use plain
+   colours instead, switched by the .is-dark class that the inline <head>
+   script and theme.js keep in sync with the effective theme. */
+@supports not (color: light-dark(#000, #fff)) {
+	:root {
+		--bg: #fafaf9;
+		--surface: #ffffff;
+		--border: #e7e5e4;
+		--text: #1c1917;
+		--muted: #57534e;
+		--accent: #4f46e5;
+		--accent-hover: #4338ca;
+		--accent-text: #ffffff;
+		--glow: rgba(79, 70, 229, 0.12);
+		--blob-1: rgba(99, 102, 241, 0.28);
+		--blob-2: rgba(20, 184, 166, 0.22);
+		--blob-3: rgba(236, 72, 153, 0.18);
+		--lines: rgba(79, 70, 229, 0.11);
+		--glass-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(236, 72, 153, 0.10));
+		--glass-bg-hover: linear-gradient(135deg, rgba(99, 102, 241, 0.28), rgba(236, 72, 153, 0.16));
+		--glass-border: rgba(79, 70, 229, 0.35);
+		--glass-text: #3730a3;
+		--glass-highlight: rgba(255, 255, 255, 0.7);
+		--glass-glow: rgba(79, 70, 229, 0.25);
+		--shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 4px 16px rgba(28, 25, 23, 0.06);
+		--shadow-hover: 0 2px 4px rgba(28, 25, 23, 0.06), 0 12px 32px rgba(28, 25, 23, 0.1);
+		--pass: #16a34a;
+		--fail: #dc2626;
+		--queued: #4f46e5;
+	}
+
+	:root.is-dark {
+		--bg: #0c0a09;
+		--surface: #1c1917;
+		--border: #292524;
+		--text: #f5f5f4;
+		--muted: #a8a29e;
+		--accent: #818cf8;
+		--accent-hover: #a5b4fc;
+		--accent-text: #0c0a09;
+		--glow: rgba(129, 140, 248, 0.14);
+		--blob-1: rgba(99, 102, 241, 0.45);
+		--blob-2: rgba(20, 184, 166, 0.30);
+		--blob-3: rgba(236, 72, 153, 0.28);
+		--lines: rgba(165, 180, 252, 0.09);
+		--glass-bg: linear-gradient(135deg, rgba(129, 140, 248, 0.22), rgba(236, 72, 153, 0.10));
+		--glass-bg-hover: linear-gradient(135deg, rgba(129, 140, 248, 0.34), rgba(236, 72, 153, 0.18));
+		--glass-border: rgba(165, 180, 252, 0.35);
+		--glass-text: #e0e7ff;
+		--glass-highlight: rgba(255, 255, 255, 0.18);
+		--glass-glow: rgba(129, 140, 248, 0.35);
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
+		--shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45);
+		--pass: #4ade80;
+		--fail: #f87171;
+		--queued: #818cf8;
+	}
+}
+
+/* Browsers without <dialog> would render closed dialogs inline. */
+dialog:not([open]) {
+	display: none;
+}
+
 /* Base */
 *,
 *::before,

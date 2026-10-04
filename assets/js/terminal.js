@@ -109,34 +109,38 @@
 	//   any of the above with a trailing/leading 4-digit year (e.g. 18 dec 2025)
 	// Day/month order: for pure numbers we assume day-first (DD/MM), matching the
 	// examples. Values are validated against a real calendar.
+	// The whole input must match one format; any leftover text is rejected.
 	function parseDate(raw) {
 		let s = raw.trim().toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
 		if (!s) return { error: 'empty' };
 
 		let year = new Date().getFullYear();
-		// Pull out a 4-digit year if present, anywhere in the string.
-		const ym = s.match(/\b(\d{4})\b/);
-		if (ym) { year = parseInt(ym[1], 10); s = (s.slice(0, ym.index) + s.slice(ym.index + 4)).replace(/\s+/g, ' ').trim(); }
+		// Optional 4-digit year, either leading ("2025 18 dec") or trailing
+		// ("18 dec 2025", "18/12/2025"). Only one is allowed.
+		let ym = s.match(/^(\d{4}) (.+)$/) || s.match(/^(.+?)[ /.\-](\d{4})$/);
+		if (ym) {
+			const leading = /^\d{4}$/.test(ym[1]);
+			year = parseInt(leading ? ym[1] : ym[2], 10);
+			s = leading ? ym[2] : ym[1];
+		}
 
-		let day = null, month = null;
-
-		// A month name somewhere, with a day number on either side.
-		const nameMatch = s.match(/[a-z]+/);
-		if (nameMatch) {
-			const key = nameMatch[0];
+		let day, month, m;
+		if ((m = s.match(/^(\d{1,2})[/.\- ](\d{1,2})$/))) {
+			// Numeric, day first: 18/12  18.12  18-12  18 12
+			day = parseInt(m[1], 10);
+			month = parseInt(m[2], 10) - 1;
+		} else if ((m = s.match(/^(\d{1,2}) ?([a-z]+)$/) || s.match(/^([a-z]+) (\d{1,2})$/))) {
+			// Named month on either side: 18 dec  dec 18  18 december
+			const dayFirst = /^\d/.test(m[1]);
+			const key = dayFirst ? m[2] : m[1];
 			if (!(key in MONTHS)) return { error: 'month' };
 			month = MONTHS[key];
-			const dayMatch = s.replace(key, ' ').match(/\d{1,2}/);
-			if (!dayMatch) return { error: 'day' };
-			day = parseInt(dayMatch[0], 10);
+			day = parseInt(dayFirst ? m[1] : m[2], 10);
 		} else {
-			// All numeric: split on / . or - and read as day then month.
-			const parts = s.split(/[/.\-\s]+/).filter(Boolean);
-			if (parts.length < 2 || !/^\d{1,2}$/.test(parts[0]) || !/^\d{1,2}$/.test(parts[1])) {
-				return { error: 'format' };
-			}
-			day = parseInt(parts[0], 10);
-			month = parseInt(parts[1], 10) - 1;
+			// A word that isn't a month is the most helpful thing to point out.
+			const word = s.match(/[a-z]+/);
+			if (word && !(word[0] in MONTHS)) return { error: 'month' };
+			return { error: 'format' };
 		}
 
 		if (month < 0 || month > 11) return { error: 'month' };
@@ -214,6 +218,7 @@
 	const argCommands = { jump, date: jump };
 
 	function run(raw) {
+		if (!out) return; // terminal never opened (e.g. no <dialog> support)
 		const cmd = raw.trim().replace(/\s+/g, ' ');
 		print('> ' + raw, 'term-cmd');
 		if (!cmd) return;
@@ -280,6 +285,8 @@
 	}
 
 	function open() {
+		// The terminal is a modal <dialog>; skip it where that isn't supported.
+		if (!site.canDialog) return;
 		if (!term) build();
 		if (term.open) return;
 		// Remember where focus was (e.g. a link) so closing can put it back.
@@ -359,7 +366,7 @@
 		});
 		// Stop the system copy/lookup menu from popping up on long-press.
 		heading.addEventListener('contextmenu', (e) => {
-			if (window.matchMedia('(hover: none)').matches) e.preventDefault();
+			if (site.media('(hover: none)').matches) e.preventDefault();
 		});
 	}
 

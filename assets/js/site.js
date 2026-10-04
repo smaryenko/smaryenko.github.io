@@ -7,14 +7,33 @@
 	// Scripts also hang cross-module hooks on `site` (openTerminal, runTerminal, testStats).
 
 	const root = document.documentElement;
-	const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
-	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+	// matchMedia with a safe stand-in when it's missing (very old WebViews).
+	const media = (query) => (window.matchMedia
+		? window.matchMedia(query)
+		: { matches: false, media: query, addEventListener() {}, addListener() {} });
+
+	// MediaQueryList change listener; older Safari only has addListener().
+	const onMediaChange = (mql, fn) => {
+		if (mql.addEventListener) mql.addEventListener('change', fn);
+		else if (mql.addListener) mql.addListener(fn);
+	};
+
+	const systemDark = media('(prefers-color-scheme: dark)');
+	const reduceMotion = media('(prefers-reduced-motion: reduce)');
+	const canDialog = typeof HTMLDialogElement === 'function' &&
+		typeof HTMLDialogElement.prototype.showModal === 'function';
 	let toastEl;
 	let toastTimer;
 
 	const site = {
 		reduceMotion,
 		systemDark,
+		media,
+		onMediaChange,
+		canDialog,
+		// True while the #404 history entry pushed by openNotFound() is current.
+		notFoundEntry: false,
 
 		isDark() {
 			const t = root.dataset.theme;
@@ -39,7 +58,7 @@
 		// "Page not found" overlay styled as a failed test report (opened from test_404).
 		openNotFound() {
 			const dialog = document.getElementById('not-found');
-			if (!dialog || dialog.open) return;
+			if (!dialog || dialog.open || !canDialog) return;
 			dialog.querySelector('.report-time').textContent = ((40 + Math.random() * 400) | 0) + 'ms';
 			dialog.showModal();
 			// Focus the "Go back" button once the dialog is actually open. Done here
@@ -48,7 +67,11 @@
 			const back = dialog.querySelector('.report-actions button');
 			if (back) back.focus();
 			// Let the browser Back button close the overlay too.
-			history.pushState({ notFound: true }, '', '#404');
+			// Keep any existing state, and remember that this entry is ours so the
+			// close handler only ever undoes a navigation it created.
+			const state = history.state && typeof history.state === 'object' ? history.state : {};
+			history.pushState(Object.assign({}, state, { notFound: true }), '', '#404');
+			site.notFoundEntry = true;
 		}
 	};
 

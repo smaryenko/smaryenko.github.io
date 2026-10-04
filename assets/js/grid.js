@@ -13,7 +13,11 @@
 		const COLS = 22;
 		const TOTAL = COLS * COLS;
 		const NOT_FOUND = 403; // index of test_404
+		const MAX_DPR = 2;     // backing-store pixel ratio cap
+		const MAX_PX = 2048;   // backing-store edge cap, in device pixels
+		const FRAME_MS = 1000 / 30; // decorative: 30 FPS is plenty
 		const cells = [];
+		const geo = [];        // per-dot { x, y, d }, rebuilt on resize
 		let points = [];
 		let size, step, raf, last = 0, waveStart = 0;
 		let pointer = null, hovered = -1, fixedCount = 0, konamiStart = -1;
@@ -73,13 +77,17 @@
 		// the CSS 3D tilt into account, so hover and click hit the right dot.
 		function project() {
 			const tr = getComputedStyle(canvas).transform;
-			const m = !tr || tr === 'none' ? new DOMMatrix() : new DOMMatrix(tr);
+			// Without DOMMatrix (old browsers) fall back to the untilted layout:
+			// hit-testing is slightly off under the 3D tilt, but nothing throws.
+			const m = typeof DOMMatrix === 'function' && typeof DOMPoint === 'function'
+				? (!tr || tr === 'none' ? new DOMMatrix() : new DOMMatrix(tr))
+				: null;
 			const o = size / 2;
 			points = [];
 			for (let i = 0; i < TOTAL; i++) {
-				const x = (i % COLS) * step + step / 2 - o;
-				const y = ((i / COLS) | 0) * step + step / 2 - o;
-				const p = m.transformPoint(new DOMPoint(x, y, 0, 1));
+				const x = geo[i].x - o;
+				const y = geo[i].y - o;
+				const p = m ? m.transformPoint(new DOMPoint(x, y, 0, 1)) : { x, y, w: 1 };
 				points.push({
 					x: p.x / p.w + o + canvas.offsetLeft,
 					y: p.y / p.w + o + canvas.offsetTop,
@@ -90,24 +98,34 @@
 		}
 
 		function resize() {
-			const dpr = window.devicePixelRatio || 1;
 			size = canvas.clientWidth;
-			canvas.width = canvas.height = Math.round(size * dpr);
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			if (!size) return; // not laid out yet (e.g. hidden)
+			// Cap the backing store: past ~2x the dots look the same, but a 3x/4x
+			// phone screen would otherwise allocate a much larger bitmap.
+			const px = Math.min(Math.round(size * Math.min(window.devicePixelRatio || 1, MAX_DPR)), MAX_PX);
+			canvas.width = canvas.height = px;
+			const scale = px / size;
+			ctx.setTransform(scale, 0, 0, scale, 0, 0);
 			step = size / COLS;
+			// Per-dot geometry only changes on resize, so work it out once here
+			// instead of on every frame.
+			for (let i = 0; i < TOTAL; i++) {
+				const col = i % COLS, row = (i / COLS) | 0;
+				geo[i] = { x: col * step + step / 2, y: row * step + step / 2, d: (col + row) / (COLS * 2) };
+			}
 			project();
 			draw(performance.now());
 		}
 
 		function draw(t) {
+			if (!size) return;
 			ctx.clearRect(0, 0, size, size);
 			const r = step * 0.22;
 			const wave = ((t - waveStart) / 2600) * 2.4 - 0.2;
 
 			for (let i = 0; i < TOTAL; i++) {
 				const c = cells[i];
-				const col = i % COLS, row = (i / COLS) | 0;
-				const d = (col + row) / (COLS * 2);
+				const { x, y, d } = geo[i];
 				// The sweeping wave and cursor glow only brighten the grey base dot,
 				// so they never fake a test state.
 				const boost = Math.max(0, 1 - Math.abs(d - wave) * 9) * 0.7;
@@ -116,7 +134,6 @@
 					const dist = Math.hypot(points[i].x - pointer.x, points[i].y - pointer.y);
 					glow = Math.max(0, 1 - dist / 90);
 				}
-				const x = col * step + step / 2, y = row * step + step / 2;
 				const rgb = colorOf(c, t);
 
 				ctx.fillStyle = 'rgba(' + pal.base + ',' + (pal.baseA + glow * 0.35 + boost * 0.15) + ')';
@@ -148,6 +165,9 @@
 		}
 
 		function frame(t) {
+			raf = requestAnimationFrame(frame);
+			// Throttle to ~30 FPS (the 1ms slack keeps 60Hz screens on every 2nd frame).
+			if (t - last < FRAME_MS - 1) return;
 			const dt = Math.min(64, t - last);
 			last = t;
 
@@ -168,7 +188,6 @@
 				updateTip();
 				hero.classList.toggle('is-fixable', isClickable(hovered));
 			}
-			raf = requestAnimationFrame(frame);
 		}
 
 		// Konami code: everything fails, then a wave fixes all tests.
@@ -373,7 +392,7 @@
 			}).observe(hero);
 		}
 		document.addEventListener('visibilitychange', start);
-		site.reduceMotion.addEventListener('change', start);
+		site.onMediaChange(site.reduceMotion, start);
 		document.addEventListener('themechange', () => {
 			pal = palette();
 			draw(performance.now());
