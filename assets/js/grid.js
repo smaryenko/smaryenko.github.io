@@ -250,6 +250,20 @@
 		// Clickable dots: failing ones, plus test_404 (opens the not-found report).
 		const isClickable = (i) => i === NOT_FOUND || isFailing(i);
 
+		// The canvas element, so other scripts (e.g. the selector inspector) can
+		// tell whether a pointer is over the grid.
+		site.gridCanvas = canvas;
+
+		// Which test is under a viewport (client) point, as a "test_###" id, or
+		// null if the point isn't over a visible dot. Used by the Alt/Option
+		// selector inspector to report per-cell locators instead of just the
+		// whole canvas. Reuses the same nearest()/points geometry as hovering.
+		site.gridTestAt = (clientX, clientY) => {
+			const rect = hero.getBoundingClientRect();
+			const i = nearest(clientX - rect.left, clientY - rect.top);
+			return i >= 0 ? site.testId(i) : null;
+		};
+
 		// Live grid results, exposed on the site API for anyone poking at the console.
 		site.testStats = () => {
 			const s = { total: TOTAL, pass: 0, fail: 0, queued: 0, none: 0, failed: [] };

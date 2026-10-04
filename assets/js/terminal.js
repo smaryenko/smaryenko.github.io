@@ -10,15 +10,16 @@
 	// the page actually references in the DOM: <script>, <link>, <img>, favicon.
 	// Doing this on every call means newly added files show up without any rebuild.
 	// Fonts aren't referenced in HTML (they live in CSS), so they're the one
-	// hardcoded part. secret-test.json is always excluded from the listing — note
-	// that omitting it here does NOT hide it from the actual server.
-	const EXCLUDE = /(^|\/)secret-test\.json$/;
+	// hardcoded part. secret-test.json isn't linked anywhere in the DOM, so it's
+	// never auto-discovered; instead we add it by hand with its name redacted, as
+	// a nudge that there's a .json worth finding. The real file is still served.
+	const SECRET_FILE = 'assets/***********.json';
 	const STATIC_FONTS = ['fraunces-latin.woff2', 'inter-latin.woff2'];
 
 	// Insert a "path/to/file" (relative to site root) into a nested tree object.
 	function addPath(tree, path) {
 		const parts = path.replace(/^\.?\//, '').split('/').filter(Boolean);
-		if (!parts.length || EXCLUDE.test(path)) return;
+		if (!parts.length) return;
 		let node = tree;
 		parts.forEach((part, i) => {
 			if (i === parts.length - 1) {
@@ -68,6 +69,9 @@
 
 		// Fonts can't be discovered from the DOM; add the known ones.
 		STATIC_FONTS.forEach((f) => addPath(tree, 'assets/fonts/' + f));
+
+		// The secret file, shown with its name redacted as a breadcrumb.
+		addPath(tree, SECRET_FILE);
 
 		return tree;
 	}

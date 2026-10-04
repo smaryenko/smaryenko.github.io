@@ -675,6 +675,31 @@ a {
 	.report[open] { animation: none; }
 }
 
+/* Resize-as-input egg: a full-screen failed-test report that covers the page
+   while the viewport is narrower than the supported minimum (utils.js). */
+.responsive-fail {
+	position: fixed;
+	inset: 0;
+	z-index: 10001;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: var(--surface);
+	animation: report-in 0.2s ease;
+}
+
+.responsive-fail .responsive-report {
+	width: 100%;
+	max-width: 32rem;
+	max-height: 100%;
+	overflow: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.responsive-fail { animation: none; }
+}
+
 .toast {
 	position: fixed;
 	left: 50%;
@@ -721,7 +746,7 @@ a {
 	width: 1px;
 	height: 1px;
 	background: #000;
-	opacity: 0.35;
+	opacity: 0.4;
 	pointer-events: none;
 	z-index: 9999;
 }
@@ -733,7 +758,39 @@ a {
 
 .is-dark .dead-pixel {
 	background: #c8c8ff; /* faint bluish "stuck" pixel that blends with the dark hero glow */
-	opacity: 0.4;
+	opacity: 0.45;
+}
+
+/* Selector inspector easter egg: hold Alt/Option and hover to see a Selenium
+   locator for the element under the cursor (utils.js). Read-only overlay. */
+.sel-inspecting,
+.sel-inspecting * {
+	cursor: crosshair !important;
+}
+
+.sel-target {
+	outline: 2px solid #4f46e5 !important;
+	outline-offset: -2px; /* draw just inside the box so big containers don't look flooded */
+	box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.25) !important;
+}
+
+.sel-inspector {
+	position: fixed;
+	z-index: 10000;
+	pointer-events: none;
+	max-width: min(90vw, 30rem);
+	padding: 0.3rem 0.5rem;
+	border-radius: 4px;
+	background: #1e1b4b;
+	color: #e0e7ff;
+	border: 1px solid #4f46e5;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+	font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
+	/* Show the whole locator, wrapping long ones onto multiple lines instead
+	   of clipping with an ellipsis. break-word handles unbroken selectors. */
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
 
 /* Back to top */

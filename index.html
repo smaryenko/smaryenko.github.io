@@ -96,7 +96,7 @@
 			</symbol>
 		</svg>
 
-		<button type="button" class="theme-toggle" hidden aria-label="Switch to dark theme" aria-pressed="false">
+		<button type="button" id="theme-toggle" class="theme-toggle" hidden aria-label="Switch to dark theme" aria-pressed="false">
 			<svg class="icon-moon" aria-hidden="true"><use href="#i-moon" /></svg>
 			<svg class="icon-sun" aria-hidden="true"><use href="#i-sun" /></svg>
 		</button>
@@ -109,22 +109,22 @@
 			<!-- Intro -->
 			<section id="intro" class="hero">
 				<div class="container">
-					<h1>Stanislav Maryenko</h1>
-					<p class="role">Software Developer in Test and Data Quality Analyst</p>
-					<ul class="icons">
-						<li><a href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
-						<li><a href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
-						<li><a href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in new tab)" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
-						<li><a href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive, new tab)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
+					<h1 id="hero-name">Stanislav Maryenko</h1>
+					<p id="hero-role" class="role">Software Developer in Test and Data Quality Analyst</p>
+					<ul id="hero-social" class="icons">
+						<li><a id="hero-link-email" href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
+						<li><a id="hero-link-github" href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
+						<li><a id="hero-link-linkedin" href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in new tab)" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
+						<li><a id="hero-link-cv" href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive, new tab)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
 					</ul>
-					<a href="#one" class="button">Pet Projects</a>
+					<a href="#one" id="hero-cta" class="button">Pet Projects</a>
 				</div>
 				<!-- Decorative pass/fail heatmap -->
-				<canvas class="test-grid" aria-hidden="true"></canvas>
+				<canvas id="hero-grid" class="test-grid" aria-hidden="true"></canvas>
 				<div class="grid-tip" aria-hidden="true"></div>
-				<a href="#one" class="scroll-hint" aria-label="Scroll to projects">
-					<span aria-hidden="true">Scroll</span>
-					<svg aria-hidden="true"><use href="#i-down" /></svg>
+				<a href="#one" id="scroll-hint" class="scroll-hint" aria-label="Scroll to projects">
+					<span id="scroll-hint-label" aria-hidden="true">Scroll</span>
+					<svg id="scroll-hint-arrow" aria-hidden="true"><use href="#i-down" /></svg>
 				</a>
 			</section>
 
@@ -221,13 +221,13 @@
 		</main>
 
 		<!-- Footer -->
-		<footer class="footer">
+		<footer id="site-footer" class="footer">
 			<div class="container">
-				<ul class="icons">
-					<li><a href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
-					<li><a href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
-					<li><a href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in new tab)" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
-					<li><a href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive, new tab)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
+				<ul id="footer-social" class="icons">
+					<li><a id="footer-link-email" href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
+					<li><a id="footer-link-github" href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
+					<li><a id="footer-link-linkedin" href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in new tab)" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
+					<li><a id="footer-link-cv" href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive, new tab)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
 				</ul>
 			</div>
 		</footer>

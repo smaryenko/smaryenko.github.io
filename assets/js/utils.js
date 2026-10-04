@@ -1,6 +1,7 @@
 // Small page behaviours: back-to-top, card reveal, 404 overlay, tab title,
-// the Konami code, the DevTools greeting, the name easter egg, the dead pixel
-// and the seasonal decorations on the "S".
+// the Konami code, the DevTools greeting, the name easter egg, the dead pixel,
+// the seasonal decorations on the "S", the responsive-breakpoint test and the
+// Alt/Option selector inspector.
 (() => {
 	// Show the back-to-top button after scrolling past 100px.
 	{
@@ -344,5 +345,336 @@
 		// Keep the decoration glued to the "S" across resizes/orientation changes
 		// (position is pure CSS, but re-apply if the name was re-rendered).
 		window.addEventListener('resize', () => { if (!host || !host.isConnected) applySeasonal(); }, { passive: true });
+	}
+
+	// Resize-as-input egg: squeeze the window below the minimum width OR height
+	// and a responsive test "fails", taking over the whole screen with a failure
+	// report; grow it back and the page comes back. The browser chrome (or
+	// DevTools' device toolbar) is the controller.
+	//
+	// We measure the real painted size (visualViewport first, which is accurate
+	// inside DevTools device mode where window.innerWidth/Height can lag), listen
+	// on both viewport and window resize, and poll on rAF as a last-resort
+	// fallback for emulators that don't dispatch a resize at all.
+	//
+	// We DON'T gate on pointer type: DevTools mobile emulation reports a coarse
+	// pointer, which is exactly where people try this. Instead we only start
+	// reacting once the page has been seen at a comfortable size, so a real phone
+	// that loads small doesn't fire a bogus "FAILED" on arrival.
+	{
+		const MIN_W = 320;
+		const MIN_H = 480;
+		let failing = false;
+		let everOk = false;      // seen a size that passes both thresholds
+		let lastW = -1, lastH = -1;
+
+		const vv = window.visualViewport;
+		const width = () => Math.round((vv && vv.width) || window.innerWidth);
+		const height = () => Math.round((vv && vv.height) || window.innerHeight);
+
+		let overlay = null;
+
+		// Full-screen "failed test report" that covers the whole page while the
+		// viewport is too small. It's an overlay (fixed, inset:0) rather than a
+		// real replacement of document.body, so the rest of the page — and every
+		// other egg — survives untouched and comes right back on resize.
+		const show = (w, h) => {
+			if (!overlay) {
+				overlay = document.createElement('div');
+				overlay.className = 'responsive-fail';
+				overlay.setAttribute('role', 'alertdialog');
+				overlay.setAttribute('aria-live', 'assertive');
+				overlay.setAttribute('aria-label', 'test_responsive failed');
+				document.body.appendChild(overlay);
+			}
+			// Mark whichever axis (or both) is under its threshold.
+			const wBad = w < MIN_W, hBad = h < MIN_H;
+			const wCls = wBad ? 'report-fail' : 'report-pass';
+			const hCls = hBad ? 'report-fail' : 'report-pass';
+			const axis = wBad && hBad ? 'width and height' : wBad ? 'width' : 'height';
+			const grow = wBad && hBad ? 'Grow the window past ' + MIN_W + '×' + MIN_H
+				: wBad ? 'Widen the window past ' + MIN_W + 'px'
+				: 'Heighten the window past ' + MIN_H + 'px';
+			overlay.innerHTML =
+				'<div class="report responsive-report">' +
+					'<header class="report-head">' +
+						'<span class="report-badge">FAILED</span>' +
+						'<h2>test_responsive · layout_should_hold</h2>' +
+					'</header>' +
+					'<pre class="report-body">' +
+						'<span class="report-error">AssertionError: viewport ' + axis + ' below minimum</span>\n\n' +
+						'  <span class="report-dim">min size:    </span> <span class="report-pass">' + MIN_W + '×' + MIN_H + 'px</span>\n' +
+						'  <span class="report-dim">actual width: </span> <span class="' + wCls + '">' + w + 'px</span>\n' +
+						'  <span class="report-dim">actual height:</span> <span class="' + hCls + '">' + h + 'px</span>\n\n' +
+						'  <span class="report-dim">at</span> Layout.reflow (<span class="report-path">viewport:' + w + 'x' + h + '</span>)\n' +
+						'  <span class="report-dim">at</span> Visitor.resize (<span class="report-path">browser/chrome</span>)\n\n' +
+						'<span class="report-dim">' + grow + ' to re-run.</span>' +
+					'</pre>' +
+				'</div>';
+		};
+
+		const hide = () => {
+			if (overlay) { overlay.remove(); overlay = null; }
+		};
+
+		const check = () => {
+			const w = width(), h = height();
+			if (w === lastW && h === lastH) return; // nothing changed; cheap rAF
+			const changed = lastW !== -1; // -1 means this is the very first measure
+			lastW = w; lastH = h;
+
+			const ok = w >= MIN_W && h >= MIN_H;
+			if (ok) everOk = true;
+			// React once we've either seen a comfortable size OR observed the size
+			// actively change (someone is dragging the edge / the device toolbar).
+			// Only the first measurement on a device that simply loaded small is
+			// suppressed, so it won't false-fire on arrival.
+			if (!everOk && !changed) return;
+
+			if (!ok) {
+				failing = true;
+				show(w, h); // keep the numbers current as it shrinks further
+			} else if (failing) {
+				failing = false;
+				hide();
+			}
+		};
+
+		window.addEventListener('resize', check, { passive: true });
+		if (vv) {
+			vv.addEventListener('resize', check, { passive: true });
+			vv.addEventListener('scroll', check, { passive: true });
+		}
+		// Fallback poll: some device emulators resize the frame without firing an
+		// event the page can hear. rAF only does work when the size changed.
+		const tick = () => { check(); requestAnimationFrame(tick); };
+		requestAnimationFrame(tick);
+	}
+
+	// Selector inspector egg: hold Alt (Option on Mac) and hover any element to
+	// see the kind of locator a Selenium test would use for it — an outline on
+	// the target plus a floating "By.cssSelector(...)" label by the cursor.
+	// Pure read-only; it never changes the page. Pointer only (needs a hover).
+	{
+		const coarse = window.matchMedia('(pointer: coarse)');
+		if (!coarse.matches) {
+			const root = document.documentElement;
+			let armed = false;      // Alt is currently held
+			let labelEl = null;     // the floating locator chip
+			let outlined = null;    // the element currently outlined
+			let lastX = 0, lastY = 0;
+
+			// A simple one-element CSS selector, Selenium-style, most stable first:
+			//   #id                 when it has an id
+			//   tag[name='…']       for named form controls
+			//   tag.class.class     when it has classes
+			//   tag:nth-of-type(n)  position among same-tag siblings
+			//   tag                 bare fallback
+			function simpleSelector(el) {
+				if (el.id) return '#' + CSS.escape(el.id);
+				const tag = el.tagName.toLowerCase();
+				const name = el.getAttribute('name');
+				if (name) return tag + '[name=\'' + name + '\']';
+
+				let base = tag;
+				// Ignore the inspector's own marker class so it never leaks into the
+				// generated selector (otherwise everything reads as "tag.sel-target").
+				const cls = (el.getAttribute('class') || '').trim().split(/\s+/)
+					.filter(Boolean).filter((c) => c !== 'sel-target');
+				if (cls.length) base = tag + '.' + cls.slice(0, 3).map((c) => CSS.escape(c)).join('.');
+
+				// Disambiguate by position whenever there are same-tag siblings, so
+				// repeated siblings (e.g. several <article class="project">, or an
+				// <img>/<h3>/<p> that looks identical in every card) stay distinct
+				// instead of collapsing to one shared, ambiguous selector.
+				const parent = el.parentElement;
+				if (parent) {
+					const sibs = Array.from(parent.children).filter((c) => c.tagName === el.tagName);
+					if (sibs.length > 1) base += ':nth-of-type(' + (sibs.indexOf(el) + 1) + ')';
+				}
+				return base;
+			}
+
+			// How many nodes a selector matches; 0 if the selector is invalid, so a
+			// bad selector never throws out of the locator builder (which would
+			// leave the chip stuck on the previous element).
+			function countMatches(selector) {
+				try { return document.querySelectorAll(selector).length; }
+				catch (e) { return 0; }
+			}
+
+			// Try to build a CSS selector that matches EXACTLY this element. We walk
+			// up the tree joining each step with the child combinator ">", so
+			// :nth-of-type stays accurate. The climb short-circuits as soon as it
+			// reaches an ancestor with a unique id (e.g. #project-wine), anchoring
+			// there — that's what keeps every card's .project-body / .project-image
+			// distinct, since each card <article> has its own id. Returns the unique
+			// selector, or null if CSS alone can't pin it down.
+			function uniqueCss(el) {
+				let selector = simpleSelector(el);
+				if (countMatches(selector) === 1) return selector;
+
+				let node = el;
+				let guard = 0;
+				while (node.parentElement && node.parentElement !== document.documentElement && guard++ < 40) {
+					const parent = node.parentElement;
+					// Anchor on an ancestor id when it's unique: stop climbing here.
+					if (parent.id && countMatches('#' + CSS.escape(parent.id)) === 1) {
+						selector = '#' + CSS.escape(parent.id) + ' > ' + selector;
+						return countMatches(selector) === 1 ? selector : null;
+					}
+					if (parent === document.body) break;
+					selector = simpleSelector(parent) + ' > ' + selector;
+					node = parent;
+					if (countMatches(selector) === 1) return selector;
+				}
+				return countMatches(selector) === 1 ? selector : null;
+			}
+
+			// Absolute positional XPath, e.g. /html/body/main/section[2]/article[1]/div[2]/h3[1].
+			// Always unique by construction, used only when CSS can't disambiguate.
+			function absoluteXPath(el) {
+				const parts = [];
+				for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
+					const tag = node.tagName.toLowerCase();
+					let n = 1;
+					for (let sib = node.previousElementSibling; sib; sib = sib.previousElementSibling) {
+						if (sib.tagName === node.tagName) n++;
+					}
+					parts.unshift(tag + '[' + n + ']');
+				}
+				return '/' + parts.join('/');
+			}
+
+			// Pick the most robust locator, in priority order:
+			//   1. By.id          — when the element has a unique id
+			//   2. By.cssSelector — a CSS selector that resolves to exactly one node
+			//   3. By.xpath       — absolute positional path, when CSS can't be unique
+			function locatorFor(el) {
+				// 1. id (ids should be unique; verify it really is on this page).
+				if (el.id && countMatches('#' + CSS.escape(el.id)) === 1) {
+					return 'By.id("' + el.id + '")';
+				}
+				// 2. unique CSS.
+				const css = uniqueCss(el);
+				if (css) return 'By.cssSelector("' + css + '")';
+				// 3. XPath fallback.
+				return 'By.xpath("' + absoluteXPath(el) + '")';
+			}
+
+			function ensureLabel() {
+				if (labelEl) return labelEl;
+				labelEl = document.createElement('div');
+				labelEl.className = 'sel-inspector';
+				labelEl.setAttribute('aria-hidden', 'true');
+				document.body.appendChild(labelEl);
+				return labelEl;
+			}
+
+			function clearOutline() {
+				if (outlined) { outlined.classList.remove('sel-target'); outlined = null; }
+			}
+
+			function teardown() {
+				armed = false;
+				root.classList.remove('sel-inspecting');
+				clearOutline();
+				if (labelEl) { labelEl.remove(); labelEl = null; }
+			}
+
+			// Place the chip near the cursor, flipping it so it stays on screen.
+			function positionLabel() {
+				if (!labelEl) return;
+				const pad = 14;
+				const rect = labelEl.getBoundingClientRect();
+				let lx = lastX + pad;
+				let ly = lastY + pad;
+				if (lx + rect.width > window.innerWidth) lx = lastX - rect.width - pad;
+				if (ly + rect.height > window.innerHeight) ly = lastY - rect.height - pad;
+				labelEl.style.left = Math.max(4, lx) + 'px';
+				labelEl.style.top = Math.max(4, ly) + 'px';
+			}
+
+			// Each project card uses a "stretched link": the button's ::after is
+			// absolutely positioned over the WHOLE card, so the browser reports the
+			// button as the hover target everywhere on the card — the image, title
+			// and text never become e.target. To inspect what's really under the
+			// cursor, peek past that overlay with elementsFromPoint and pick the
+			// first element that ISN'T the stretched button (or its wrapper).
+			function resolveTarget(el) {
+				const stretched = el.closest && el.closest('.project .button');
+				if (!stretched) return el;
+
+				// If the cursor is within the button's own painted box, it really is
+				// on the button — report it as-is.
+				const r = stretched.getBoundingClientRect();
+				if (lastX >= r.left && lastX <= r.right && lastY >= r.top && lastY <= r.bottom) {
+					return stretched;
+				}
+
+				// Otherwise the cursor is over the invisible ::after overlay that
+				// covers the rest of the card. Look past it for the real element.
+				const card = stretched.closest('.project');
+				const stack = document.elementsFromPoint(lastX, lastY);
+				for (const node of stack) {
+					if (node === stretched || node === labelEl) continue;
+					if (stretched.contains(node)) continue;      // the button's own text
+					if (card && card.contains(node)) return node; // real card part under cursor
+				}
+				return stretched; // nothing behind it: keep the button
+			}
+
+			function update(el) {
+				if (!el || el === labelEl) return;
+				el = resolveTarget(el);
+
+				// The hero test grid is a single <canvas> with pointer-events:none,
+				// so a dot is never the literal event target — the hero behind it
+				// is. Hit-test the grid by cursor position: if a dot is under the
+				// cursor, outline the whole canvas and report that cell's locator,
+				// e.g. By.cssSelector("[data-test='test_404']"). This gives both
+				// "the grid is selectable" and "each test is selectable".
+				let locator;
+				if (site.gridTestAt && site.gridCanvas) {
+					const id = site.gridTestAt(lastX, lastY);
+					if (id) {
+						el = site.gridCanvas; // outline the grid, not the backdrop
+						locator = 'By.cssSelector("[data-test=\'' + id + '\']")';
+					}
+				}
+
+				// Compute the locator BEFORE marking the element, so the marker
+				// class can't affect the DOM the selector is built from.
+				const text = locator || locatorFor(el);
+
+				if (el !== outlined) {
+					clearOutline();
+					outlined = el;
+					el.classList.add('sel-target');
+				}
+				const chip = ensureLabel();
+				chip.textContent = text;
+				positionLabel();
+			}
+
+			document.addEventListener('keydown', (e) => {
+				// Alt by itself arms the inspector (ignore Alt+Tab style combos).
+				if (e.key === 'Alt' && !e.ctrlKey && !e.metaKey && !armed) {
+					armed = true;
+					root.classList.add('sel-inspecting');
+					const el = document.elementFromPoint(lastX, lastY);
+					if (el) update(el);
+				}
+			});
+			// Releasing Alt, leaving the window, or losing focus tears it all down.
+			document.addEventListener('keyup', (e) => { if (e.key === 'Alt') teardown(); });
+			window.addEventListener('blur', teardown);
+
+			document.addEventListener('mousemove', (e) => {
+				lastX = e.clientX;
+				lastY = e.clientY;
+				if (armed) update(e.target);
+			}, { passive: true });
+		}
 	}
 })();
