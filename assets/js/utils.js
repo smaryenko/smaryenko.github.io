@@ -275,20 +275,31 @@
 		// so they scale with the letter and theme cleanly.
 		function decoSvg(kind) {
 			if (kind === 'birthday') {
-				// Party hat: red cone with diagonal stripes, a white brim, pom-pom on top.
+				// Party hat: tall, narrow pink cone with confetti dots, a zigzag
+				// ruffle at the base and a burst of streamers on top. Deliberately
+				// colourful and pointy so it can't be mistaken for the Santa hat.
+				// No ids/clipPaths, so the markup is safe to repeat.
 				return '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">' +
-					'<defs><clipPath id="deco-cone"><path d="M24 9 L36 40 H12 Z"/></clipPath></defs>' +
-					// cone body
-					'<path d="M24 9 L36 40 H12 Z" fill="#dc2626"/>' +
-					// diagonal stripes clipped to the cone
-					'<g clip-path="url(#deco-cone)" stroke="#fcd34d" stroke-width="4" stroke-linecap="round">' +
-					'<path d="M6 38 L26 6"/><path d="M14 42 L34 10"/><path d="M-2 34 L18 2"/>' +
+					// streamers bursting from the tip
+					'<g fill="none" stroke-width="2.4" stroke-linecap="round">' +
+					'<path d="M24 8 L18.5 2.5" stroke="#14b8a6"/>' +
+					'<path d="M24 8 L24 1" stroke="#facc15"/>' +
+					'<path d="M24 8 L29.5 2.5" stroke="#3b82f6"/>' +
 					'</g>' +
-					// white brim across the base
-					'<rect x="9" y="37" width="30" height="7" rx="3.5" fill="#f8fafc"/>' +
-					// pom-pom on top
-					'<circle cx="24" cy="8" r="7" fill="#f8fafc"/>' +
-					'<circle cx="21.6" cy="5.6" r="2" fill="#fff"/>' +
+					// cone body, with a darker right side for a bit of depth
+					'<path d="M24 8 L35 42 H13 Z" fill="#ec4899"/>' +
+					'<path d="M24 8 L35 42 H26.5 Z" fill="#be185d" opacity="0.45"/>' +
+					// confetti dots (all inside the cone)
+					'<circle cx="24.6" cy="17" r="1.6" fill="#fff"/>' +
+					'<circle cx="21" cy="24" r="2.1" fill="#facc15"/>' +
+					'<circle cx="27.4" cy="29" r="2.1" fill="#22d3ee"/>' +
+					'<circle cx="19" cy="35.5" r="2.1" fill="#22d3ee"/>' +
+					'<circle cx="25.5" cy="37.5" r="1.8" fill="#fff"/>' +
+					'<circle cx="30.5" cy="36" r="1.6" fill="#facc15"/>' +
+					// zigzag ruffle along the base
+					'<path d="M11.5 40 H36.5 V42 L34 45 L31.5 42 L29 45 L26.5 42 L24 45 L21.5 42 L19 45 L16.5 42 L14 45 L11.5 42 Z" fill="#facc15"/>' +
+					// pom on the tip
+					'<circle cx="24" cy="8" r="2.6" fill="#facc15"/>' +
 					'</svg>';
 			}
 			// Santa hat: same red fill, same white band + pom-pom, drawn as a cap that
