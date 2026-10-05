@@ -181,6 +181,37 @@ a {
 	border: 0;
 }
 
+/* Find-in-page egg: a hero line carries the page's only "bug" (#find-egg). The
+   element has hidden="until-found", so the browser keeps it out of view (and
+   out of layout — invisible on load even though it sits up in the hero) but
+   still searchable by native Find on desktop and mobile. On a match the browser
+   reveals it (removing the hidden state) and fires `beforematch`; utils.js pops
+   a toast and briefly flags the word red. The styles below only apply once it's
+   revealed. */
+.find-egg {
+	/* Out of flow so revealing it (the UA un-hides the element) never pushes the
+	   icons/CTA down. Pinned just below the hero container's content. */
+	position: absolute;
+	left: 0;
+	top: calc(100% + 0.75rem);
+	margin: 0;
+	max-width: 36rem;
+	color: var(--muted);
+	font: 0.9rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+	opacity: 0.8;
+}
+
+.find-egg-word {
+	border-radius: 3px;
+	transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.find-egg-word.found {
+	color: #fff;
+	background-color: var(--fail);
+	padding: 0 0.2em;
+}
+
 .container {
 	width: min(100% - 3rem, 64rem);
 	margin-inline: auto;
@@ -449,6 +480,7 @@ a {
 /* Shrink text blocks to their content so they don't cover the grid's hover area */
 .hero h1,
 .hero .role,
+.hero .find-egg,
 .hero .icons {
 	width: fit-content;
 }

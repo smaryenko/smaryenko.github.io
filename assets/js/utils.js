@@ -106,11 +106,42 @@
 	if (window.console) {
 		window.addEventListener('pageshow', () => {
 			console.log(
-				'%cHi there 👋%c\n\nFound a bug? You\'re my kind of person.\nSay hello: gotheg@gmail.com\n\nPsst: type help to open the console.',
+				'%cHi there 👋%c\n\nThere\'s a bug hiding on this page. Think like a tester and go find it.\n\nPsst: type help to open the console.',
 				'font: 700 20px Georgia, serif; color: #4f46e5;',
 				'font: 13px ui-monospace, Menlo, monospace; color: inherit;'
 			);
 		});
+	}
+
+	// Find-in-page egg: a footer line (#find-egg) carries the page's only "bug",
+	// marked hidden="until-found". The browser keeps it invisible and out of
+	// layout but still searchable by native Find — on desktop AND mobile — so
+	// scrolling never reveals it, only a search does. When Find matches inside
+	// it, the browser reveals it and fires `beforematch`; we use that to pop a
+	// toast and flash the word red. No getSelection polling, no shortcut
+	// hijacking. In browsers without hidden=until-found support the line is just
+	// plainly hidden and the egg quietly doesn't exist.
+	{
+		const egg = document.getElementById('find-egg');
+		const word = egg && egg.querySelector('.find-egg-word');
+		if (egg && 'onbeforematch' in document.body) {
+			let rehideTimer;
+
+			// `beforematch` fires just before the UA reveals the element. The toast
+			// and the red flash celebrate the find; after a beat we re-hide the line
+			// (restoring hidden="until-found") so it's invisible again and can be
+			// re-found later.
+			egg.addEventListener('beforematch', () => {
+				if (word) word.classList.add('found');
+				site.toast('🐛 You searched for a bug — and found one.\nStatus: won\'t fix (it\'s a feature).', 4200);
+				clearTimeout(rehideTimer);
+				rehideTimer = setTimeout(() => {
+					if (word) word.classList.remove('found');
+					// Re-arm: put it back into the hidden-until-found state.
+					egg.setAttribute('hidden', 'until-found');
+				}, 3200);
+			});
+		}
 	}
 
 	// Name easter egg: click the letters T, E, S, T in the name (any S works).

@@ -111,6 +111,13 @@
 				<div class="container">
 					<h1 id="hero-name">Stanislav Maryenko</h1>
 					<p id="hero-role" class="role">Software Developer in Test and Data Quality Analyst</p>
+					<!-- Find-in-page egg: hidden="until-found" keeps this line out of
+					     sight (invisible on load and while scrolling, even up here in
+					     the hero) but still in the browser's native Find index, on
+					     desktop AND mobile. Searching for "bug" makes the browser
+					     reveal and scroll to it and fire `beforematch`, which utils.js
+					     uses to pop the toast. No JS detection, no shortcut hijacking. -->
+					<p id="find-egg" class="find-egg" hidden="until-found">Every <span class="find-egg-word">bug</span> is just an undocumented feature.</p>
 					<ul id="hero-social" class="icons">
 						<li><a id="hero-link-email" href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
 						<li><a id="hero-link-github" href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
