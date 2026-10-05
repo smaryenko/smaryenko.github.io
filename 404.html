@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<!--
+	404: this page never made it off the napkin.
+	A rough wireframe sketch — the page was planned but never built.
+-->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>404 · still a draft</title>
+		<meta name="robots" content="noindex" />
+		<meta name="color-scheme" content="light dark" />
+		<meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
+
+		<link rel="icon" type="image/png" href="/images/favicon.png" />
+		<link rel="apple-touch-icon" href="/images/favicon.png" />
+		<link rel="stylesheet" href="/assets/css/style.css" />
+		<!-- Apply the theme before first paint to avoid a flash (same as index.html) -->
+		<script>
+			(function () {
+				var root = document.documentElement, t = null;
+				try { t = localStorage.getItem('theme'); } catch (e) {}
+				if (t === 'light' || t === 'dark') root.dataset.theme = t;
+				var dark = t ? t === 'dark' : !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+				root.classList.toggle('is-dark', dark);
+			})();
+		</script>
+
+		<style>
+			/* ---- 404 "still a draft" napkin sketch ---------------------------- */
+			.draft {
+				min-height: 100vh;
+				min-height: 100svh;
+				display: flex;
+				align-items: flex-start; /* sit near the top rather than dead-centre */
+				justify-content: center;
+				padding: clamp(2.5rem, 12vh, 8rem) 1.5rem 2rem;
+				background: var(--bg);
+				overflow-x: hidden; /* the napkin's rotate must not cause side-scroll */
+			}
+
+			/* The sketch sits on a slightly tilted "napkin". The hand-drawn feel
+			   comes from dashed strokes, a wobbly border-radius and a tiny rotate. */
+			.napkin {
+				position: relative;
+				width: min(34rem, 100%);
+				padding: clamp(1.5rem, 5vw, 2.75rem);
+				background: var(--surface);
+				color: var(--text);
+				border: 2px dashed var(--muted);
+				/* Uneven radii read as a rough, hand-cut edge. */
+				border-radius: 18px 14px 20px 12px;
+				box-shadow: var(--shadow);
+				transform: rotate(-1.4deg);
+				font-family: "Fraunces", Georgia, serif;
+			}
+
+			/* "DRAFT" stamp in the corner. */
+			.draft-stamp {
+				position: absolute;
+				top: -0.8rem;
+				right: 1.2rem;
+				padding: 0.2rem 0.7rem;
+				border: 2px solid var(--accent);
+				border-radius: 6px;
+				transform: rotate(6deg);
+				color: var(--accent);
+				font: 700 0.8rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+				letter-spacing: 0.15em;
+				background: var(--surface);
+			}
+
+			/* The wireframe boxes: a title bar, an image placeholder with the classic
+			   crossed diagonals, and a few text lines — all sketchy and unfinished. */
+			.wire {
+				display: grid;
+				gap: 0.7rem;
+				margin-bottom: 1.5rem;
+			}
+			.wire-bar {
+				height: 1.4rem;
+				width: 60%;
+				border: 2px solid var(--muted);
+				border-radius: 6px 5px 7px 4px;
+			}
+			.wire-img {
+				position: relative;
+				height: 6.5rem;
+				border: 2px solid var(--muted);
+				border-radius: 7px 5px 8px 6px;
+				overflow: hidden;
+			}
+			/* The two diagonals of an image placeholder. */
+			.wire-img::before,
+			.wire-img::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				border-top: 2px solid var(--muted);
+				transform-origin: top left;
+			}
+			.wire-img::before { transform: rotate(27deg); }
+			.wire-img::after  { transform: rotate(-27deg) translateY(100%); transform-origin: bottom left; }
+
+			.wire-line {
+				height: 0.7rem;
+				border-radius: 999px;
+				background: var(--muted);
+				opacity: 0.35;
+			}
+			.wire-line.short { width: 45%; }
+
+			/* The handwritten note + the crossed-out URL. */
+			.draft-note h1 {
+				margin: 0 0 0.6rem;
+				font: 600 clamp(1.3rem, 4vw, 1.9rem)/1.25 "Fraunces", Georgia, serif;
+			}
+			.draft-note p {
+				margin: 0 0 0.5rem;
+				color: var(--muted);
+				font-family: "Inter", system-ui, sans-serif;
+				font-size: 0.95rem;
+				line-height: 1.55;
+			}
+			.draft-url {
+				position: relative;
+				display: inline;
+				max-width: 100%;
+				/* Long paths wrap (even without spaces) instead of overflowing the
+				   napkin on a narrow phone. */
+				overflow-wrap: anywhere;
+				word-break: break-word;
+				color: var(--text);
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.85rem;
+			}
+			/* Scribble a line through the URL that was never built. */
+			.draft-url::after {
+				content: "";
+				position: absolute;
+				left: -2%;
+				right: -2%;
+				top: 55%;
+				height: 2px;
+				background: var(--accent);
+				transform: rotate(-1.5deg);
+			}
+
+			.draft-arrow {
+				display: inline-block;
+				margin-right: 0.3rem;
+				color: var(--accent);
+			}
+
+			.draft-actions { margin-top: 1.4rem; }
+			.draft-actions .button {
+				/* Full-width, tappable target on small screens; the long label can
+				   wrap to two lines without clipping. */
+				max-width: 100%;
+				white-space: normal;
+			}
+
+			/* Phones: ease the tilt (less overflow risk), keep the stamp on-card,
+			   and give the layout a bit more breathing room. */
+			@media (max-width: 30rem) {
+				.draft { padding: 2rem 1rem 1.5rem; }
+				.napkin {
+					transform: rotate(-0.8deg);
+					padding: 1.4rem 1.2rem;
+				}
+				.draft-stamp {
+					top: -0.7rem;
+					right: 0.8rem;
+					font-size: 0.72rem;
+				}
+				.wire-img { height: 5rem; }
+				.draft-actions .button { display: block; text-align: center; }
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.napkin { transform: none; }
+				.draft-stamp { transform: rotate(6deg); }
+			}
+		</style>
+	</head>
+	<body>
+		<main class="draft">
+			<div class="napkin">
+				<span class="draft-stamp" aria-hidden="true">DRAFT</span>
+
+				<div class="wire" aria-hidden="true">
+					<div class="wire-bar"></div>
+					<div class="wire-img"></div>
+					<div class="wire-line"></div>
+					<div class="wire-line"></div>
+					<div class="wire-line short"></div>
+				</div>
+
+				<div class="draft-note">
+					<h1>Haven't built this one yet.</h1>
+					<p>You found a page that only ever made it to the napkin stage.
+					It was sketched, planned, maybe even promised — but never shipped.</p>
+					<p>You were after
+						<span class="draft-url" id="draft-url">/…</span>
+					</p>
+					<div class="draft-actions">
+						<a href="/" class="button"><span class="draft-arrow" aria-hidden="true">↩</span>Back to the finished pages</a>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<script>
+			(function () {
+				var el = document.getElementById('draft-url');
+				if (el) el.textContent = (location.pathname + location.search) || '/';
+			})();
+		</script>
+	</body>
+</html>

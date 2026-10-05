@@ -603,7 +603,7 @@ a {
 	box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 16px -6px var(--glass-glow);
 	color: var(--glass-text);
 	cursor: pointer;
-	transition: background 0.2s ease, transform 0.2s ease;
+	transition: background 0.2s ease, transform 0.2s ease, top 0.25s ease;
 }
 
 .theme-toggle[hidden] { display: none; }
@@ -1291,4 +1291,63 @@ body::after {
 	font: inherit;
 	text-shadow: 1px 1px #fff;
 	box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+
+/* Offline easter egg (assets/js/offline.js): an on-page indicator shown while
+   the browser is offline. The service worker (sw.js) keeps the site alive, so
+   this renders on the live page. A single persistent pill pinned to the
+   top-left corner. No toast — it stays put for as long as you're offline. */
+.net-pill {
+	position: fixed;
+	top: 1.25rem;
+	left: 1.5rem;
+	z-index: 10002; /* above the responsive-fail overlay and everything else */
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.4rem 0.75rem;
+	border-radius: 999px;
+	background: var(--surface);
+	border: 1px solid var(--fail);
+	color: var(--text);
+	font: 700 0.75rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+	box-shadow: var(--shadow);
+	opacity: 0;
+	transform: translateY(-8px);
+	transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+	pointer-events: none;
+}
+
+/* Status dot inside the pill. */
+.net-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--fail);
+	flex: none;
+}
+
+/* Offline: show it, red accent, dot pulses. */
+.is-offline .net-pill { opacity: 1; transform: translateY(0); }
+.is-offline .net-dot { animation: net-pulse 1.4s ease-in-out infinite; }
+
+/* Back online (brief): keep the pill up but flip the accent to pass green. */
+.is-online .net-pill {
+	opacity: 1;
+	transform: translateY(0);
+	border-color: var(--pass);
+}
+.is-online .net-dot {
+	background: var(--pass);
+	animation: none;
+}
+
+@keyframes net-pulse {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.net-pill { transition: none; }
+	.net-dot { animation: none !important; }
 }
