@@ -13,8 +13,10 @@
  *
  * To release an update, bump CACHE_VERSION. During development, enable
  * "Update on reload" in DevTools > Application > Service Workers.
+ * (sw-register.js never registers this worker on localhost.)
  */
-const CACHE_VERSION = 'v1';
+
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = 'site-' + CACHE_VERSION;
 
 // Everything the page actually references (see index.html). Fonts live in CSS,
@@ -28,6 +30,7 @@ const PRECACHE_URLS = [
 	'/assets/js/theme.js',
 	'/assets/js/grid.js',
 	'/assets/js/terminal.js',
+	'/assets/js/timeline.js',
 	'/assets/js/utils.js',
 	'/assets/js/offline.js',
 	'/assets/js/sw-register.js',
@@ -109,3 +112,4 @@ self.addEventListener('fetch', (event) => {
 		})
 	);
 });
+

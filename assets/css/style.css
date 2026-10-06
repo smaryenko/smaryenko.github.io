@@ -389,7 +389,7 @@ a {
 	}
 }
 
-/* Seasonal easter eggs: a decoration perched on the "S" (seasonal.js).
+/* Seasonal easter eggs: a decoration perched on the "S" (utils.js).
    The letter span anchors it; the SVG scales with the font size via em units. */
 .hero h1 .letter.has-deco {
 	position: relative;
@@ -953,6 +953,10 @@ a {
 	.projects {
 		padding: 3rem 0;
 	}
+
+	.project-image--shot img {
+		aspect-ratio: 16 / 10;
+	}
 }
 
 /* Reduced motion */
@@ -1045,13 +1049,6 @@ body::after {
 
 .project:hover .project-image--shot img {
 	transform: scale(1.03);
-}
-
-@media (max-width: 720px) {
-	.project-image--shot img {
-		max-height: none;
-		aspect-ratio: 16 / 10;
-	}
 }
 
 /* Scroll hint */
@@ -1382,4 +1379,221 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
 	.net-pill { transition: none; }
 	.net-dot { animation: none !important; }
+}
+
+
+/* Famous-bugs timeline (assets/js/timeline.js): a compact strip revealed near
+   the bottom of the hero when the visitor presses Back. Absolutely positioned
+   (out of flow), so revealing it never moves the hero content. A horizontal line
+   of year markers that scrolls sideways; hovering or tapping a year opens its
+   story in a popover ABOVE the strip (outside the scrolling track, so it's never
+   clipped and never changes the strip's height). */
+.hero-timeline {
+	position: absolute;
+	left: 50%;
+	bottom: 6rem; /* clear of the scroll hint (bottom: 2rem, plus its height and bob) */
+	z-index: 3; /* above the grid canvas */
+	width: min(100% - 3rem, 64rem);
+	padding: 0.6rem 0.75rem 0.35rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	opacity: 0;
+	transform: translate(-50%, 8px);
+	transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.hero-timeline.is-in {
+	opacity: 1;
+	transform: translate(-50%, 0);
+}
+
+.hero-timeline-intro {
+	margin: 0 0 0.35rem;
+	color: var(--muted);
+	font: 0.7rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* The line: one row of markers, scrolls sideways. Top padding leaves room for
+   the dot's hover scale so it isn't clipped by the scroll container. */
+.hero-timeline-track {
+	display: flex;
+	margin: 0;
+	padding: 0.3rem 0 0.4rem;
+	list-style: none;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scroll-snap-type: x proximity;
+	scrollbar-width: thin;
+	-webkit-overflow-scrolling: touch;
+}
+
+.tl-item {
+	position: relative;
+	flex: 0 0 6.25rem;
+	scroll-snap-align: start;
+}
+
+/* Each item draws its own segment of the line through the dot centre; the first
+   and last stop at their dot so the line has clean ends. */
+.tl-item::before {
+	content: "";
+	position: absolute;
+	top: calc(0.3rem + 1rem - 1px); /* track padding + half the dot */
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: var(--glass-border);
+}
+
+.tl-item:first-child::before { left: 50%; }
+.tl-item:last-child::before { right: 50%; }
+
+.tl-node {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.2rem;
+	width: 100%;
+	margin: 0;
+	padding: 0 0.25rem;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: center;
+	cursor: pointer;
+}
+
+.tl-dot {
+	position: relative;
+	z-index: 1; /* on top of the line */
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	border: 2px solid var(--glass-border);
+	border-radius: 50%;
+	background: var(--surface);
+	font-size: 0.95rem;
+	line-height: 1;
+	transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tl-year {
+	color: var(--muted);
+	font: 700 0.66rem/1.1 ui-monospace, SFMono-Regular, Menlo, monospace;
+	transition: color 0.2s ease;
+}
+
+/* Names stay to two lines so every marker has the same height. */
+.tl-name {
+	display: -webkit-box;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	color: var(--text);
+	font: 500 0.68rem/1.25 "Inter", system-ui, sans-serif;
+}
+
+.tl-node:focus-visible { outline: none; }
+.tl-node:focus-visible .tl-dot { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tl-item.is-active .tl-dot,
+.tl-node:hover .tl-dot {
+	border-color: var(--fail);
+	transform: scale(1.08);
+}
+
+.tl-item.is-active .tl-year,
+.tl-node:hover .tl-year {
+	color: var(--fail);
+}
+
+/* Story popover: floats above the strip, hidden until a year is hovered/tapped. */
+.tl-detail {
+	position: absolute;
+	left: 0;
+	bottom: calc(100% + 0.5rem);
+	width: min(28rem, 100%);
+	padding: 0.7rem 0.9rem;
+	border: 1px solid var(--border);
+	border-left: 3px solid var(--fail);
+	border-radius: 10px;
+	background: var(--surface);
+	box-shadow: var(--shadow-hover);
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(4px);
+	transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+	pointer-events: none;
+}
+
+.tl-detail.is-shown {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0);
+}
+
+.tl-detail-title {
+	margin: 0 0 0.3rem;
+	color: var(--text);
+	font: 600 0.88rem/1.3 "Inter", system-ui, sans-serif;
+}
+
+.tl-detail-title span {
+	margin-right: 0.35rem;
+	color: var(--fail);
+	font: 700 0.8rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tl-what {
+	margin: 0;
+	color: var(--muted);
+	font: 0.8rem/1.45 "Inter", system-ui, sans-serif;
+}
+
+.tl-lesson {
+	margin: 0.4rem 0 0;
+	color: var(--text);
+	font: 0.76rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tl-lesson-tag {
+	display: inline-block;
+	margin-right: 0.35rem;
+	padding: 0.05rem 0.4rem;
+	border-radius: 999px;
+	background: var(--pass);
+	color: #fff;
+	font-size: 0.66rem;
+	font-weight: 700;
+}
+
+/* Mobile: same line, swiped sideways, slightly tighter so it sits clear of
+   both the CTA and the scroll hint. */
+@media (max-width: 48rem) {
+	.hero-timeline {
+		bottom: 5.75rem;
+		width: calc(100% - 2rem);
+		padding: 0.4rem 0.4rem 0.2rem;
+	}
+
+	/* Dot + year only; the name is in the popover on tap. */
+	.hero-timeline-intro,
+	.tl-name { display: none; }
+
+	.tl-item { flex-basis: 3.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hero-timeline,
+	.tl-detail,
+	.tl-dot,
+	.tl-year {
+		transition: none;
+	}
 }

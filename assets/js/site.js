@@ -32,8 +32,6 @@
 		media,
 		onMediaChange,
 		canDialog,
-		// True while the #404 history entry pushed by openNotFound() is current.
-		notFoundEntry: false,
 
 		isDark() {
 			const t = root.dataset.theme;
@@ -56,22 +54,15 @@
 		},
 
 		// "Page not found" overlay styled as a failed test report (opened from test_404).
+		// Closing behaviour is wired in utils.js.
 		openNotFound() {
 			const dialog = document.getElementById('not-found');
 			if (!dialog || dialog.open || !canDialog) return;
 			dialog.querySelector('.report-time').textContent = ((40 + Math.random() * 400) | 0) + 'ms';
 			dialog.showModal();
-			// Focus the "Go back" button once the dialog is actually open. Done here
-			// rather than with a static `autofocus` attribute, which the browser
-			// refuses (and warns about) when the page loads with a URL fragment.
+			// Focus the "Go back" button once the dialog is open.
 			const back = dialog.querySelector('.report-actions button');
 			if (back) back.focus();
-			// Let the browser Back button close the overlay too.
-			// Keep any existing state, and remember that this entry is ours so the
-			// close handler only ever undoes a navigation it created.
-			const state = history.state && typeof history.state === 'object' ? history.state : {};
-			history.pushState(Object.assign({}, state, { notFound: true }), '', '#404');
-			site.notFoundEntry = true;
 		}
 	};
 

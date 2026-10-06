@@ -6,6 +6,16 @@
 	if (!('serviceWorker' in navigator)) return;
 	if (location.protocol === 'file:') return; // SWs need http(s)
 
+	// Skip the service worker during local development so cached assets never mask
+	// edits (localhost/127.0.0.1). Also proactively unregister any worker left over
+	// from an earlier local session, so a stale cache can't keep serving old code.
+	if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+		navigator.serviceWorker.getRegistrations?.().then((regs) => {
+			regs.forEach((r) => r.unregister());
+		}).catch(() => {});
+		return;
+	}
+
 	window.addEventListener('load', () => {
 		navigator.serviceWorker.register('/sw.js').then((reg) => {
 			// If an updated worker is found, let it activate right away.

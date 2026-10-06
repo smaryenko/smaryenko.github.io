@@ -38,27 +38,15 @@
 	{
 		const dialog = document.getElementById('not-found');
 		if (dialog) {
-			// Clicking the dimmed backdrop (outside the report) closes it.
+			// A plain modal <dialog>, closed like the terminal: the native Esc
+			// cancel, the "Go back" button (method="dialog"), or a click on the
+			// dimmed backdrop (outside the report).
 			dialog.addEventListener('click', (e) => {
 				if (e.target === dialog) dialog.close();
 			});
 
-			// Closed by button/Esc/backdrop: drop the #404 history entry we pushed,
-			// but only if it's still ours and still current.
-			dialog.addEventListener('close', () => {
-				if (!site.notFoundEntry) return;
-				site.notFoundEntry = false;
-				if (history.state && history.state.notFound) history.back();
-			});
-
-			// Closed by browser Back: the entry is already gone, so mark it as no
-			// longer ours before closing (the close handler then won't go back again).
-			window.addEventListener('popstate', () => {
-				site.notFoundEntry = false;
-				if (dialog.open) dialog.close();
-			});
-
-			// Opening the page directly at #404 (e.g. a shared link) shows the report.
+			// Opening the page directly at #404 (e.g. a shared link) shows the
+			// report; strip the hash so closing leaves a clean URL.
 			if (location.hash === '#404') {
 				history.replaceState(null, '', location.pathname + location.search);
 				site.openNotFound();

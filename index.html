@@ -126,6 +126,16 @@
 					</ul>
 					<a href="#one" id="hero-cta" class="button">Pet Projects</a>
 				</div>
+				<!-- Back-button egg: famous-bugs timeline (built by timeline.js).
+				     Hidden until the visitor presses Back, then a compact strip appears
+				     near the bottom of the hero, above the scroll hint. It's positioned
+				     out of flow, so revealing it never moves the hero content. Hover or
+				     tap a year to open its story in a popover above the line. -->
+				<section id="hero-timeline" class="hero-timeline" aria-label="A short history of famous software bugs" hidden>
+					<div id="tl-detail" class="tl-detail" aria-live="polite"></div>
+					<p class="hero-timeline-intro">Leaving already? First, a short history of bugs that shipped.</p>
+					<ol class="hero-timeline-track"></ol>
+				</section>
 				<!-- Decorative pass/fail heatmap -->
 				<canvas id="hero-grid" class="test-grid" aria-hidden="true"></canvas>
 				<div class="grid-tip" aria-hidden="true"></div>
@@ -297,6 +307,7 @@
 		<script src="assets/js/theme.js" defer></script>
 		<script src="assets/js/grid.js" defer></script>
 		<script src="assets/js/terminal.js" defer></script>
+		<script src="assets/js/timeline.js" defer></script>
 		<script src="assets/js/utils.js" defer></script>
 		<script src="assets/js/offline.js" defer></script>
 		<script src="assets/js/sw-register.js" defer></script>
