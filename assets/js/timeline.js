@@ -209,7 +209,9 @@
 	// A #bugs left over from a reload or old link: start clean.
 	if (location.hash === '#bugs') history.replaceState(null, '', page);
 
-	let armed = false;
+	// After a reload the guard entry from the previous visit survives and is the
+	// current entry, so we're already armed: Back will pop off it as usual.
+	let armed = !!(history.state && history.state.bugsGuard);
 	const ACTIVATION_EVENTS = ['pointerdown', 'keydown', 'touchend'];
 
 	function arm() {
@@ -219,7 +221,7 @@
 		history.pushState({ bugsGuard: true }, '', page);
 	}
 
-	ACTIVATION_EVENTS.forEach((t) => document.addEventListener(t, arm, true));
+	if (!armed) ACTIVATION_EVENTS.forEach((t) => document.addEventListener(t, arm, true));
 
 	window.addEventListener('popstate', (e) => {
 		if (!armed || isRevealed()) return;
