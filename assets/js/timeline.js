@@ -176,6 +176,12 @@
 		section.hidden = false;
 		requestAnimationFrame(() => {
 			section.classList.add('is-in');
+			// The intro line is hidden on small screens to keep the strip compact;
+			// show it as a toast there instead.
+			const intro = section.querySelector('.hero-timeline-intro');
+			if (intro && getComputedStyle(intro).display === 'none') {
+				site.toast(intro.textContent, 4000);
+			}
 			// Only scroll if the strip is off-screen (e.g. visitor is down in the
 			// projects); otherwise nothing on the page moves.
 			const r = section.getBoundingClientRect();
@@ -212,10 +218,15 @@
 	// After a reload the guard entry from the previous visit survives and is the
 	// current entry, so we're already armed: Back will pop off it as usual.
 	let armed = !!(history.state && history.state.bugsGuard);
-	const ACTIVATION_EVENTS = ['pointerdown', 'keydown', 'touchend'];
+	// Touch only counts as a user gesture on release (pointerup/touchend), mouse
+	// already on press, so listen to both and push on the first one that the
+	// browser actually treats as activation. A push without activation would be
+	// marked skippable and Back would jump straight past it.
+	const ACTIVATION_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
 
 	function arm() {
 		if (armed || !section) return;
+		if (navigator.userActivation && !navigator.userActivation.isActive) return; // not a real gesture yet
 		armed = true;
 		ACTIVATION_EVENTS.forEach((t) => document.removeEventListener(t, arm, true));
 		history.pushState({ bugsGuard: true }, '', page);
@@ -228,7 +239,9 @@
 		if (e.state && e.state.bugsGuard) return; // moved forward onto the guard
 		// In-page anchor links (#one etc.) also fire popstate with no state; only
 		// a Back onto the original, hashless entry should reveal.
-		if (location.hash) return;
+		// The original entry may already read #bugs from an earlier reveal (it's
+		// rewritten below and survives reloads), so that hash still counts.
+		if (location.hash && location.hash !== '#bugs') return;
 		history.replaceState(null, '', page + '#bugs');
 		reveal();
 	});
