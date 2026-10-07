@@ -16,7 +16,7 @@
  * (sw-register.js never registers this worker on localhost.)
  */
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = 'site-' + CACHE_VERSION;
 
 // Everything the page actually references (see index.html). Fonts live in CSS,

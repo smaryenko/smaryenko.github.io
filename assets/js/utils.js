@@ -754,6 +754,8 @@
 
 	// Idle moth: after 15s with no input (tab visible), a moth (a nod to the 1947
 	// Harvard Mark II bug) flutters around the screen. Click/tap it to catch it.
+	// rearmMoth() lets it appear once more (used by "Restore environment").
+	let rearmMoth = () => {};
 	{
 		const IDLE_MS = 15000;
 		let idleTimer;
@@ -864,6 +866,14 @@
 			reset();
 		});
 		reset();
+
+		rearmMoth = () => {
+			if (moth) return; // still flying: nothing to do
+			spawned = false;
+			announced = false;
+			ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
+			reset();
+		};
 	}
 
 	// Reload wash-out: the inline <head> script counts reloads and sets --fade.
@@ -919,6 +929,8 @@
 					root.classList.remove('is-restoring');
 					root.style.removeProperty('--fade');
 					delete root.dataset.reloads;
+					// Fresh environment, fresh bugs.
+					rearmMoth();
 				}, done);
 			}, { once: true });
 		}

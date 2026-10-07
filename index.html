@@ -46,14 +46,12 @@
 				root.classList.toggle('is-dark', dark);
 			})();
 		</script>
-		<!-- Count real reloads before first paint (see utils.js) -->
 		<script>
 			(function () {
 				try {
 					var nav = performance.getEntriesByType('navigation')[0];
 					var n = +sessionStorage.getItem('reloads') || 0;
 					if (nav && nav.type === 'reload') sessionStorage.setItem('reloads', ++n);
-					// 1% x5, 2% x5, 5% x5, 10% x6 -> 100% on reload 21
 					var steps = [[5, 1], [5, 2], [5, 5], [6, 10]], total = 0, left = n;
 					for (var i = 0; i < steps.length && left > 0; i++) {
 						var k = Math.min(left, steps[i][0]);

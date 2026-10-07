@@ -787,7 +787,7 @@ a {
 	border: 0;
 	background: none;
 	color: var(--muted);
-	cursor: crosshair;
+	cursor: pointer;
 	will-change: transform;
 	transition: opacity 0.4s ease;
 }
@@ -1628,7 +1628,6 @@ body::after {
 	}
 }
 
-/* Page washes out to white a little more on every reload (see utils.js). */
 html::after {
 	content: "";
 	position: fixed;
@@ -1647,7 +1646,6 @@ html.is-washed::after {
 	pointer-events: auto;
 }
 
-/* Reload nudge toast, moved onto <html> to sit above the overlay. */
 .toast.is-above-fade {
 	z-index: 10003;
 }
@@ -1669,7 +1667,6 @@ html.is-washed::after {
 	gap: 1.5rem;
 	padding: 1.5rem;
 	color: #1c1917;
-	/* Lives on <html>, outside body, so set the font explicitly. */
 	font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	line-height: 1.5;
 	text-align: center;
