@@ -42,7 +42,6 @@
 	--glass-glow: light-dark(rgba(79, 70, 229, 0.25), rgba(129, 140, 248, 0.35));
 	--shadow: 0 1px 2px light-dark(rgba(28, 25, 23, 0.04), rgba(0, 0, 0, 0.3)), 0 4px 16px light-dark(rgba(28, 25, 23, 0.06), rgba(0, 0, 0, 0.3));
 	--shadow-hover: 0 2px 4px light-dark(rgba(28, 25, 23, 0.06), rgba(0, 0, 0, 0.4)), 0 12px 32px light-dark(rgba(28, 25, 23, 0.1), rgba(0, 0, 0, 0.45));
-	/* Test status colours (grid, name easter egg, 404 report) */
 	--pass: light-dark(#16a34a, #4ade80);
 	--fail: light-dark(#dc2626, #f87171);
 	--queued: light-dark(#4f46e5, #818cf8);
@@ -52,10 +51,6 @@
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
-/* Fallback for browsers without light-dark(): a custom property accepts any
-   value, so the tokens above would silently resolve to nothing. Use plain
-   colours instead, switched by the .is-dark class that the inline <head>
-   script and theme.js keep in sync with the effective theme. */
 @supports not (color: light-dark(#000, #fff)) {
 	:root {
 		--bg: #fafaf9;
@@ -126,6 +121,9 @@ dialog:not([open]) {
 
 html {
 	scroll-behavior: smooth;
+	/* No grey/blue flash on tap in mobile WebKit/Blink; elements have their own
+	   hover/active/focus-visible styles. Inherited, so it covers everything. */
+	-webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -181,16 +179,7 @@ a {
 	border: 0;
 }
 
-/* Find-in-page egg: a hero line carries the page's only "bug" (#find-egg). The
-   element has hidden="until-found", so the browser keeps it out of view (and
-   out of layout — invisible on load even though it sits up in the hero) but
-   still searchable by native Find on desktop and mobile. On a match the browser
-   reveals it (removing the hidden state) and fires `beforematch`; utils.js pops
-   a toast and briefly flags the word red. The styles below only apply once it's
-   revealed. */
 .find-egg {
-	/* Out of flow so revealing it (the UA un-hides the element) never pushes the
-	   icons/CTA down. Pinned just below the hero container's content. */
 	position: absolute;
 	left: 0;
 	top: calc(100% + 0.75rem);
@@ -342,7 +331,6 @@ a {
 	letter-spacing: -0.01em;
 }
 
-/* Name easter egg (letters split by site.js) */
 .hero h1 .word {
 	white-space: nowrap;
 }
@@ -371,7 +359,6 @@ a {
 	40%, 80% { translate: 0.06em 0; color: var(--fail); }
 }
 
-/* Each letter "runs": queued (indigo) -> jumps -> passes (green) -> settles */
 @keyframes letter-run {
 	0% { translate: 0; rotate: 0deg; color: inherit; }
 	20% { translate: 0 -0.22em; rotate: -6deg; color: var(--accent); }
@@ -389,8 +376,6 @@ a {
 	}
 }
 
-/* Seasonal easter eggs: a decoration perched on the "S" (utils.js).
-   The letter span anchors it; the SVG scales with the font size via em units. */
 .hero h1 .letter.has-deco {
 	position: relative;
 }
@@ -412,8 +397,6 @@ a {
 	filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
 }
 
-/* Both hats share a 48x48 box so they sit on the "S" identically. The party hat
-   stands upright and bobs; the Santa hat tilts jauntily to the side. */
 .letter-deco[data-kind="birthday"],
 .letter-deco[data-kind="xmas"] {
 	width: 1.2em;
@@ -449,7 +432,6 @@ a {
 	50% { translate: -50% -0.02em; }
 }
 
-/* Santa hat sways around its resting -14deg tilt (the pom-pom leads the swing). */
 @keyframes deco-sway {
 	0%, 100% { rotate: -14deg; }
 	50% { rotate: -6deg; }
@@ -698,7 +680,6 @@ a {
 
 .hero.is-fixable { cursor: pointer; }
 
-/* 404 overlay: failed test report */
 .report {
 	width: min(36rem, calc(100vw - 2rem));
 	padding: 0;
@@ -772,8 +753,6 @@ a {
 	.report[open] { animation: none; }
 }
 
-/* Resize-as-input egg: a full-screen failed-test report that covers the page
-   while the viewport is narrower than the supported minimum (utils.js). */
 .responsive-fail {
 	position: fixed;
 	inset: 0;
@@ -797,7 +776,6 @@ a {
 	.responsive-fail { animation: none; }
 }
 
-/* Idle moth (utils.js) */
 .idle-moth {
 	position: fixed;
 	top: 0;
@@ -889,7 +867,6 @@ a {
 	transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.6s ease, translate 0.6s ease;
 }
 
-/* Dead pixel easter egg (hit testing is done in JS, so it never blocks clicks) */
 .dead-pixel {
 	position: fixed;
 	width: 1px;
@@ -906,12 +883,10 @@ a {
 }
 
 .is-dark .dead-pixel {
-	background: #c8c8ff; /* faint bluish "stuck" pixel that blends with the dark hero glow */
+	background: #c8c8ff;
 	opacity: 0.45;
 }
 
-/* Selector inspector easter egg: hold Alt/Option and hover to see a Selenium
-   locator for the element under the cursor (utils.js). Read-only overlay. */
 .sel-inspecting,
 .sel-inspecting * {
 	cursor: crosshair !important;
@@ -935,8 +910,6 @@ a {
 	border: 1px solid #4f46e5;
 	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 	font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
-	/* Show the whole locator, wrapping long ones onto multiple lines instead
-	   of clipping with an ellipsis. break-word handles unbroken selectors. */
 	white-space: normal;
 	overflow-wrap: anywhere;
 	word-break: break-word;
@@ -1103,27 +1076,50 @@ body::after {
 	transform: scale(1.03);
 }
 
-/* Scroll hint */
 .scroll-hint {
 	position: absolute;
-	left: 50%;
-	bottom: 2rem;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 2;
+	height: 3.5rem; /* arrow (1.25rem) + 2rem bottom gap + bob room */
 	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.25rem;
+	justify-content: center;
+	align-items: flex-start;
+	color: var(--muted);
+	text-decoration: none;
+	transition: color 0.2s ease;
+}
+
+.scroll-hint:hover,
+.scroll-hint:focus-visible {
+	color: var(--accent);
+}
+
+.scroll-hint-label {
+	position: absolute;
+	left: 50%;
+	bottom: 3.75rem;
+	z-index: 2;
 	color: var(--muted);
 	font-size: 0.75rem;
 	font-weight: 500;
 	letter-spacing: 0.15em;
 	text-transform: uppercase;
-	text-decoration: none;
 	transform: translateX(-50%);
-	transition: color 0.2s ease;
+	transition: color 0.3s ease;
+	user-select: none;
 }
 
-.scroll-hint:hover {
-	color: var(--accent);
+.scroll-hint-label.is-typo {
+	cursor: pointer;
+	text-decoration: underline wavy color-mix(in srgb, var(--fail) 70%, transparent);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.3em;
+}
+
+.scroll-hint-label.is-fixed {
+	color: var(--pass);
 }
 
 .scroll-hint svg {
@@ -1181,7 +1177,6 @@ body::after {
 	background: #ffffff;
 }
 
-/* Long-press on the name opens the terminal on touch screens: no selection or callout. */
 @media (hover: none) {
 	.hero h1 {
 		-webkit-user-select: none;
@@ -1190,8 +1185,6 @@ body::after {
 	}
 }
 
-/* Hidden terminal (type "help", or long-press the name on touch screens).
-   A modal <dialog>: traps focus, closes on Esc, returns focus when closed. */
 .term {
 	position: fixed;
 	/* --kb: height of the on-screen keyboard (set from JS via visualViewport). */
@@ -1219,7 +1212,6 @@ body::after {
 	animation: term-in 0.2s ease;
 }
 
-/* Page stays visible behind the terminal; clicks on it close the terminal. */
 .term::backdrop {
 	background: transparent;
 }
@@ -1285,7 +1277,6 @@ body::after {
 	.term[open] { animation: none; }
 }
 
-/* Theme toggle easter egg: Windows 98 style "not responding" freeze */
 .is-frozen, .is-frozen * { cursor: wait !important; }
 .is-frozen { overflow: hidden; }
 
@@ -1374,15 +1365,11 @@ body::after {
 	box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
 }
 
-/* Offline easter egg (assets/js/offline.js): an on-page indicator shown while
-   the browser is offline. The service worker (sw.js) keeps the site alive, so
-   this renders on the live page. A single persistent pill pinned to the
-   top-left corner. No toast — it stays put for as long as you're offline. */
 .net-pill {
 	position: fixed;
 	top: 1.25rem;
 	left: 1.5rem;
-	z-index: 10002; /* above the responsive-fail overlay and everything else */
+	z-index: 10002;
 	display: inline-flex;
 	align-items: center;
 	gap: 0.45rem;
@@ -1408,11 +1395,9 @@ body::after {
 	flex: none;
 }
 
-/* Offline: show it, red accent, dot pulses. */
 .is-offline .net-pill { opacity: 1; transform: translateY(0); }
 .is-offline .net-dot { animation: net-pulse 1.4s ease-in-out infinite; }
 
-/* Back online (brief): keep the pill up but flip the accent to pass green. */
 .is-online .net-pill {
 	opacity: 1;
 	transform: translateY(0);
@@ -1434,16 +1419,10 @@ body::after {
 }
 
 
-/* Famous-bugs timeline (assets/js/timeline.js): a compact strip revealed near
-   the bottom of the hero when the visitor presses Back. Absolutely positioned
-   (out of flow), so revealing it never moves the hero content. A horizontal line
-   of year markers that scrolls sideways; hovering or tapping a year opens its
-   story in a popover ABOVE the strip (outside the scrolling track, so it's never
-   clipped and never changes the strip's height). */
 .hero-timeline {
 	position: absolute;
 	left: 50%;
-	bottom: 6rem; /* clear of the scroll hint (bottom: 2rem, plus its height and bob) */
+	bottom: 6rem;
 	z-index: 3; /* above the grid canvas */
 	width: min(100% - 3rem, 64rem);
 	padding: 0.6rem 0.75rem 0.35rem;
@@ -1467,8 +1446,6 @@ body::after {
 	font: 0.7rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* The line: one row of markers, scrolls sideways. Top padding leaves room for
-   the dot's hover scale so it isn't clipped by the scroll container. */
 .hero-timeline-track {
 	display: flex;
 	margin: 0;
@@ -1487,8 +1464,6 @@ body::after {
 	scroll-snap-align: start;
 }
 
-/* Each item draws its own segment of the line through the dot centre; the first
-   and last stop at their dot so the line has clean ends. */
 .tl-item::before {
 	content: "";
 	position: absolute;
@@ -1540,7 +1515,6 @@ body::after {
 	transition: color 0.2s ease;
 }
 
-/* Names stay to two lines so every marker has the same height. */
 .tl-name {
 	display: -webkit-box;
 	overflow: hidden;
@@ -1565,7 +1539,6 @@ body::after {
 	color: var(--fail);
 }
 
-/* Story popover: floats above the strip, hidden until a year is hovered/tapped. */
 .tl-detail {
 	position: absolute;
 	left: 0;
@@ -1625,8 +1598,6 @@ body::after {
 	font-weight: 700;
 }
 
-/* Mobile: same line, swiped sideways, slightly tighter so it sits clear of
-   both the CTA and the scroll hint. */
 @media (max-width: 48rem) {
 	.hero-timeline {
 		bottom: 5.75rem;
@@ -1634,7 +1605,6 @@ body::after {
 		padding: 0.4rem 0.4rem 0.2rem;
 	}
 
-	/* Dot + year only; the name is in the popover on tap. */
 	.hero-timeline-intro,
 	.tl-name { display: none; }
 

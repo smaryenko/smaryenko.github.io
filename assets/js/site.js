@@ -4,7 +4,6 @@
 
 (() => {
 	// Shared state and helpers used by the other scripts (window.site).
-	// Scripts also hang cross-module hooks on `site` (openTerminal, runTerminal, testStats).
 
 	const root = document.documentElement;
 
@@ -53,8 +52,6 @@
 			toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), duration);
 		},
 
-		// "Page not found" overlay styled as a failed test report (opened from test_404).
-		// Closing behaviour is wired in utils.js.
 		openNotFound() {
 			const dialog = document.getElementById('not-found');
 			if (!dialog || dialog.open || !canDialog) return;
@@ -71,11 +68,6 @@
 
 	window.site = site;
 
-	// Typing `help` in DevTools reads this getter, which opens the hidden terminal.
-	// Defined here (the first script) so the global exists as early as possible:
-	// if it's only installed by the last script, typing `help` during load throws
-	// "ReferenceError: help is not defined". The getter tolerates the terminal not
-	// being ready yet (terminal.js sets site.openTerminal later).
 	try {
 		Object.defineProperty(window, 'help', {
 			configurable: true,

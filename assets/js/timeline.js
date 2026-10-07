@@ -226,6 +226,9 @@
 	window.addEventListener('popstate', (e) => {
 		if (!armed || isRevealed()) return;
 		if (e.state && e.state.bugsGuard) return; // moved forward onto the guard
+		// In-page anchor links (#one etc.) also fire popstate with no state; only
+		// a Back onto the original, hashless entry should reveal.
+		if (location.hash) return;
 		history.replaceState(null, '', page + '#bugs');
 		reveal();
 	});

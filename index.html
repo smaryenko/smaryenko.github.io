@@ -111,12 +111,6 @@
 				<div class="container">
 					<h1 id="hero-name">Stanislav Maryenko</h1>
 					<p id="hero-role" class="role">Software Developer in Test and Data Quality Analyst</p>
-					<!-- Find-in-page egg: hidden="until-found" keeps this line out of
-					     sight (invisible on load and while scrolling, even up here in
-					     the hero) but still in the browser's native Find index, on
-					     desktop AND mobile. Searching for "bug" makes the browser
-					     reveal and scroll to it and fire `beforematch`, which utils.js
-					     uses to pop the toast. No JS detection, no shortcut hijacking. -->
 					<p id="find-egg" class="find-egg" hidden="until-found">Every <span class="find-egg-word">bug</span> is just an undocumented feature.</p>
 					<ul id="hero-social" class="icons">
 						<li><a id="hero-link-email" href="mailto:gotheg@gmail.com" aria-label="Email" data-tip="Email me"><svg aria-hidden="true"><use href="#i-mail" /></svg></a></li>
@@ -126,11 +120,6 @@
 					</ul>
 					<a href="#one" id="hero-cta" class="button">Pet Projects</a>
 				</div>
-				<!-- Back-button egg: famous-bugs timeline (built by timeline.js).
-				     Hidden until the visitor presses Back, then a compact strip appears
-				     near the bottom of the hero, above the scroll hint. It's positioned
-				     out of flow, so revealing it never moves the hero content. Hover or
-				     tap a year to open its story in a popover above the line. -->
 				<section id="hero-timeline" class="hero-timeline" aria-label="A short history of famous software bugs" hidden>
 					<div id="tl-detail" class="tl-detail" aria-live="polite"></div>
 					<p class="hero-timeline-intro">Leaving already? First, a short history of bugs that shipped.</p>
@@ -139,8 +128,8 @@
 				<!-- Decorative pass/fail heatmap -->
 				<canvas id="hero-grid" class="test-grid" aria-hidden="true"></canvas>
 				<div class="grid-tip" aria-hidden="true"></div>
+				<span id="scroll-hint-label" class="scroll-hint-label is-typo" aria-hidden="true">Scrol</span>
 				<a href="#one" id="scroll-hint" class="scroll-hint" aria-label="Scroll to projects">
-					<span id="scroll-hint-label" aria-hidden="true">Scroll</span>
 					<svg id="scroll-hint-arrow" aria-hidden="true"><use href="#i-down" /></svg>
 				</a>
 			</section>
@@ -249,7 +238,6 @@
 			</div>
 		</footer>
 
-		<!-- 404 overlay: a failed test report, opened by clicking test_404 in the hero grid -->
 		<dialog id="not-found" class="report" aria-labelledby="report-title">
 			<header class="report-head">
 				<span class="report-badge">FAILED</span>
@@ -271,7 +259,6 @@
 			</form>
 		</dialog>
 
-		<!-- Hidden terminal (cloned by terminal.js on first open) -->
 		<template id="term-template">
 			<dialog class="term" aria-label="Hidden terminal">
 				<div class="term-bar">
@@ -286,7 +273,6 @@
 			</dialog>
 		</template>
 
-		<!-- Theme toggle freeze (cloned by theme.js after 10 quick toggles) -->
 		<template id="freeze-template">
 			<div class="freeze">
 				<div class="win" role="alertdialog" aria-modal="true" aria-labelledby="win-title" aria-describedby="win-text" tabindex="-1">

@@ -730,6 +730,22 @@
 		}
 	}
 
+	// Typo hunt: the scroll hint label reads "Scrol". One click fixes it. It sits
+	// outside the scroll link, so the link (the band below it) keeps working.
+	{
+		const label = document.getElementById('scroll-hint-label');
+		if (label && label.classList.contains('is-typo')) {
+			label.addEventListener('click', () => {
+				if (!label.classList.contains('is-typo')) return;
+				label.classList.remove('is-typo');
+				label.textContent = 'Scroll';
+				label.classList.add('is-fixed');
+				setTimeout(() => label.classList.remove('is-fixed'), 1200);
+				site.toast('Spellcheck test passed ✓\nOne of many discoveries hidden on this site. Keep exploring.', 4000);
+			}, { once: true });
+		}
+	}
+
 	// Idle moth: after 15s with no input (tab visible), a moth (a nod to the 1947
 	// Harvard Mark II bug) flutters around the screen. Click/tap it to catch it.
 	{
