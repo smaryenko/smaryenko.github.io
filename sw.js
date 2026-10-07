@@ -16,7 +16,7 @@
  * (sw-register.js never registers this worker on localhost.)
  */
 
-const CACHE_VERSION = 'v9';
+const CACHE_VERSION = 'v10';
 const CACHE_NAME = 'site-' + CACHE_VERSION;
 
 // Everything the page actually references (see index.html). Fonts live in CSS,
@@ -33,6 +33,7 @@ const PRECACHE_URLS = [
 	'/assets/js/timeline.js',
 	'/assets/js/utils.js',
 	'/assets/js/offline.js',
+	'/assets/js/about.js',
 	'/assets/js/sw-register.js',
 	'/assets/fonts/inter-latin.woff2',
 	'/assets/fonts/fraunces-latin.woff2',

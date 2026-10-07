@@ -760,7 +760,15 @@
 		const IDLE_MS = 15000;
 		let idleTimer;
 		let moth = null;
-		let spawned = false;
+		// Once it has appeared, it stays gone for the whole session (reloads
+		// included) until "Restore environment" re-arms it.
+		const SEEN_KEY = 'moth-seen';
+		const seen = {
+			get() { try { return sessionStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; } },
+			set() { try { sessionStorage.setItem(SEEN_KEY, '1'); } catch (e) {} },
+			clear() { try { sessionStorage.removeItem(SEEN_KEY); } catch (e) {} }
+		};
+		let spawned = seen.get();
 		let raf = 0;
 
 		const SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="currentColor">' +
@@ -789,8 +797,10 @@
 		}
 
 		function spawn() {
-			if (spawned || document.hidden) return;
+			// Not while the page is washed out: it would fly unseen under the overlay.
+			if (spawned || document.hidden || document.documentElement.classList.contains('is-washed')) return;
 			spawned = true;
+			seen.set();
 			ACTIVITY.forEach((t) => window.removeEventListener(t, reset));
 			moth = document.createElement('button');
 			moth.type = 'button';
@@ -857,10 +867,11 @@
 			if (!spawned && !document.hidden) idleTimer = setTimeout(spawn, IDLE_MS);
 		}
 
-		// Activity resets the timer. The moth appears once per page load and stays
-		// until caught or the tab is left; after that the egg is done.
+		// Activity resets the timer. The moth appears once per session and stays
+		// until caught or the tab is left; after that the egg is done until the
+		// environment is restored.
 		const ACTIVITY = ['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'];
-		ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
+		if (!spawned) ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
 		document.addEventListener('visibilitychange', () => {
 			if (document.hidden) release();
 			reset();
@@ -869,10 +880,12 @@
 
 		rearmMoth = () => {
 			if (moth) return; // still flying: nothing to do
+			seen.clear();
 			spawned = false;
 			announced = false;
-			ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
-			reset();
+			// Show up right after the restore instead of waiting for 15s idle.
+			clearTimeout(idleTimer);
+			idleTimer = setTimeout(spawn, 1200);
 		};
 	}
 
@@ -908,7 +921,7 @@
 			box.className = 'washed';
 			box.setAttribute('role', 'alertdialog');
 			box.setAttribute('aria-label', 'Environment cleared');
-			box.innerHTML = '<p>✓ Cache cleared. Page cleared. Conscience cleared.</p>' +
+			box.innerHTML = '<p>✓ Cache cleared. Page cleared. Have you tried turning it off and on again?</p>' +
 				'<button type="button">Restore environment</button>';
 			// On <html>, not <body>: body is its own stacking context, so anything
 			// inside it can't rise above the html::after overlay.

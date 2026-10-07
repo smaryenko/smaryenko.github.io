@@ -106,6 +106,10 @@
 			<symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
 			</symbol>
+			<symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<circle cx="12" cy="12" r="10" />
+				<path d="M12 16v-4M12 8h.01" />
+			</symbol>
 			<symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<path d="m18 15-6-6-6 6" />
 			</symbol>
@@ -127,7 +131,54 @@
 			<!-- Intro -->
 			<section id="intro" class="hero">
 				<div class="container">
-					<h1 id="hero-name">Stanislav Maryenko</h1>
+					<div class="hero-title">
+						<h1 id="hero-name">Stanislav Maryenko</h1>
+						<button type="button" id="about-toggle" class="about-toggle" aria-expanded="false" aria-controls="about-panel" aria-label="About me">
+							<svg aria-hidden="true"><use href="#i-info" /></svg>
+						</button>
+						<div id="about-panel" class="about-panel" role="region" aria-labelledby="about-title" hidden>
+							<div class="about-head">
+								<div>
+									<p class="about-dm">DMC-SDET-A-00-00-00-00A-040A-A</p>
+									<h2 id="about-title" class="about-title">Description</h2>
+								</div>
+								<button type="button" class="about-close" aria-label="Close">
+									<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+								</button>
+							</div>
+
+							<div class="about-cols">
+							<div>
+							<h3>1. General</h3>
+							<p>More than 15 years in quality engineering, in 6 companies and 3 countries. Always happy to help teams find quality problems early and release with confidence.</p>
+
+							<h3>2. Specifications</h3>
+							<dl class="about-spec">
+								<dt>Experience</dt><dd>Since 2010</dd>
+								<dt>Code</dt><dd>Java, C#, Python, JavaScript, SQL</dd>
+								<dt>Languages</dt><dd>Ukrainian, English, Dutch (basic)</dd>
+								<dt>Education</dt><dd>Master's degree in Mathematics</dd>
+								<dt>Certificates</dt><dd>ISTQB, SAFe 4, Google and IBM Data Analytics</dd>
+							</dl>
+							</div>
+							<div>
+							<h3>3. Highlights</h3>
+							<div class="about-notice about-notice--note">
+								<strong>Note</strong>
+								<p>I increased the e2e build stability from 50% to 95%.</p>
+							</div>
+							<div class="about-notice about-notice--pass">
+								<strong>Note</strong>
+								<p>I decreased the full regression time from 2 weeks to 2 days.</p>
+							</div>
+							<div class="about-notice about-notice--caution">
+								<strong>Note</strong>
+								<p>I integrated more than 15 payment providers.</p>
+							</div>
+							</div>
+							</div>
+						</div>
+					</div>
 					<p id="hero-role" class="role">Software Developer in Test and Data Quality Analyst</p>
 					<p id="find-egg" class="find-egg" hidden="until-found">Every <span class="find-egg-word">bug</span> is just an undocumented feature.</p>
 					<ul id="hero-social" class="icons">
@@ -314,6 +365,7 @@
 		<script src="assets/js/timeline.js" defer></script>
 		<script src="assets/js/utils.js" defer></script>
 		<script src="assets/js/offline.js" defer></script>
+		<script src="assets/js/about.js" defer></script>
 		<script src="assets/js/sw-register.js" defer></script>
 	</body>
 </html>
