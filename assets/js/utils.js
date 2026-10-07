@@ -883,9 +883,9 @@
 			seen.clear();
 			spawned = false;
 			announced = false;
-			// Show up right after the restore instead of waiting for 15s idle.
-			clearTimeout(idleTimer);
-			idleTimer = setTimeout(spawn, 1200);
+			// Back to the normal rule: appear after 15s with no input.
+			ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
+			reset();
 		};
 	}
 
