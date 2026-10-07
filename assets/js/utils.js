@@ -736,13 +736,19 @@
 		const label = document.getElementById('scroll-hint-label');
 		if (label && label.classList.contains('is-typo')) {
 			label.addEventListener('click', () => {
-				if (!label.classList.contains('is-typo')) return;
+				// Once fixed, the label behaves like the scroll link below it.
+				if (!label.classList.contains('is-typo')) {
+					const link = document.getElementById('scroll-hint');
+					if (link) link.click();
+					return;
+				}
 				label.classList.remove('is-typo');
+				label.classList.add('is-link');
 				label.textContent = 'Scroll';
 				label.classList.add('is-fixed');
 				setTimeout(() => label.classList.remove('is-fixed'), 1200);
 				site.toast('Spellcheck test passed ✓\nOne of many discoveries hidden on this site. Keep exploring.', 4000);
-			}, { once: true });
+			});
 		}
 	}
 
@@ -858,5 +864,63 @@
 			reset();
 		});
 		reset();
+	}
+
+	// Reload wash-out: the inline <head> script counts reloads and sets --fade.
+	// Here: nudge toasts on the way, and the "cleared" screen at 100%.
+	{
+		const root = document.documentElement;
+		const n = +root.dataset.reloads || 0;
+		const fade = parseFloat(root.style.getPropertyValue('--fade')) || 0;
+
+		// One nudge at the end of each 5-reload stage; reload 21 is the final screen.
+		const NUDGES = {
+			5: 'Rerun #5. Same result.',
+			10: 'Is it just me…?',
+			15: 'Still refreshing…',
+			20: 'One more and the environment is gone.',
+		};
+		if (NUDGES[n]) {
+			site.toast(NUDGES[n], 3000);
+			// Lift the toast out of <body> so the white overlay can't wash it out.
+			const t = document.querySelector('.toast');
+			if (t) {
+				t.classList.add('is-above-fade');
+				// Mostly white by now: dark-theme light text would vanish.
+				t.classList.toggle('is-on-white', fade >= 0.5);
+				root.appendChild(t);
+			}
+		}
+
+		if (fade >= 1) {
+			root.classList.add('is-washed');
+			const box = document.createElement('div');
+			box.className = 'washed';
+			box.setAttribute('role', 'alertdialog');
+			box.setAttribute('aria-label', 'Environment cleared');
+			box.innerHTML = '<p>✓ Cache cleared. Page cleared. Conscience cleared.</p>' +
+				'<button type="button">Restore environment</button>';
+			// On <html>, not <body>: body is its own stacking context, so anything
+			// inside it can't rise above the html::after overlay.
+			root.appendChild(box);
+			const button = box.querySelector('button');
+			button.focus();
+
+			button.addEventListener('click', () => {
+				try { sessionStorage.removeItem('reloads'); } catch (e) {}
+				box.classList.add('is-leaving');
+				root.classList.remove('is-washed');
+				root.classList.add('is-restoring');
+				// Next frame, so the transition runs from the current value.
+				requestAnimationFrame(() => root.style.setProperty('--fade', '0'));
+				const done = site.reduceMotion.matches ? 0 : 1600;
+				setTimeout(() => {
+					box.remove();
+					root.classList.remove('is-restoring');
+					root.style.removeProperty('--fade');
+					delete root.dataset.reloads;
+				}, done);
+			}, { once: true });
+		}
 	}
 })();

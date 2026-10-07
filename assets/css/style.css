@@ -1118,6 +1118,14 @@ body::after {
 	text-underline-offset: 0.3em;
 }
 
+.scroll-hint-label.is-link {
+	cursor: pointer;
+}
+
+.scroll-hint-label.is-link:hover {
+	color: var(--accent);
+}
+
 .scroll-hint-label.is-fixed {
 	color: var(--pass);
 }
@@ -1618,4 +1626,87 @@ body::after {
 	.tl-year {
 		transition: none;
 	}
+}
+
+/* Page washes out to white a little more on every reload (see utils.js). */
+html::after {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: 9998;
+	background: #fff;
+	opacity: var(--fade, 0);
+	pointer-events: none;
+}
+
+html.is-restoring::after {
+	transition: opacity 1.6s ease;
+}
+
+html.is-washed::after {
+	pointer-events: auto;
+}
+
+/* Reload nudge toast, moved onto <html> to sit above the overlay. */
+.toast.is-above-fade {
+	z-index: 10003;
+}
+
+.toast.is-on-white {
+	border-color: rgba(28, 25, 23, 0.25);
+	background: rgba(255, 255, 255, 0.9);
+	color: #1c1917;
+}
+
+.washed {
+	position: fixed;
+	inset: 0;
+	z-index: 10003;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 1.5rem;
+	padding: 1.5rem;
+	color: #1c1917;
+	/* Lives on <html>, outside body, so set the font explicitly. */
+	font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	line-height: 1.5;
+	text-align: center;
+	animation: washed-in 0.8s ease both;
+}
+
+.washed p {
+	margin: 0;
+	font-size: clamp(1.1rem, 3vw, 1.5rem);
+}
+
+.washed button {
+	padding: 0.6rem 1.2rem;
+	border: 1px solid #1c1917;
+	border-radius: 999px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.washed button:hover,
+.washed button:focus-visible {
+	background: #1c1917;
+	color: #fff;
+}
+
+.washed.is-leaving {
+	animation: washed-in 0.4s ease reverse both;
+}
+
+@keyframes washed-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html.is-restoring::after { transition: none; }
+	.washed, .washed.is-leaving { animation: none; }
 }
