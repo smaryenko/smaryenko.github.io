@@ -797,6 +797,58 @@ a {
 	.responsive-fail { animation: none; }
 }
 
+/* Idle moth (utils.js) */
+.idle-moth {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 900;
+	width: 48px;
+	height: 48px;
+	padding: 6px;
+	border: 0;
+	background: none;
+	color: var(--muted);
+	cursor: crosshair;
+	will-change: transform;
+	transition: opacity 0.4s ease;
+}
+
+.idle-moth svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	animation: moth-flap 0.18s ease-in-out infinite alternate;
+	filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+}
+
+.idle-moth:focus-visible {
+	outline: 2px solid var(--accent);
+	border-radius: 50%;
+}
+
+.idle-moth.is-caught svg {
+	animation: none;
+	color: var(--fail);
+	scale: 0.6;
+	transition: scale 0.3s ease, color 0.3s ease;
+}
+
+.idle-moth.is-caught,
+.idle-moth.is-gone {
+	opacity: 0;
+	transition-delay: 0.2s;
+}
+
+@keyframes moth-flap {
+	from { scale: 1 1; }
+	to { scale: 0.55 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.idle-moth svg { animation: none; }
+}
+
 .toast {
 	position: fixed;
 	left: 50%;

@@ -352,7 +352,7 @@
 			updateTip();
 			if (fixedCount === 1) site.toast('Bug fixed.\nNice catch ✓');
 			// 42: the Answer to the Ultimate Question (and a nudge towards automation).
-			else if (fixedCount === 42) site.toast('42 bugs fixed by hand.\nThe answer is clear: automate it 🤖', 6000);
+			else if (fixedCount === 42) site.toast('42 bugs fixed by hand.\nThe answer is clear: automate it 🤖', 4000);
 			else site.toast(fixedCount + ' bugs fixed ✓');
 			if (!animating()) draw(performance.now());
 		});

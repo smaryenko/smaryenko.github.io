@@ -121,7 +121,7 @@
 			// re-found later.
 			egg.addEventListener('beforematch', () => {
 				if (word) word.classList.add('found');
-				site.toast('🐛 You searched for a bug — and found one.\nStatus: won\'t fix (it\'s a feature).', 4200);
+				site.toast('🐛 You searched for a bug — and found one.\nStatus: won\'t fix (it\'s a feature).', 4000);
 				clearTimeout(rehideTimer);
 				rehideTimer = setTimeout(() => {
 					if (word) word.classList.remove('found');
@@ -728,5 +728,119 @@
 				if (armed) update(e.target);
 			}, { passive: true });
 		}
+	}
+
+	// Idle moth: after 15s with no input (tab visible), a moth (a nod to the 1947
+	// Harvard Mark II bug) flutters around the screen. Click/tap it to catch it.
+	{
+		const IDLE_MS = 15000;
+		let idleTimer;
+		let moth = null;
+		let spawned = false;
+		let raf = 0;
+
+		const SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="currentColor">' +
+			'<path d="M24 16c-6-9-20-12-21-4-1 7 9 12 19 12z" opacity=".85"/>' +
+			'<path d="M24 16c6-9 20-12 21-4 1 7-9 12-19 12z" opacity=".85"/>' +
+			'<path d="M23 24c-5 1-15 6-12 12 3 5 10-2 12-8z" opacity=".7"/>' +
+			'<path d="M25 24c5 1 15 6 12 12-3 5-10-2-12-8z" opacity=".7"/>' +
+			'<ellipse cx="24" cy="25" rx="2.2" ry="9"/></g>' +
+			'<path d="M23 16q-3-6-7-8M25 16q3-6 7-8" stroke="currentColor" fill="none" stroke-width="1.2"/></svg>';
+
+		let announced = false;
+		function announce() {
+			if (announced || !moth) return;
+			announced = true;
+			site.toast('Bored? Catch the bug 🦋', 4000);
+		}
+		window.addEventListener('focus', announce);
+
+		function release() {
+			if (!moth) return;
+			cancelAnimationFrame(raf);
+			moth.classList.add('is-gone');
+			const el = moth;
+			moth = null;
+			setTimeout(() => el.remove(), 400);
+		}
+
+		function spawn() {
+			if (spawned || document.hidden) return;
+			spawned = true;
+			ACTIVITY.forEach((t) => window.removeEventListener(t, reset));
+			moth = document.createElement('button');
+			moth.type = 'button';
+			moth.className = 'idle-moth';
+			moth.setAttribute('aria-label', 'Catch the moth');
+			moth.innerHTML = SVG;
+			document.body.appendChild(moth);
+			// If the moth appears while another app has focus, the toast would go
+			// unseen; hold it until the visitor comes back (see the focus listener).
+			if (document.hasFocus()) announce();
+
+			const w = () => window.innerWidth - 48;
+			const h = () => window.innerHeight - 48;
+			let x = Math.random() < 0.5 ? -48 : window.innerWidth;
+			let y = Math.random() * h();
+			let angle = Math.random() * Math.PI * 2;
+			// Pixels per second (time-based, so 120Hz screens aren't twice as fast).
+			const speed = site.reduceMotion.matches ? 25 : 70;
+			let hovered = false;
+			let rest = 0; // ms left of a pause on the spot
+			let last = performance.now();
+
+			const el = moth;
+			// pointerdown, not click: the moth moves between press and release, so a
+			// click (down + up on the same element) often never fires. click stays
+			// for keyboard (Enter/Space) users.
+			const catchIt = () => {
+				if (moth !== el) return;
+				el.classList.add('is-caught');
+				cancelAnimationFrame(raf);
+				moth = null;
+				site.toast('Bug caught 🪲 Logged in the 1947 report: "First actual case of bug being found."', 4000);
+				setTimeout(() => el.remove(), 600);
+			};
+			el.addEventListener('pointerdown', catchIt);
+			el.addEventListener('click', catchIt);
+			// Hovering slows it right down so it can actually be caught.
+			el.addEventListener('pointerenter', () => { hovered = true; });
+			el.addEventListener('pointerleave', () => { hovered = false; });
+
+			const step = (now) => {
+				const dt = Math.min(now - last, 50);
+				last = now;
+				raf = requestAnimationFrame(step);
+				// Now and then it lands and rests, like a real moth.
+				if (rest > 0) { rest -= dt; return; }
+				if (Math.random() < 0.004) rest = 600 + Math.random() * 900;
+				// Gentle random wander, steered back toward the screen near an edge.
+				angle += (Math.random() - 0.5) * 0.25;
+				const cx = w() / 2, cy = h() / 2;
+				if (x < 0 || x > w() || y < 0 || y > h()) {
+					angle += (Math.atan2(cy - y, cx - x) - angle) * 0.15;
+				}
+				const d = (speed * (hovered ? 0.25 : 1) * dt) / 1000;
+				x += Math.cos(angle) * d;
+				y += Math.sin(angle) * d;
+				el.style.transform = `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`;
+			};
+			raf = requestAnimationFrame(step);
+		}
+
+		function reset() {
+			clearTimeout(idleTimer);
+			if (!spawned && !document.hidden) idleTimer = setTimeout(spawn, IDLE_MS);
+		}
+
+		// Activity resets the timer. The moth appears once per page load and stays
+		// until caught or the tab is left; after that the egg is done.
+		const ACTIVITY = ['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'];
+		ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
+		document.addEventListener('visibilitychange', () => {
+			if (document.hidden) release();
+			reset();
+		});
+		reset();
 	}
 })();
