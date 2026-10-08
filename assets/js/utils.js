@@ -94,7 +94,7 @@
 	if (window.console) {
 		window.addEventListener('pageshow', () => {
 			console.log(
-				'%cHi there 👋%c\n\nThere\'s a bug hiding on this page. Think like a tester and go find it.\n\nPsst: type help to open the console.',
+				'%cHi there 👋%c\n\nThere\'s a bug hiding on this page. Think like a tester and go find it.\n\nPsst: type help to open the console.\nCurious how the tests are doing? Try site.testStats().',
 				'font: 700 20px Georgia, serif; color: #4f46e5;',
 				'font: 13px ui-monospace, Menlo, monospace; color: inherit;'
 			);
@@ -401,11 +401,19 @@
 
 		const vv = window.visualViewport;
 		// Multiply by scale so pinch-zoom (which shrinks the visual viewport but
-		// not the layout) isn't mistaken for a small screen. Ctrl/Cmd +/- zoom
-		// still counts, since that genuinely reflows the page.
+		// not the layout) isn't mistaken for a small screen.
 		const scale = () => (vv && vv.scale) || 1;
-		const width = () => Math.round(vv ? vv.width * scale() : window.innerWidth);
-		const height = () => Math.round(vv ? vv.height * scale() : window.innerHeight);
+		const vpWidth = () => Math.round(vv ? vv.width * scale() : window.innerWidth);
+		const vpHeight = () => Math.round(vv ? vv.height * scale() : window.innerHeight);
+
+		// On desktop, measure the browser window itself: outer size is in screen
+		// pixels and ignores Ctrl/Cmd +/- zoom, so zooming in for readability
+		// never fails the test. outerHeight includes tabs/toolbar, so subtract a
+		// rough allowance to approximate the content area.
+		const CHROME_H = 100;
+		const useOuter = () => desktop.matches && window.outerWidth > 0 && window.outerHeight > 0;
+		const width = () => useOuter() ? window.outerWidth : vpWidth();
+		const height = () => useOuter() ? Math.max(0, window.outerHeight - CHROME_H) : vpHeight();
 
 		let overlay = null;
 
@@ -947,5 +955,61 @@
 				}, done);
 			}, { once: true });
 		}
+	}
+
+	// Very low browser zoom: zooming out widens the CSS viewport, so the
+	// inner/outer width ratio is ~4 at 25%. Desktop only.
+	// --zoom-fix lets key UI counter-scale so it stays readable.
+	{
+		const desktop = site.media('(hover: hover) and (pointer: fine)');
+		const root = document.documentElement;
+		// outerWidth includes side panels/borders, which lowers the ratio a bit;
+		// the next zoom step (33%) tops out at ~3.0.
+		// Safari's minimum zoom is 50% (ratio ~2; next step up is ~1.6 or less).
+		const isSafari = /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
+		const MIN_ZOOM = isSafari ? 50 : 25;
+		const THRESHOLD = isSafari ? 1.75 : 3.2;
+		let on = false;
+		let banner = null;
+
+		const ratio = () => (window.outerWidth > 0 && window.innerWidth > 0)
+			? window.innerWidth / window.outerWidth : 1;
+
+		const enable = (z) => {
+			on = true;
+			root.style.setProperty('--zoom-fix', z.toFixed(2));
+			root.classList.add('is-overview');
+			banner = document.createElement('div');
+			banner.className = 'overview-banner';
+			banner.setAttribute('aria-hidden', 'true');
+			banner.innerHTML =
+				'<span class="report-badge overview-badge">PASSED</span>' +
+				'<span>coverage: 100% · zoom: ' + MIN_ZOOM + '%</span>';
+			document.body.appendChild(banner);
+			site.toast('Zoomed out far enough to see the whole picture 🔭\nEvery section covered.', 5000);
+		};
+
+		const disable = () => {
+			on = false;
+			root.classList.remove('is-overview');
+			root.style.removeProperty('--zoom-fix');
+			if (banner) { banner.remove(); banner = null; }
+		};
+
+		const check = () => {
+			const z = ratio();
+			const want = desktop.matches && z >= THRESHOLD;
+			if (want && !on) enable(z);
+			else if (!want && on) disable();
+			else if (on) root.style.setProperty('--zoom-fix', z.toFixed(2));
+		};
+
+		let queued = false;
+		window.addEventListener('resize', () => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(() => { queued = false; check(); });
+		}, { passive: true });
+		check();
 	}
 })();
