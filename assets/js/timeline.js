@@ -1,12 +1,7 @@
-// Famous-bugs timeline (inline hero egg): reveals an inline timeline of "bugs
-// that shipped" in the hero — a horizontal strip on desktop, a vertical list on
-// mobile. Each entry shows year + icon + name; the description (what went wrong
-// + QA lesson) appears on hover, and on tap for touch devices.
-//
-// Triggered by the browser Back button: on load we push a #bugs history entry,
-// so the first Back press pops back to the original (hashless) entry and fires
-// `popstate` instead of leaving — we reveal the timeline there. A second Back
-// then actually leaves. Built lazily on first reveal.
+// Timeline of notable software bugs, shown inline in the hero — a horizontal
+// strip on desktop, a vertical list on mobile. Each entry shows year + icon +
+// name; the description appears on hover, and on tap for touch devices.
+// Built lazily the first time it is shown.
 (() => {
 	// Each row: year label, emoji icon, short name, what went wrong, QA lesson.
 	// Wording is deliberately measured — several of these incidents have
@@ -201,27 +196,21 @@
 		if (isRevealed()) hide(); else reveal();
 	}
 
-	// --- Back-button trigger -------------------------------------------------
-	// Chrome marks history entries added by pushState WITHOUT a user gesture as
-	// "skippable": the Back button jumps straight past them (anti back-trap
-	// protection). So the guard entry is pushed on the visitor's first real
-	// interaction (click/tap/key), never on load.
-	//
-	// Flow: URL stays clean. On first interaction we push a same-URL guard entry
-	// on top. Back pops off it to the original entry and fires popstate; we
-	// swap the URL to #bugs and reveal. A second Back then leaves the site.
+	// --- History handling ----------------------------------------------------
+	// Chrome marks history entries added by pushState without a user gesture as
+	// "skippable", so the entry is pushed on the first real interaction
+	// (click/tap/key), never on load.
 	const page = location.pathname + location.search;
 
 	// A #bugs left over from a reload or old link: start clean.
 	if (location.hash === '#bugs') history.replaceState(null, '', page);
 
-	// After a reload the guard entry from the previous visit survives and is the
-	// current entry, so we're already armed: Back will pop off it as usual.
+	// After a reload the entry from the previous visit survives as the current one.
 	let armed = !!(history.state && history.state.bugsGuard);
 	// Touch only counts as a user gesture on release (pointerup/touchend), mouse
 	// already on press, so listen to both and push on the first one that the
 	// browser actually treats as activation. A push without activation would be
-	// marked skippable and Back would jump straight past it.
+	// marked skippable.
 	const ACTIVATION_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
 
 	function arm() {
@@ -237,10 +226,8 @@
 	window.addEventListener('popstate', (e) => {
 		if (!armed || isRevealed()) return;
 		if (e.state && e.state.bugsGuard) return; // moved forward onto the guard
-		// In-page anchor links (#one etc.) also fire popstate with no state; only
-		// a Back onto the original, hashless entry should reveal.
-		// The original entry may already read #bugs from an earlier reveal (it's
-		// rewritten below and survives reloads), so that hash still counts.
+		// In-page anchor links (#one etc.) also fire popstate with no state; ignore
+		// them. #bugs may survive from an earlier visit, so it still counts.
 		if (location.hash && location.hash !== '#bugs') return;
 		history.replaceState(null, '', page + '#bugs');
 		reveal();

@@ -1,14 +1,5 @@
-// Offline easter egg: when the browser goes offline (DevTools > Network > Offline,
-// or a real disconnect), the page marks itself as running from cache. Because the
-// service worker (sw.js) keeps the site alive offline, this runs on the real page
-// instead of the browser's error screen.
-//
-// The indicator is ON THE SITE, not a toast:
-//   - a slim status bar pinned to the top of the viewport, and
-//   - a persistent "status pill" that stays visible the whole time you're offline.
-// Reconnecting clears both and briefly shows a "back online" state before fading.
-//
-// Themed as a failing/again-passing precondition test, to match test_404 etc.
+// Network status indicator: a small pill shown while the connection is down,
+// briefly confirming when it comes back.
 (() => {
 	const root = document.documentElement;
 	let pill, clearTimer;
@@ -70,10 +61,4 @@
 		if (!navigator.onLine) goOffline();
 	});
 	if (!navigator.onLine) goOffline();
-
-	// Small console breadcrumb for anyone poking around with DevTools open.
-	if (window.console) {
-		console.log('%cnet: offline egg armed — DevTools > Network > Offline to trip it.',
-			'font: 12px ui-monospace, Menlo, monospace; color: #818cf8;');
-	}
 })();

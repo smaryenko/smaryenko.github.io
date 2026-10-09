@@ -1,5 +1,5 @@
 // Register the service worker (sw.js) so the site works offline and the offline
-// easter egg runs on a live page. Guarded: no SW support (or file://) is a no-op.
+// status runs on a live page. Guarded: no SW support (or file://) is a no-op.
 // When a new worker takes control, reload once so the freshly deployed assets
 // are the ones running (prevents a half-old/half-new page after a deploy).
 (() => {

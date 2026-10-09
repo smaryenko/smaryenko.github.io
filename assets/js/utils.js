@@ -209,8 +209,18 @@
 		}
 	}
 
+	// Session-scoped "done" flags (survive reloads, cleared by "Restore environment").
+	const sessionFlag = (key) => ({
+		get() { try { return sessionStorage.getItem(key) === '1'; } catch (e) { return false; } },
+		set() { try { sessionStorage.setItem(key, '1'); } catch (e) {} },
+		clear() { try { sessionStorage.removeItem(key); } catch (e) {} }
+	});
+
 	// Dead pixel: a single pixel fixed on the screen. Clicking/tapping within ±4px shows a toast.
+	// Once fixed it stays gone for the session; rearmPixel() brings it back.
+	let rearmPixel = () => {};
 	{
+		const fixed = sessionFlag('pixel-fixed');
 		// Mouse: ±4px around the pixel. Finger taps are far less precise, so allow more.
 		const TOLERANCE = 4;
 		const TOUCH_TOLERANCE = 12;
@@ -220,7 +230,7 @@
 		const px = document.createElement('div');
 		px.className = 'dead-pixel';
 		px.setAttribute('aria-hidden', 'true');
-		document.body.appendChild(px);
+		let armed = false;
 
 		// Fraction of the viewport, rounded to whole pixels so it stays crisp.
 		const place = () => {
@@ -229,11 +239,8 @@
 			px.style.left = x + 'px';
 			px.style.top = y + 'px';
 		};
-		place();
-		window.addEventListener('resize', place);
 
 		// Hit-tested on the document (capture), so it works even if something sits on top.
-		// Once found, the pixel is "fixed" until the next page load.
 		// Measure the real on-screen position each time (avoids stale coords
 		// after mobile toolbar resizes, zoom, etc.).
 		const isHit = (e) => {
@@ -248,8 +255,20 @@
 		const root = document.documentElement;
 		const onMove = (e) => root.classList.toggle('on-dead-pixel', isHit(e));
 
+		const arm = () => {
+			if (armed) return;
+			armed = true;
+			document.body.appendChild(px);
+			place();
+			window.addEventListener('resize', place);
+			document.addEventListener('mousemove', onMove, { passive: true });
+			document.addEventListener('click', onClick, true);
+		};
+
 		const onClick = (e) => {
 			if (!isHit(e)) return;
+			armed = false;
+			fixed.set();
 			px.remove();
 			root.classList.remove('on-dead-pixel');
 			window.removeEventListener('resize', place);
@@ -257,8 +276,9 @@
 			document.removeEventListener('click', onClick, true);
 			site.toast('Dead pixel fixed ✓\nNo need to replace your screen yet', 4000);
 		};
-		document.addEventListener('mousemove', onMove, { passive: true });
-		document.addEventListener('click', onClick, true);
+
+		if (!fixed.get()) arm();
+		rearmPixel = () => { fixed.clear(); arm(); };
 	}
 
 	// Seasonal easter eggs:
@@ -740,9 +760,20 @@
 
 	// Typo hunt: the scroll hint label reads "Scrol". One click fixes it. It sits
 	// outside the scroll link, so the link (the band below it) keeps working.
+	// Once fixed it stays fixed for the session; rearmTypo() brings it back.
+	let rearmTypo = () => {};
 	{
 		const label = document.getElementById('scroll-hint-label');
+		const fixed = sessionFlag('typo-fixed');
 		if (label && label.classList.contains('is-typo')) {
+			const original = label.textContent;
+			const setFixed = () => {
+				label.classList.remove('is-typo');
+				label.classList.add('is-link');
+				label.textContent = 'Scroll';
+			};
+			if (fixed.get()) setFixed();
+
 			label.addEventListener('click', () => {
 				// Once fixed, the label behaves like the scroll link below it.
 				if (!label.classList.contains('is-typo')) {
@@ -750,13 +781,19 @@
 					if (link) link.click();
 					return;
 				}
-				label.classList.remove('is-typo');
-				label.classList.add('is-link');
-				label.textContent = 'Scroll';
+				fixed.set();
+				setFixed();
 				label.classList.add('is-fixed');
 				setTimeout(() => label.classList.remove('is-fixed'), 1200);
 				site.toast('Spellcheck test passed ✓\nOne of many discoveries hidden on this site. Keep exploring.', 4000);
 			});
+
+			rearmTypo = () => {
+				fixed.clear();
+				label.classList.remove('is-link', 'is-fixed');
+				label.classList.add('is-typo');
+				label.textContent = original;
+			};
 		}
 	}
 
@@ -777,6 +814,7 @@
 			clear() { try { sessionStorage.removeItem(SEEN_KEY); } catch (e) {} }
 		};
 		let spawned = seen.get();
+		const caught = sessionFlag('moth-caught');
 		let raf = 0;
 
 		const SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="currentColor">' +
@@ -809,7 +847,7 @@
 			if (spawned || document.hidden || document.documentElement.classList.contains('is-washed')) return;
 			spawned = true;
 			seen.set();
-			ACTIVITY.forEach((t) => window.removeEventListener(t, reset));
+			ACTIVITY.forEach((t) => window.removeEventListener(t, reset, true));
 			moth = document.createElement('button');
 			moth.type = 'button';
 			moth.className = 'idle-moth';
@@ -838,13 +876,39 @@
 			const catchIt = () => {
 				if (moth !== el) return;
 				el.classList.add('is-caught');
+				caught.set();
 				cancelAnimationFrame(raf);
 				moth = null;
-				site.toast('Bug caught 🪲 Logged in the 1947 report: "First actual case of bug being found."', 4000);
+				site.toast('Bug caught 🪲 Just like the 1947 moth.\nA history of famous bugs hides somewhere on this page.', 5000);
 				setTimeout(() => el.remove(), 600);
 			};
 			el.addEventListener('pointerdown', catchIt);
 			el.addEventListener('click', catchIt);
+
+			// While a modal <dialog> is open, the rest of the page is inert and the
+			// moth gets no pointer events. Hit-test by position on the document
+			// instead (capture phase), so it stays catchable and hoverable.
+			const inside = (r, e) => e.clientX >= r.left && e.clientX <= r.right &&
+				e.clientY >= r.top && e.clientY <= r.bottom;
+			// Over the moth, but not where an open dialog covers it.
+			const over = (e) => inside(el.getBoundingClientRect(), e) &&
+				![...document.querySelectorAll('dialog[open]')]
+					.some((d) => inside(d.getBoundingClientRect(), e));
+			const onDocDown = (e) => {
+				if (moth !== el) { document.removeEventListener('pointerdown', onDocDown, true); return; }
+				if (!document.querySelector('dialog[open]') || !over(e)) return;
+				// Don't let the same press also close the dialog (backdrop click).
+				e.stopPropagation();
+				document.removeEventListener('pointerdown', onDocDown, true);
+				document.removeEventListener('pointermove', onDocMove, true);
+				catchIt();
+			};
+			const onDocMove = (e) => {
+				if (moth !== el) { document.removeEventListener('pointermove', onDocMove, true); return; }
+				if (document.querySelector('dialog[open]')) hovered = over(e);
+			};
+			document.addEventListener('pointerdown', onDocDown, true);
+			document.addEventListener('pointermove', onDocMove, true);
 			// Hovering slows it right down so it can actually be caught.
 			el.addEventListener('pointerenter', () => { hovered = true; });
 			el.addEventListener('pointerleave', () => { hovered = false; });
@@ -879,7 +943,10 @@
 		// until caught or the tab is left; after that the egg is done until the
 		// environment is restored.
 		const ACTIVITY = ['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'];
-		if (!spawned) ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
+		// Capture phase, so handlers that stop propagation (e.g. text inputs)
+		// still count as activity.
+		const LISTEN = { passive: true, capture: true };
+		if (!spawned) ACTIVITY.forEach((t) => window.addEventListener(t, reset, LISTEN));
 		document.addEventListener('visibilitychange', () => {
 			if (document.hidden) release();
 			reset();
@@ -889,10 +956,11 @@
 		rearmMoth = () => {
 			if (moth) return; // still flying: nothing to do
 			seen.clear();
+			caught.clear();
 			spawned = false;
 			announced = false;
 			// Back to the normal rule: appear after 15s with no input.
-			ACTIVITY.forEach((t) => window.addEventListener(t, reset, { passive: true }));
+			ACTIVITY.forEach((t) => window.addEventListener(t, reset, LISTEN));
 			reset();
 		};
 	}
@@ -952,6 +1020,8 @@
 					delete root.dataset.reloads;
 					// Fresh environment, fresh bugs.
 					rearmMoth();
+					rearmPixel();
+					rearmTypo();
 				}, done);
 			}, { once: true });
 		}

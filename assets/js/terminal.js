@@ -1,6 +1,7 @@
 // Hidden terminal: type "help" anywhere (or press the key left of 1), Esc to close.
-// Built from <template id="term-template"> as a modal <dialog>, so the browser
-// traps focus inside it and Esc closes it.
+// Built from <template id="term-template"> as a non-modal <dialog>, so the page
+// behind stays usable and toasts can sit above it. Tab is kept inside the panel;
+// Esc and clicks outside close it.
 (() => {
 	let term, out, input, returnFocus;
 	const cmdHistory = [];
@@ -254,11 +255,25 @@
 			run(input.value);
 			input.value = '';
 		});
-		// Clicks outside the panel land on the dialog's backdrop, i.e. the dialog itself.
-		term.addEventListener('pointerdown', (e) => {
-			if (e.target === term) close();
+		// Clicks outside the panel close it (the moth is exempt, so it can be caught).
+		document.addEventListener('pointerdown', (e) => {
+			if (!isOpen() || term.contains(e.target)) return;
+			if (e.target.closest && e.target.closest('.idle-moth')) return;
+			// Another modal on top (e.g. the 404 report) owns the clicks.
+			if (document.querySelector('dialog[open]:not(.term)')) return;
+			close();
 		});
-		// Esc (native cancel) and every other way of closing go through here.
+		// Keep Tab inside the panel, like a modal would.
+		term.addEventListener('keydown', (e) => {
+			if (e.key !== 'Tab') return;
+			const items = [...term.querySelectorAll('button, input, [href], [tabindex]:not([tabindex="-1"])')]
+				.filter((el) => !el.disabled && el.offsetParent !== null);
+			if (!items.length) return;
+			const first = items[0], last = items[items.length - 1];
+			if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+			else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+		});
+		// Every way of closing goes through here.
 		term.addEventListener('close', () => {
 			if (returnFocus && returnFocus.isConnected) returnFocus.focus({ preventScroll: true });
 			returnFocus = null;
@@ -266,7 +281,7 @@
 		input.addEventListener('keydown', (e) => {
 			// Keep terminal typing from triggering page shortcuts (e.g. Konami).
 			e.stopPropagation();
-			if (e.key === 'Escape' || e.code === 'Backquote' || e.code === 'IntlBackslash' || e.key === '`') {
+			if (e.key === 'Escape' || isToggleKey(e)) {
 				e.preventDefault();
 				close();
 			} else if (e.key === 'ArrowUp' && histPos > 0) {
@@ -285,14 +300,14 @@
 	}
 
 	function open() {
-		// The terminal is a modal <dialog>; skip it where that isn't supported.
+		// The terminal is a <dialog>; skip it where that isn't supported.
 		if (!site.canDialog) return;
 		if (!term) build();
 		if (term.open) return;
 		// Remember where focus was (e.g. a link) so closing can put it back.
 		const active = document.activeElement;
 		returnFocus = active && active !== document.body ? active : null;
-		term.showModal();
+		term.show();
 		fitViewport();
 		input.focus({ preventScroll: true });
 	}
@@ -317,16 +332,27 @@
 	}
 
 	// Two triggers:
-	//  - the key left of "1" / above Tab, by physical position (works on any layout);
+	//  - the key below Esc / left of "1": ` ~ on US/Windows, § ± on Mac ISO.
+	//    Matched by physical code and by character, so any layout works;
 	//  - typing the word "help" anywhere on the page (no special key needed).
+	function isToggleKey(e) {
+		return e.code === 'Backquote' || e.code === 'IntlBackslash' ||
+			['`', '~', '§', '±'].includes(e.key);
+	}
+
 	let typed = '';
 	document.addEventListener('keydown', (e) => {
 		if (e.ctrlKey || e.metaKey || e.altKey) return;
+		// Esc closes the terminal from anywhere (unless another modal is on top).
+		if (e.key === 'Escape' && isOpen() && !document.querySelector('dialog[open]:not(.term)')) {
+			close();
+			return;
+		}
 		const t = e.target;
 		if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
 		// Another modal (e.g. the 404 report) owns the keyboard.
 		if (!isOpen() && document.querySelector('dialog[open]')) return;
-		if (e.code === 'Backquote' || e.code === 'IntlBackslash' || e.key === '`') {
+		if (isToggleKey(e)) {
 			e.preventDefault();
 			if (isOpen()) close(); else open();
 			return;

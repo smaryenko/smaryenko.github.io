@@ -24,7 +24,6 @@
 		button.hidden = false;
 		let clicks = [];
 		button.addEventListener('click', () => {
-			// Easter egg: 10 toggles within 5 seconds "freezes" the page, Windows 98 style.
 			const now = Date.now();
 			clicks = clicks.filter((t) => now - t < 5000);
 			clicks.push(now);
@@ -43,7 +42,6 @@
 		});
 	}
 
-	// Old-Windows "not responding" dialog that blocks mouse and keyboard for 5 seconds.
 	function freeze() {
 		let seconds = 5;
 		const template = document.getElementById('freeze-template');

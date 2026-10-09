@@ -1070,7 +1070,7 @@ a {
 	position: fixed;
 	left: 50%;
 	bottom: 1.5rem;
-	z-index: 20;
+	z-index: 40;
 	padding: 0.7rem 1.2rem;
 	border: 1px solid var(--glass-border);
 	border-radius: 999px;
@@ -1457,10 +1457,6 @@ body::after {
 .term[open] {
 	display: flex;
 	animation: term-in 0.2s ease;
-}
-
-.term::backdrop {
-	background: transparent;
 }
 
 @keyframes term-in {
