@@ -1082,4 +1082,106 @@
 		}, { passive: true });
 		check();
 	}
+
+	// Footer section toggle.
+	{
+		const btn = document.getElementById('footer-stop');
+		const deep = document.getElementById('deep');
+		const top = document.getElementById('scroll');
+		if (btn && deep) {
+			let open = false;
+			let armed = false; // checks start after the first scroll settles
+
+			// Hide only once the area is fully below the viewport, so nothing jumps.
+			const tryClose = () => {
+				if (!open || !armed) return;
+				if (deep.getBoundingClientRect().top >= window.innerHeight) {
+					open = armed = false;
+					deep.hidden = true;
+				}
+			};
+
+			// Adds extra decorative shapes once, spread over each tall zone.
+			let filled = false;
+			const populate = () => {
+				if (filled) return;
+				filled = true;
+				const NS = 'http://www.w3.org/2000/svg';
+				const rnd = (a, b) => a + Math.random() * (b - a);
+				const shape = (cls, ref, style) => {
+					const svg = document.createElementNS(NS, 'svg');
+					svg.setAttribute('class', cls);
+					svg.setAttribute('aria-hidden', 'true');
+					svg.setAttribute('style', style);
+					const use = document.createElementNS(NS, 'use');
+					use.setAttribute('href', ref);
+					svg.appendChild(use);
+					return svg;
+				};
+				deep.querySelectorAll('.deep-zone').forEach((zone, z) => {
+					const frag = document.createDocumentFragment();
+					const kinds = ['', '2', '3', '4', '5'];
+					const tints = ['rgba(2,20,34,.55)', 'rgba(2,20,34,.35)', 'rgba(170,200,210,.3)', 'rgba(40,110,120,.45)', 'rgba(90,70,50,.45)', 'rgba(120,150,190,.3)'];
+					const pick = (a) => a[Math.floor(Math.random() * a.length)];
+					for (let i = 0; i < 40; i++) {
+						const back = Math.random() < 0.5 ? ' is-back' : '';
+						// Small fish swim faster than big ones
+						const size = rnd(0.4, 2.4);
+						const speed = (10 + size * 9) * rnd(0.8, 1.3);
+						frag.appendChild(shape('deep-fish' + back, '#d-fish' + pick(kinds),
+							`--y:${rnd(1, 99).toFixed(1)}%;--t:${speed.toFixed(1)}s;--s:${size.toFixed(2)};--delay:-${rnd(0, 30).toFixed(1)}s;--wy:${rnd(-60, 60).toFixed(0)}px;--wt:${rnd(2, 6).toFixed(1)}s;color:${pick(tints)}`));
+					}
+					for (let i = 0; i < 12; i++) {
+						const glow = z > 0 && Math.random() < 0.7 ? ' is-glow' : '';
+						frag.appendChild(shape('deep-jelly' + glow, '#d-jelly',
+							`--x:${rnd(3, 92).toFixed(1)}%;--y:${rnd(5, 99).toFixed(1)}%;--t:${rnd(8, 14).toFixed(1)}s;--delay:-${rnd(0, 50).toFixed(1)}s`));
+					}
+					zone.appendChild(frag);
+				});
+			};
+
+			window.addEventListener('scroll', tryClose, { passive: true });
+			if (top) top.addEventListener('click', () => { if (open) armed = true; });
+
+			btn.addEventListener('click', () => {
+				if (open) return;
+				open = true;
+				deep.hidden = false;
+				populate();
+				site.toast('Fine.\nBut if we\'re doing this, we need to go deeper.', 3500);
+				const instant = site.reduceMotion.matches;
+				const target = deep.querySelector('.deep-note');
+				requestAnimationFrame(() => {
+					const r = target.getBoundingClientRect();
+					const from = window.scrollY;
+					const to = from + r.top - (window.innerHeight - r.height) / 2;
+					if (instant) {
+						window.scrollTo({ top: to, behavior: 'instant' });
+						armed = true;
+						return;
+					}
+					// Slow eased scroll; any user input hands control back.
+					const DURATION = 5000;
+					const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+					let start = 0;
+					let stopped = false;
+					const stop = () => {
+						stopped = true;
+						armed = true;
+						['wheel', 'touchstart', 'keydown'].forEach((e) => window.removeEventListener(e, stop));
+					};
+					['wheel', 'touchstart', 'keydown'].forEach((e) => window.addEventListener(e, stop, { passive: true }));
+					const step = (now) => {
+						if (stopped) return;
+						if (!start) start = now;
+						const t = Math.min(1, (now - start) / DURATION);
+						window.scrollTo({ top: from + (to - from) * ease(t), behavior: 'instant' });
+						if (t < 1) requestAnimationFrame(step);
+						else stop();
+					};
+					requestAnimationFrame(step);
+				});
+			});
+		}
+	}
 })();

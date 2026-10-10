@@ -99,6 +99,10 @@
 				<path d="M11.2 12.4A2.4 2.4 0 1 0 11.2 16.6" stroke-width="1.8" />
 				<path d="M13.2 12l1.9 5 1.9-5" stroke-width="1.8" />
 			</symbol>
+			<symbol id="i-stop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86Z" />
+				<path d="M12 8v4M12 16h.01" />
+			</symbol>
 			<symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<circle cx="12" cy="12" r="4" />
 				<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
@@ -303,9 +307,196 @@
 					<li><a id="footer-link-github" href="https://github.com/smaryenko?tab=repositories" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in new tab)" data-tip="GitHub"><svg aria-hidden="true"><use href="#i-github" /></svg></a></li>
 					<li><a id="footer-link-linkedin" href="https://www.linkedin.com/in/stanislavmaryenko" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn (opens in new tab)" data-tip="LinkedIn"><svg aria-hidden="true"><use href="#i-linkedin" /></svg></a></li>
 					<li><a id="footer-link-cv" href="https://drive.google.com/file/d/13M-h5vAe_xm4yLZ1hH3_GILYLUgYmLgB/view" target="_blank" rel="noopener noreferrer" aria-label="CV (opens in Google Drive, new tab)" data-tip="View CV"><svg aria-hidden="true"><use href="#i-file" /></svg></a></li>
+					<li><button type="button" id="footer-stop" aria-label="Do not click this" data-tip="Do not click this."><svg aria-hidden="true"><use href="#i-stop" /></svg></button></li>
 				</ul>
 			</div>
 		</footer>
+
+		<section id="deep" class="deep" hidden aria-label="Below the footer">
+			<svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+				<symbol id="d-fish" viewBox="0 0 40 20"><path d="M2 10c6-8 18-9 26-3l8-6v18l-8-6C20 19 8 18 2 10Z" fill="currentColor" /><circle cx="7" cy="9" r="1" fill="#cde" fill-opacity="0.3" /></symbol>
+				<symbol id="d-fish2" viewBox="0 0 40 20"><path d="M3 10C8 2 18 0 26 6l2-5 2 2-1 6 9-6v14l-9-6 1 6-2 2-2-5C18 20 8 18 3 10Z" fill="currentColor" /><path d="M14 4c2 4 2 8 0 12" fill="none" stroke="#000" stroke-opacity="0.2" /><circle cx="8" cy="9" r="1" fill="#cde" fill-opacity="0.3" /></symbol>
+				<symbol id="d-fish3" viewBox="0 0 40 20"><path d="M0 10C6 7 20 6 30 8l5-5v14l-5-5C20 14 6 13 0 10Z" fill="currentColor" /><path d="M16 7l3-3 2 3M17 13l2 3 2-3" fill="currentColor" /><circle cx="4" cy="9.5" r="0.8" fill="#cde" fill-opacity="0.3" /></symbol>
+				<symbol id="d-fish4" viewBox="0 0 40 20"><path d="M4 10a11 9 0 0 1 22-3l8-5v16l-8-5A11 9 0 0 1 4 10Z" fill="currentColor" /><path d="M14 2l4-2 2 3M14 18l4 2 2-3" fill="currentColor" /><circle cx="9" cy="8.5" r="1.2" fill="#cde" fill-opacity="0.3" /></symbol>
+				<symbol id="d-fish5" viewBox="0 0 40 20"><path d="M2 10c5-6 14-8 22-5l3-4 3 5 6-4v16l-6-4-3 4-3-4c-8 3-17 1-24-4Z" fill="currentColor" /><path d="M6 10h18" stroke="#cde" stroke-opacity="0.12" /><circle cx="6" cy="9" r="0.9" fill="#cde" fill-opacity="0.3" /></symbol>
+				<symbol id="d-jelly" viewBox="0 0 30 50" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 16a12 12 0 0 1 24 0Z" fill="currentColor" stroke="none" /><path d="M7 17c-2 8 2 14 0 26M13 17c2 9-2 16 0 30M19 17c-2 9 2 15 0 28M24 17c2 7-2 12 0 22" /></symbol>
+				<defs>
+					<linearGradient id="dg-rust" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6e5440" /><stop offset="1" stop-color="#2a1e16" /></linearGradient>
+					<linearGradient id="dg-metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d8a90" /><stop offset="1" stop-color="#2e383c" /></linearGradient>
+					<linearGradient id="dg-plastic" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b8676" /><stop offset="1" stop-color="#4a463c" /></linearGradient>
+					<linearGradient id="dg-dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3f42" /><stop offset="1" stop-color="#15181a" /></linearGradient>
+					<linearGradient id="dg-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5f7d6a" stop-opacity="0.9" /><stop offset="1" stop-color="#1f3328" stop-opacity="0.9" /></linearGradient>
+					<linearGradient id="dg-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b4f44" /><stop offset="0.45" stop-color="#2c2e26" /><stop offset="1" stop-color="#121410" /></linearGradient>
+					<linearGradient id="dg-wood2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a3a30" /><stop offset="1" stop-color="#1a1b16" /></linearGradient>
+					<linearGradient id="dg-fan" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#5a2a20" /><stop offset="1" stop-color="#a0533a" /></linearGradient>
+					<linearGradient id="dg-sponge" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3e3424" /><stop offset="1" stop-color="#8a7350" /></linearGradient>
+				</defs>
+				<symbol id="d-wreck" viewBox="0 0 400 200">
+					<path d="M34 134 2 122l2-5 34 11Z" fill="#23251f" />
+					<path d="M22 148C30 122 52 112 82 110l166-4 12-36 70-8 22 4c8 34 10 64 4 94-56 16-236 20-316 12Z" fill="url(#dg-wood)" />
+					<path d="M62 112l6-16h44l2 12Z" fill="url(#dg-wood)" />
+					<path d="M260 70l70-8 22 4" fill="none" stroke="#a8c8c8" stroke-opacity="0.3" stroke-width="2" />
+					<path d="M22 148C30 122 52 112 82 110l166-4M68 96h44" fill="none" stroke="#a8c8c8" stroke-opacity="0.22" stroke-width="2" />
+					<path d="M30 156C120 146 260 140 352 136M28 164C120 156 260 152 354 148M40 128C120 122 240 118 350 112M50 120C140 114 240 112 350 100M266 82l80-6M266 94l82-6" fill="none" stroke="#b5c8c0" stroke-opacity="0.07" stroke-width="1.5" />
+					<g fill="#070908"><path d="M274 76h8v8h-8ZM290 74h8v8h-8ZM306 72h8v8h-8ZM322 70h8v8h-8Z" /><circle cx="110" cy="130" r="3" /><circle cx="136" cy="128" r="3" /><circle cx="250" cy="122" r="3" /></g>
+					<path d="M150 122c22-12 58-10 80 4-8 28-58 32-80 16Z" fill="#050706" />
+					<path d="M160 118c-3 12-1 24 4 30M174 114c-2 14 0 28 4 34M190 113c-1 14 1 28 4 36M206 114c0 14 2 26 4 34M220 120c0 10 0 18 2 24" fill="none" stroke="#3a3a30" stroke-width="4" stroke-linecap="round" />
+					<path d="M352 120l14 4-2 44-10-2Z" fill="#1a1c17" />
+					<path d="M180 108 194 22l6 2-12 84Z" fill="url(#dg-wood2)" />
+					<path d="M194 22l-2-8 7 3Z" fill="#1a1b16" />
+					<path d="M300 64l4-34 5 1-3 33Z" fill="url(#dg-wood2)" />
+					<path d="M100 42 312 122" stroke="#26271f" stroke-width="3.5" stroke-linecap="round" />
+					<path d="M124 52l84 30-18 30-12-16-10 8-8-20-14 6-6-14-12 2Z" fill="#c8c0a0" fill-opacity="0.13" />
+					<path d="M200 26C230 50 270 90 312 122M196 30 120 108M306 34 340 66" fill="none" stroke="#2f3129" stroke-width="1" />
+					<g fill="#c9d6cf" fill-opacity="0.25"><circle cx="70" cy="140" r="1.6" /><circle cx="96" cy="150" r="1.2" /><circle cx="244" cy="140" r="1.8" /><circle cx="300" cy="100" r="1.3" /><circle cx="330" cy="130" r="1.6" /><circle cx="186" cy="80" r="1.2" /></g>
+					<path d="M0 176c60-16 140 6 220 2s130-10 180-6v28H0Z" fill="#3b3628" />
+				</symbol>
+				<symbol id="d-ribs" viewBox="0 0 300 120">
+					<path d="M10 104C80 96 220 96 292 100" stroke="#24261f" stroke-width="7" stroke-linecap="round" fill="none" />
+					<g fill="none" stroke="url(#dg-wood2)" stroke-width="6" stroke-linecap="round"><path d="M40 102C30 74 34 46 46 30" /><path d="M74 100C64 70 68 40 80 20" /><path d="M108 99C100 72 104 46 112 34" /><path d="M142 99C136 66 140 40 150 18" /><path d="M176 99C170 76 172 58 178 50" /><path d="M210 100C206 70 210 44 220 26" /><path d="M244 100C240 80 242 66 248 58" /><path d="M276 101C274 84 276 72 280 64" /></g>
+					<path d="M46 30C70 34 110 32 150 18M220 26C240 34 260 50 280 64" fill="none" stroke="#a8c8c8" stroke-opacity="0.15" stroke-width="2" />
+					<path d="M0 104c50-10 110 4 160 2s100-8 140-4v18H0Z" fill="#3b3628" />
+				</symbol>
+				<symbol id="d-fan" viewBox="0 0 120 140" fill="none" stroke="url(#dg-fan)" stroke-linecap="round">
+					<path d="M60 140V96" stroke-width="5" />
+					<path d="M60 100C52 80 34 66 18 46M60 100C66 76 84 60 100 40M60 96C58 70 56 44 60 10M42 76C36 60 22 52 8 44M36 68C30 56 32 40 26 26M78 72C86 54 104 50 114 46M84 64C88 48 82 34 88 20M58 60C48 46 44 30 40 16M62 56C72 44 74 28 78 12" stroke-width="2.4" />
+					<path d="M18 46C14 38 8 34 4 32M100 40C106 32 112 30 116 28M60 10V2M26 26C24 20 20 16 18 12M88 20C90 14 94 10 96 8" stroke-width="1.4" />
+				</symbol>
+				<symbol id="d-sponge" viewBox="0 0 80 110">
+					<path d="M8 110C6 80 8 50 16 32 22 26 30 28 32 36 36 60 34 88 34 110Z" fill="url(#dg-sponge)" />
+					<path d="M30 110C30 72 34 34 44 14 50 8 58 10 60 18 62 50 58 84 56 110Z" fill="url(#dg-sponge)" />
+					<path d="M54 110C54 86 58 62 66 50 70 46 76 48 76 54 78 74 74 94 72 110Z" fill="url(#dg-sponge)" />
+					<g fill="#1a150d"><ellipse cx="24" cy="32" rx="6" ry="2.5" /><ellipse cx="52" cy="14" rx="7" ry="3" /><ellipse cx="71" cy="50" rx="4.5" ry="2" /></g>
+				</symbol>
+				<symbol id="d-whip" viewBox="0 0 40 160" fill="none" stroke-linecap="round">
+					<path d="M20 160C16 120 24 80 14 40S18 10 12 2" stroke="#6b4a6e" stroke-width="2.5" />
+					<path d="M20 160C26 124 22 92 30 60S28 26 34 14" stroke="#5a3c5e" stroke-width="2" />
+				</symbol>
+				<symbol id="d-rock" viewBox="0 0 120 50"><path d="M4 50C6 30 24 14 50 10 78 6 104 18 116 50Z" fill="#26282a" /><path d="M20 26C36 16 60 12 84 16" fill="none" stroke="#6a8a94" stroke-opacity="0.25" stroke-width="2" /></symbol>
+				<symbol id="o-floppy" viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="3" fill="url(#dg-dark)" /><rect x="16" y="2" width="30" height="20" fill="url(#dg-metal)" /><rect x="36" y="5" width="6" height="14" fill="#1a1d1f" /><rect x="10" y="32" width="44" height="28" rx="1" fill="#b9b2a0" opacity="0.8" /><path d="M14 40h36M14 46h28M14 52h32" stroke="#6a6458" stroke-width="1.5" /></symbol>
+				<symbol id="o-crt" viewBox="0 0 90 80"><path d="M6 4h78v58H6Z" fill="url(#dg-plastic)" /><path d="M14 11h62v42H14Z" fill="#1c2522" /><path d="M16 13h30l-24 38h-6Z" fill="#fff" opacity="0.06" /><path d="M30 62h30l6 14H24Z" fill="#5a564a" /><circle cx="72" cy="58" r="1.8" fill="#2a2a24" /></symbol>
+				<symbol id="o-keyboard" viewBox="0 0 120 40"><rect x="2" y="6" width="116" height="30" rx="3" fill="url(#dg-plastic)" transform="rotate(-2 60 20)" /><g fill="#3b382f" transform="rotate(-2 60 20)"><rect x="8" y="11" width="9" height="6" rx="1" /><rect x="20" y="11" width="9" height="6" rx="1" /><rect x="32" y="11" width="9" height="6" rx="1" /><rect x="56" y="11" width="9" height="6" rx="1" /><rect x="68" y="11" width="9" height="6" rx="1" /><rect x="92" y="11" width="9" height="6" rx="1" /><rect x="8" y="20" width="9" height="6" rx="1" /><rect x="32" y="20" width="9" height="6" rx="1" /><rect x="44" y="20" width="9" height="6" rx="1" /><rect x="80" y="20" width="9" height="6" rx="1" /><rect x="104" y="20" width="9" height="6" rx="1" /><rect x="26" y="28" width="56" height="5" rx="1" /></g></symbol>
+				<symbol id="o-mouse" viewBox="0 0 80 60"><path d="M50 18C66 8 76 20 70 30S50 36 40 48 14 58 4 52" fill="none" stroke="#3a3830" stroke-width="2.5" /><path d="M36 6C48 2 58 12 56 26S42 46 30 44 16 30 20 18 28 8 36 6Z" fill="url(#dg-plastic)" /><path d="M36 6 38 22M22 20C30 22 46 22 55 20" stroke="#4a463c" stroke-width="1.2" fill="none" /></symbol>
+				<symbol id="o-drive" viewBox="0 0 70 90"><rect x="2" y="2" width="66" height="86" rx="4" fill="url(#dg-metal)" /><circle cx="35" cy="36" r="24" fill="#a3adb2" /><circle cx="35" cy="36" r="5" fill="#59646a" /><path d="M58 72 34 40" stroke="#2e383c" stroke-width="4" stroke-linecap="round" /><path d="M10 80h50" stroke="#2a3236" stroke-width="3" /></symbol>
+				<symbol id="o-pager" viewBox="0 0 70 40"><rect x="2" y="4" width="66" height="34" rx="6" fill="url(#dg-dark)" /><rect x="8" y="10" width="40" height="14" rx="1" fill="#55684e" /><path d="M11 17h20" stroke="#2c3826" stroke-width="2" /><circle cx="58" cy="17" r="4" fill="#2a2d2f" /></symbol>
+				<symbol id="o-anchor" viewBox="0 0 80 90" fill="none" stroke="url(#dg-rust)" stroke-linecap="round"><circle cx="40" cy="10" r="7" stroke-width="5" /><path d="M40 17V82M24 30h32" stroke-width="7" /><path d="M8 58C10 76 26 84 40 84S70 76 72 58" stroke-width="7" /><path d="M2 60l8-8 6 10M78 60l-8-8-6 10" stroke-width="5" /></symbol>
+				<symbol id="o-key" viewBox="0 0 90 40" fill="url(#dg-rust)"><path d="M16 4a16 16 0 1 0 0 32 16 16 0 0 0 0-32Zm0 8a8 8 0 1 1 0 16 8 8 0 0 1 0-16Z" /><path d="M30 16h58v8H82v10h-7V24h-6v8h-7v-8H30Z" /></symbol>
+				<symbol id="o-bottle" viewBox="0 0 40 100"><path d="M15 2h10v20c0 6 12 12 12 26v46c0 4-3 6-7 6H10c-4 0-7-2-7-6V48c0-14 12-20 12-26Z" fill="url(#dg-glass)" /><path d="M9 50v36" stroke="#cfe" stroke-opacity="0.2" stroke-width="3" stroke-linecap="round" /><rect x="10" y="56" width="20" height="18" fill="#b5ab8e" opacity="0.6" /><rect x="14" y="0" width="12" height="6" fill="#5a4636" /></symbol>
+				<symbol id="o-chip" viewBox="0 0 70 50"><rect x="2" y="4" width="66" height="42" rx="2" fill="#2f4a32" /><rect x="22" y="14" width="22" height="22" fill="#1a1c1d" /><path d="M8 10h10v6M50 40h12M8 30h12v10M48 10h14" stroke="#9a8a52" stroke-width="1.5" fill="none" /><g fill="#9a8a52"><circle cx="58" cy="26" r="2" /><circle cx="12" cy="40" r="2" /></g></symbol>
+				<symbol id="o-gear" viewBox="0 0 60 60"><path d="M26 2h8l2 8 6 3 7-5 6 6-5 7 3 6 8 2v8l-8 2-3 6 5 7-6 6-7-5-6 3-2 8h-8l-2-8-6-3-7 5-6-6 5-7-3-6-8-2v-8l8-2 3-6-5-7 6-6 7 5 6-3Z" fill="url(#dg-rust)" /><circle cx="30" cy="30" r="9" fill="#1a1410" /></symbol>
+				<symbol id="o-cable" viewBox="0 0 90 40" fill="none" stroke="#2c2c28" stroke-width="3"><path d="M4 30C10 10 30 6 40 18S30 36 22 28 30 4 50 8 70 30 60 34 44 16 64 10 86 20 86 30" /><rect x="80" y="26" width="8" height="12" fill="#6a6a62" stroke="none" /></symbol>
+			</svg>
+
+			<div class="deep-zone" aria-hidden="true">
+				<span class="deep-bubble" style="--x:18%;--y:4%;--t:7s"></span>
+				<span class="deep-bubble" style="--x:64%;--y:9%;--t:9s"></span>
+				<svg class="deep-fish" style="--y:6%;--t:14s;--s:1.2"><use href="#d-fish" /></svg>
+				<svg class="deep-fish is-back" style="--y:14%;--t:20s;--s:0.8"><use href="#d-fish" /></svg>
+				<svg class="deep-fish" style="--y:27%;--t:17s;--s:1.6;--delay:-5s"><use href="#d-fish" /></svg>
+				<svg class="deep-jelly" style="--x:70%;--y:35%;--t:10s"><use href="#d-jelly" /></svg>
+				<svg class="deep-fish is-back" style="--y:48%;--t:24s;--s:1"><use href="#d-fish" /></svg>
+				<span class="deep-bubble" style="--x:40%;--y:58%;--t:8s"></span>
+				<svg class="deep-jelly" style="--x:22%;--y:66%;--t:9s"><use href="#d-jelly" /></svg>
+				<svg class="deep-fish" style="--y:78%;--t:21s;--s:1.3;--delay:-10s"><use href="#d-fish" /></svg>
+				<svg class="deep-fish is-back" style="--y:92%;--t:27s;--s:1.8"><use href="#d-fish" /></svg>
+			</div>
+			<p class="deep-note deep-note-1">You went too deep.<br />There is nothing here.<br /><span class="deep-dim">…probably.</span></p>
+			<div class="deep-zone" aria-hidden="true">
+				<span class="deep-bubble" style="--x:12%;--y:3%;--t:7s"></span>
+				<span class="deep-bubble" style="--x:30%;--y:8%;--t:9s"></span>
+				<span class="deep-bubble" style="--x:72%;--y:5%;--t:6s"></span>
+				<span class="deep-bubble" style="--x:88%;--y:30%;--t:8s"></span>
+				<span class="deep-bubble" style="--x:45%;--y:55%;--t:10s"></span>
+				<svg class="deep-fish" style="--y:12%;--t:16s;--s:1.4"><use href="#d-fish" /></svg>
+				<svg class="deep-fish is-back" style="--y:20%;--t:22s;--s:0.9"><use href="#d-fish" /></svg>
+				<svg class="deep-fish" style="--y:22%;--t:19s;--s:0.7;--delay:-6s"><use href="#d-fish" /></svg>
+				<svg class="deep-fish is-back" style="--y:38%;--t:26s;--s:2"><use href="#d-fish" /></svg>
+				<svg class="deep-fish" style="--y:52%;--t:18s;--s:1.1;--delay:-9s"><use href="#d-fish" /></svg>
+				<svg class="deep-jelly" style="--x:20%;--y:44%;--t:9s"><use href="#d-jelly" /></svg>
+				<svg class="deep-jelly" style="--x:78%;--y:63%;--t:11s"><use href="#d-jelly" /></svg>
+				<svg class="deep-fish is-back" style="--y:74%;--t:30s;--s:1.6"><use href="#d-fish" /></svg>
+				<svg class="deep-jelly" style="--x:55%;--y:86%;--t:8s"><use href="#d-jelly" /></svg>
+			</div>
+			<p class="deep-note deep-note-2">Still scrolling? Bold.</p>
+			<div class="deep-zone" aria-hidden="true">
+				<svg class="deep-jelly is-glow" style="--x:15%;--y:10%;--t:10s"><use href="#d-jelly" /></svg>
+				<svg class="deep-fish is-back" style="--y:25%;--t:34s;--s:2.4"><use href="#d-fish" /></svg>
+				<svg class="deep-jelly is-glow" style="--x:82%;--y:35%;--t:12s"><use href="#d-jelly" /></svg>
+				<span class="deep-bubble" style="--x:60%;--y:50%;--t:11s"></span>
+				<svg class="deep-jelly is-glow" style="--x:40%;--y:72%;--t:9s"><use href="#d-jelly" /></svg>
+				<svg class="deep-fish" style="--y:85%;--t:28s;--s:1;--delay:-12s"><use href="#d-fish" /></svg>
+				<svg class="deep-jelly is-glow" style="--x:25%;--y:93%;--t:10s"><use href="#d-jelly" /></svg>
+			</div>
+			<div class="deep-seabed">
+				<div class="deep-floor" aria-hidden="true">
+					<svg class="deep-wreck is-far" style="--x:34%;--s:1.1;--r:-3deg"><use href="#d-ribs" /></svg>
+					<svg class="deep-wreck is-mid is-flip" style="--x:62%;--s:1.35;--r:-7deg"><use href="#d-wreck" /></svg>
+					<svg class="deep-wreck is-near" style="--x:-12%;--s:1.7;--r:-9deg"><use href="#d-wreck" /></svg>
+					<svg class="deep-jelly is-glow" style="--x:12%;--y:8%;--t:10s"><use href="#d-jelly" /></svg>
+					<svg class="deep-jelly is-glow" style="--x:84%;--y:18%;--t:12s"><use href="#d-jelly" /></svg>
+					<svg class="deep-fish" style="--y:22%;--t:24s;--s:0.8"><use href="#d-fish" /></svg>
+					<svg class="deep-fish is-back" style="--y:45%;--t:30s;--s:1.3"><use href="#d-fish" /></svg>
+					<svg class="deep-fish" style="--y:62%;--t:20s;--s:0.6;--delay:-8s"><use href="#d-fish" /></svg>
+					<span class="deep-bubble" style="--x:22%;--y:80%;--t:7s"></span>
+					<span class="deep-bubble" style="--x:76%;--y:75%;--t:9s"></span>
+					<svg class="deep-rock" style="--x:30%;--s:1.2"><use href="#d-rock" /></svg>
+					<svg class="deep-rock" style="--x:58%;--s:0.8"><use href="#d-rock" /></svg>
+					<svg class="deep-flora" style="--x:3%;--w:120px;--h:140px;--t:7s"><use href="#d-fan" /></svg>
+					<svg class="deep-flora" style="--x:22%;--w:40px;--h:160px;--t:6s"><use href="#d-whip" /></svg>
+					<svg class="deep-flora is-still" style="--x:27%;--w:70px;--h:96px"><use href="#d-sponge" /></svg>
+					<svg class="deep-flora" style="--x:72%;--w:110px;--h:130px;--t:8s"><use href="#d-fan" /></svg>
+					<svg class="deep-flora" style="--x:84%;--w:36px;--h:140px;--t:5.5s"><use href="#d-whip" /></svg>
+					<svg class="deep-flora is-still" style="--x:92%;--w:60px;--h:84px"><use href="#d-sponge" /></svg>
+				</div>
+			<div class="deep-vault">
+				<h2>Lost &amp; found</h2>
+				<ul class="deep-pile">
+					<li class="pile-obj" style="--r:-14deg"><svg width="64" height="64" aria-hidden="true"><use href="#o-floppy" /></svg></li>
+					<li class="pile-note" style="--r:6deg">test_login_works_on_ie6<br /><b class="report-fail">SKIPPED</b> since 2009</li>
+					<li class="pile-obj" style="--r:20deg"><svg width="110" height="98" aria-hidden="true"><use href="#o-crt" /></svg></li>
+					<li class="pile-tag" style="--r:-4deg">works on my machine ✓</li>
+					<li class="pile-term" style="--r:3deg">$ npm test<br /><span class="report-pass">PASSED</span> <span class="report-fail">FAILED</span> <span class="report-pass">PASSED</span><br /><span class="report-dim"># flaky, do not touch</span></li>
+					<li class="pile-obj" style="--r:-30deg"><svg width="70" height="40" aria-hidden="true"><use href="#o-pager" /></svg></li>
+					<li class="pile-note is-pink" style="--r:-9deg">TODO: remove this hack before release<br /><span class="report-dim">— 2014</span></li>
+					<li class="pile-obj" style="--r:12deg"><svg width="80" height="90" aria-hidden="true"><use href="#o-anchor" /></svg></li>
+					<li class="pile-ticket" style="--r:8deg">BUG-0001<br />"Minor" · opened 1999</li>
+					<li class="pile-obj" style="--r:-6deg"><svg width="140" height="46" aria-hidden="true"><use href="#o-keyboard" /></svg></li>
+					<li class="pile-tag is-red" style="--r:-12deg">test_timezones_are_easy ✗</li>
+					<li class="pile-obj" style="--r:40deg"><svg width="80" height="60" aria-hidden="true"><use href="#o-mouse" /></svg></li>
+					<li class="pile-note is-blue" style="--r:5deg">FIXME: why does this work?</li>
+					<li class="pile-obj" style="--r:-18deg"><svg width="60" height="78" aria-hidden="true"><use href="#o-drive" /></svg></li>
+					<li class="pile-term" style="--r:-5deg">// sleep(5000)<br /><span class="report-dim">// fixes the race. trust me.</span></li>
+					<li class="pile-obj" style="--r:25deg"><svg width="80" height="36" aria-hidden="true"><use href="#o-key" /></svg></li>
+					<li class="pile-ticket is-old" style="--r:-7deg">Won't fix<br /><span class="report-dim">(it's a feature)</span></li>
+					<li class="pile-tag" style="--r:10deg">@Ignore("temporarily")</li>
+					<li class="pile-obj" style="--r:-35deg"><svg width="36" height="90" aria-hidden="true"><use href="#o-bottle" /></svg></li>
+					<li class="pile-note" style="--r:-3deg">TODO: write tests<br /><span class="report-dim">— always</span></li>
+					<li class="pile-obj" style="--r:15deg"><svg width="70" height="50" aria-hidden="true"><use href="#o-chip" /></svg></li>
+					<li class="pile-tag is-red" style="--r:4deg">expect(true).toBe(false)</li>
+					<li class="pile-obj" style="--r:-10deg"><svg width="56" height="56" aria-hidden="true"><use href="#o-gear" /></svg></li>
+					<li class="pile-ticket" style="--r:13deg">Cannot reproduce<br /><span class="report-dim">closed ×14</span></li>
+					<li class="pile-obj" style="--r:-22deg"><svg width="90" height="40" aria-hidden="true"><use href="#o-cable" /></svg></li>
+					<li class="pile-term" style="--r:7deg">git commit -m "final"<br />git commit -m "final2"<br />git commit -m "final_FINAL"</li>
+					<li class="pile-obj" style="--r:32deg"><svg width="54" height="54" aria-hidden="true"><use href="#o-floppy" /></svg></li>
+					<li class="pile-note is-pink" style="--r:11deg">test_nobody_reads_this<br /><b>PENDING</b></li>
+					<li class="pile-obj" style="--r:-8deg"><svg width="52" height="68" aria-hidden="true"><use href="#o-drive" /></svg></li>
+					<li class="pile-tag" style="--r:-15deg">99 little bugs in the code</li>
+					<li class="pile-obj" style="--r:18deg"><svg width="40" height="40" aria-hidden="true"><use href="#o-gear" /></svg></li>
+					<li class="pile-note is-blue" style="--r:-6deg">Retry ×3 and ship it</li>
+					<li class="pile-obj" style="--r:-28deg"><svg width="30" height="76" aria-hidden="true"><use href="#o-bottle" /></svg></li>
+					<li class="pile-ticket is-old" style="--r:3deg">P1 · "quick fix"<br /><span class="report-dim">open 6 years</span></li>
+					<li class="pile-obj" style="--r:9deg"><svg width="60" height="44" aria-hidden="true"><use href="#o-chip" /></svg></li>
+				</ul>
+				<p class="deep-end">🐉 Here be dragons. Turn back now.</p>
+			</div>
+				<div class="deep-front" aria-hidden="true">
+					<svg class="deep-flora is-still" style="--x:10%;--w:64px;--h:88px"><use href="#d-sponge" /></svg>
+					<svg class="deep-flora" style="--x:16%;--w:30px;--h:110px;--t:6s"><use href="#d-whip" /></svg>
+					<svg class="deep-flora" style="--x:82%;--w:90px;--h:100px;--t:7.5s"><use href="#d-fan" /></svg>
+					<svg class="deep-rock" style="--x:68%;--s:0.9"><use href="#d-rock" /></svg>
+				</div>
+			</div>
+		</section>
 
 		<dialog id="not-found" class="report" aria-labelledby="report-title">
 			<header class="report-head">
