@@ -1094,10 +1094,14 @@
 
 			// Hide only once the area is fully below the viewport, so nothing jumps.
 			const tryClose = () => {
+				// Floating controls switch to dark styling once the dark area fills most of the screen.
+				document.documentElement.classList.toggle('on-dark',
+					open && deep.getBoundingClientRect().top < window.innerHeight / 2);
 				if (!open || !armed) return;
 				if (deep.getBoundingClientRect().top >= window.innerHeight) {
 					open = armed = false;
 					deep.hidden = true;
+					document.documentElement.classList.remove('on-dark');
 				}
 			};
 

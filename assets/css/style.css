@@ -2032,8 +2032,10 @@ html.is-washed::after {
 /* Extra area below the footer */
 .deep {
 	position: relative;
+	/* Plain hidden + paint containment: WebKit can let filtered or animated
+	   (composited) children escape overflow: clip and widen the page */
 	overflow: hidden;
-	overflow: clip;
+	contain: paint;
 	max-width: 100%;
 	color: #cfe8f5;
 	text-align: center;
@@ -2365,6 +2367,12 @@ html.is-washed::after {
 
 .deep-front .deep-flora { filter: brightness(0.55); }
 
+/* Trim wide bottom layers to the page width (top left open for drifting shapes) */
+.deep-floor,
+.deep-front {
+	clip-path: inset(-200% 0 0 0);
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.deep *,
 	.deep *::after {
@@ -2386,6 +2394,14 @@ html:has(#deep:not([hidden])) body {
 }
 
 .deep-end { max-width: calc(100% - 1rem); }
+
+/* Floating glass controls over a dark background: use the dark palette
+   (the glass variables use light-dark(), which follows color-scheme) */
+.on-dark .theme-toggle,
+.on-dark .to-top,
+.on-dark .toast {
+	color-scheme: dark;
+}
 
 .deep-note-2 {
 	font-size: 1.6rem;
