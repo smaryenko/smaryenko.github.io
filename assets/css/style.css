@@ -1000,6 +1000,48 @@ a {
 	.report[open] { animation: none; }
 }
 
+.confirm-warn { border-left-color: #d97706; }
+
+/* Prose, not ASCII art: let it wrap instead of scrolling sideways. */
+.confirm-warn .report-body {
+	white-space: normal;
+	overflow-x: visible;
+}
+
+.report-badge.is-warn { background: #d97706; }
+
+.confirm-bar {
+	height: 3px;
+	margin: 0 1.25rem 1rem;
+	border-radius: 999px;
+	background: var(--glass-border);
+	overflow: hidden;
+}
+
+.confirm-bar span {
+	display: block;
+	height: 100%;
+	width: 100%;
+	transform-origin: left;
+	background: #d97706;
+	animation: confirm-countdown 5s linear forwards;
+}
+
+@keyframes confirm-countdown {
+	from { transform: scaleX(1); }
+	to { transform: scaleX(0); }
+}
+
+.confirm-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.confirm-bar span { animation: none; }
+}
+
 .responsive-fail {
 	position: fixed;
 	inset: 0;

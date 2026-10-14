@@ -1147,7 +1147,66 @@
 			window.addEventListener('scroll', tryClose, { passive: true });
 			if (top) top.addEventListener('click', () => { if (open) armed = true; });
 
-			btn.addEventListener('click', () => {
+			// A quick confirm step with a 5s auto-dismiss. Built in JS so it
+			// stays out of the markup; styled like the other report dialogs.
+			let confirmEl = null;
+			let confirmTimer = 0;
+			const askFirst = (proceed) => {
+				// No modal <dialog> support: just go ahead.
+				if (!site.canDialog) { proceed(); return; }
+				if (confirmEl) return;
+				const d = document.createElement('dialog');
+				d.className = 'report confirm-warn';
+				d.setAttribute('aria-labelledby', 'confirm-warn-title');
+				d.innerHTML =
+					'<header class="report-head">' +
+						'<span class="report-badge is-warn">WARNING</span>' +
+						'<h2 id="confirm-warn-title">entering a danger zone</h2>' +
+					'</header>' +
+					'<pre class="report-body">You are about to go somewhere there is no coming back from easily.<br>' +
+						'<span class="report-dim">This prompt self-dismisses in <span class="confirm-count">5</span>s.</span></pre>' +
+					'<div class="confirm-bar" aria-hidden="true"><span></span></div>' +
+					'<div class="report-actions confirm-actions">' +
+						'<button type="button" class="button confirm-no">Back to safety</button>' +
+						'<button type="button" class="button confirm-yes">Go deeper anyway</button>' +
+					'</div>';
+				confirmEl = d;
+				document.body.appendChild(d);
+
+				const countEl = d.querySelector('.confirm-count');
+				const DEADLINE = 5000;
+				const startedAt = performance.now();
+				const tick = () => {
+					if (!confirmEl) return;
+					const left = Math.ceil((DEADLINE - (performance.now() - startedAt)) / 1000);
+					if (countEl) countEl.textContent = String(Math.max(0, left));
+					if (left > 0) confirmTimer = window.setTimeout(tick, 250);
+				};
+
+				const cleanup = () => {
+					window.clearTimeout(confirmTimer);
+					confirmTimer = 0;
+					if (confirmEl && confirmEl.open) confirmEl.close();
+					if (confirmEl) confirmEl.remove();
+					confirmEl = null;
+				};
+				const dismiss = () => cleanup();
+				const accept = () => { cleanup(); proceed(); };
+
+				d.querySelector('.confirm-yes').addEventListener('click', accept);
+				d.querySelector('.confirm-no').addEventListener('click', dismiss);
+				// Esc (native cancel) and backdrop clicks abort.
+				d.addEventListener('cancel', (e) => { e.preventDefault(); dismiss(); });
+				d.addEventListener('click', (e) => { if (e.target === d) dismiss(); });
+
+				d.showModal();
+				d.querySelector('.confirm-no').focus();
+				tick();
+				// Auto-dismiss after the countdown runs out.
+				window.setTimeout(() => { if (confirmEl === d) dismiss(); }, DEADLINE);
+			};
+
+			const dive = () => {
 				if (open) return;
 				open = true;
 				deep.hidden = false;
@@ -1185,7 +1244,9 @@
 					};
 					requestAnimationFrame(step);
 				});
-			});
+			};
+
+			btn.addEventListener('click', () => askFirst(dive));
 		}
 	}
 })();
