@@ -337,9 +337,17 @@
 			// Touch gets a slightly larger radius for fingertips.
 			const radius = e.pointerType === 'touch' ? Math.max(18, step * 0.9) : undefined;
 			const i = nearest(e.clientX - rect.left, e.clientY - rect.top, radius);
-			// Easter egg: test_404 opens the "page not found" report, whatever its status.
+			// Easter egg: test_404 opens the "page not found" report, whatever its
+			// status. Only this click opens it — there is no other entry point.
 			if (i === NOT_FOUND) {
-				site.openNotFound();
+				const dialog = document.getElementById('not-found');
+				if (dialog && !dialog.open && site.canDialog) {
+					dialog.querySelector('.report-time').textContent = ((40 + Math.random() * 400) | 0) + 'ms';
+					dialog.showModal();
+					// Focus the "Go back" button once the dialog is open.
+					const back = dialog.querySelector('.report-actions button');
+					if (back) back.focus();
+				}
 				return;
 			}
 			if (!isFailing(i)) return;

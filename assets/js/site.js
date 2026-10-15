@@ -50,16 +50,6 @@
 			toastEl.classList.add('is-visible');
 			clearTimeout(toastTimer);
 			toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), duration);
-		},
-
-		openNotFound() {
-			const dialog = document.getElementById('not-found');
-			if (!dialog || dialog.open || !canDialog) return;
-			dialog.querySelector('.report-time').textContent = ((40 + Math.random() * 400) | 0) + 'ms';
-			dialog.showModal();
-			// Focus the "Go back" button once the dialog is open.
-			const back = dialog.querySelector('.report-actions button');
-			if (back) back.focus();
 		}
 	};
 

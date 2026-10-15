@@ -592,7 +592,7 @@
 	}
 
 	// Commands that take the rest of the line as an argument.
-	const argCommands = { jump, date: jump, oncall };
+	const argCommands = { jump, oncall };
 
 	function run(raw) {
 		if (!out) return; // terminal never opened (e.g. no <dialog> support)

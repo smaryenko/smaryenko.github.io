@@ -44,13 +44,6 @@
 			dialog.addEventListener('click', (e) => {
 				if (e.target === dialog) dialog.close();
 			});
-
-			// Opening the page directly at #404 (e.g. a shared link) shows the
-			// report; strip the hash so closing leaves a clean URL.
-			if (location.hash === '#404') {
-				history.replaceState(null, '', location.pathname + location.search);
-				site.openNotFound();
-			}
 		}
 	}
 
