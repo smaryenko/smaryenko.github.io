@@ -991,6 +991,34 @@
 			}
 		}
 
+		// Fade the page back from any wash level, clear the reload counter, and
+		// re-arm the per-session items. Shared by the 100% "cleared" screen and
+		// site.restoreEnvironment() (callable even below 100%).
+		const restore = (box) => {
+			try { sessionStorage.removeItem('reloads'); } catch (e) {}
+			if (box) box.classList.add('is-leaving');
+			root.classList.remove('is-washed');
+			root.classList.add('is-restoring');
+			// Next frame, so the transition runs from the current value.
+			requestAnimationFrame(() => root.style.setProperty('--fade', '0'));
+			const done = site.reduceMotion.matches ? 0 : 1600;
+			setTimeout(() => {
+				if (box) box.remove();
+				root.classList.remove('is-restoring');
+				root.style.removeProperty('--fade');
+				delete root.dataset.reloads;
+				// Fresh environment, fresh bugs.
+				rearmMoth();
+				rearmPixel();
+				rearmTypo();
+			}, done);
+		};
+
+		site.restoreEnvironment = () => {
+			const box = document.querySelector('.washed');
+			restore(box);
+		};
+
 		if (fade >= 1) {
 			root.classList.add('is-washed');
 			const box = document.createElement('div');
@@ -1005,25 +1033,7 @@
 			const button = box.querySelector('button');
 			button.focus();
 
-			button.addEventListener('click', () => {
-				try { sessionStorage.removeItem('reloads'); } catch (e) {}
-				box.classList.add('is-leaving');
-				root.classList.remove('is-washed');
-				root.classList.add('is-restoring');
-				// Next frame, so the transition runs from the current value.
-				requestAnimationFrame(() => root.style.setProperty('--fade', '0'));
-				const done = site.reduceMotion.matches ? 0 : 1600;
-				setTimeout(() => {
-					box.remove();
-					root.classList.remove('is-restoring');
-					root.style.removeProperty('--fade');
-					delete root.dataset.reloads;
-					// Fresh environment, fresh bugs.
-					rearmMoth();
-					rearmPixel();
-					rearmTypo();
-				}, done);
-			}, { once: true });
+			button.addEventListener('click', () => restore(box), { once: true });
 		}
 	}
 

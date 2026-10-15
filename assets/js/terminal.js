@@ -191,13 +191,377 @@
 		return 'Jumped to ' + stamp + '.\n' + note + '\n\n(Close the terminal to look. "jump reset" restores today.)';
 	}
 
+	// ---------------------------------------------------------------------------
+	// Verification gate. A short challenge chain gates the privileged mode below;
+	// each step is machine-trivial but human-tedious. All values are generated
+	// per run and checked in code; nothing here is written down. State lives only
+	// in memory for the open panel and is cleared when it closes.
+	// ---------------------------------------------------------------------------
+	const SESSION_CACHE_MS = 5 * 60 * 1000;
+	let mode = 'normal'; // 'normal' | 'gate' | 'root'
+	let gate = null; // { step, items } while in 'gate'
+	let lastPass = 0; // timestamp of last successful verification this page view
+
+	// Normalise a free-text answer: trim, collapse spaces, lowercase, strip any
+	// 0b prefix and thousands separators so "0b1010", "1,024" etc. compare cleanly.
+	function norm(s) {
+		return String(s == null ? '' : s)
+			.trim().toLowerCase()
+			.replace(/\s+/g, ' ')
+			.replace(/^0b/, '')
+			.replace(/[,_](?=\d)/g, '');
+	}
+
+	function randomInt(min, max) {
+		return min + Math.floor(Math.random() * (max - min + 1));
+	}
+
+	// A random base64-ish blob of the given length (A–Z a–z 0–9 + /).
+	function randomBlob(len) {
+		const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+		let s = '';
+		for (let i = 0; i < len; i++) s += alpha[Math.floor(Math.random() * alpha.length)];
+		return s;
+	}
+
+	// English ordinal suffix (1st, 2nd, 3rd, 11th, 21st…).
+	function ordinal(n) {
+		const t = n % 100, u = n % 10;
+		const suf = t >= 11 && t <= 13 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th';
+		return n.toLocaleString('en-US') + suf;
+	}
+
+	// Nth prime via a sieve of Eratosthenes, computed on demand. Capped high
+	// enough to cover N up to 100,000 (the 100,000th prime is 1,299,709).
+	function nthPrime(n) {
+		const LIMIT = 1300000;
+		const sieve = new Uint8Array(LIMIT + 1);
+		let count = 0;
+		for (let i = 2; i <= LIMIT; i++) {
+			if (!sieve[i]) {
+				if (++count === n) return i;
+				for (let j = i * 2; j <= LIMIT; j += i) sieve[j] = 1;
+			}
+		}
+		return null;
+	}
+
+	// A sampling of the CSS named colors with their hex values. Aliases accept
+	// either spelling. One is picked at random per run and shown as a swatch.
+	const NAMED_COLORS = {
+		'#f0f8ff': ['aliceblue'], '#faebd7': ['antiquewhite'], '#7fffd4': ['aquamarine'],
+		'#f0ffff': ['azure'], '#f5f5dc': ['beige'], '#ffe4c4': ['bisque'],
+		'#8a2be2': ['blueviolet'], '#a52a2a': ['brown'], '#deb887': ['burlywood'],
+		'#5f9ea0': ['cadetblue'], '#7fff00': ['chartreuse'], '#d2691e': ['chocolate'],
+		'#ff7f50': ['coral'], '#6495ed': ['cornflowerblue'], '#dc143c': ['crimson'],
+		'#00ffff': ['cyan', 'aqua'], '#ff00ff': ['magenta', 'fuchsia'],
+		'#00008b': ['darkblue'], '#008b8b': ['darkcyan'], '#b8860b': ['darkgoldenrod'],
+		'#006400': ['darkgreen'], '#bdb76b': ['darkkhaki'], '#8b008b': ['darkmagenta'],
+		'#ff8c00': ['darkorange'], '#9932cc': ['darkorchid'], '#e9967a': ['darksalmon'],
+		'#483d8b': ['darkslateblue'], '#00ced1': ['darkturquoise'], '#9400d3': ['darkviolet'],
+		'#ff1493': ['deeppink'], '#00bfff': ['deepskyblue'], '#1e90ff': ['dodgerblue'],
+		'#b22222': ['firebrick'], '#228b22': ['forestgreen'], '#ffd700': ['gold'],
+		'#daa520': ['goldenrod'], '#808080': ['gray', 'grey'], '#adff2f': ['greenyellow'],
+		'#ff69b4': ['hotpink'], '#cd5c5c': ['indianred'], '#4b0082': ['indigo'],
+		'#f0e68c': ['khaki'], '#e6e6fa': ['lavender'], '#7cfc00': ['lawngreen'],
+		'#add8e6': ['lightblue'], '#f08080': ['lightcoral'], '#90ee90': ['lightgreen'],
+		'#ffb6c1': ['lightpink'], '#ffa07a': ['lightsalmon'], '#20b2aa': ['lightseagreen'],
+		'#778899': ['lightslategray', 'lightslategrey'], '#32cd32': ['limegreen'],
+		'#faf0e6': ['linen'], '#66cdaa': ['mediumaquamarine'], '#0000cd': ['mediumblue'],
+		'#ba55d3': ['mediumorchid'], '#9370db': ['mediumpurple'], '#3cb371': ['mediumseagreen'],
+		'#7b68ee': ['mediumslateblue'], '#c71585': ['mediumvioletred'], '#191970': ['midnightblue'],
+		'#ffe4b5': ['moccasin'], '#ffdead': ['navajowhite'], '#808000': ['olive'],
+		'#6b8e23': ['olivedrab'], '#ffa500': ['orange'], '#ff4500': ['orangered'],
+		'#da70d6': ['orchid'], '#eee8aa': ['palegoldenrod'], '#98fb98': ['palegreen'],
+		'#afeeee': ['paleturquoise'], '#db7093': ['palevioletred'], '#ffdab9': ['peachpuff'],
+		'#cd853f': ['peru'], '#ffc0cb': ['pink'], '#dda0dd': ['plum'], '#b0e0e6': ['powderblue'],
+		'#bc8f8f': ['rosybrown'], '#4169e1': ['royalblue'], '#8b4513': ['saddlebrown'],
+		'#fa8072': ['salmon'], '#f4a460': ['sandybrown'], '#2e8b57': ['seagreen'],
+		'#a0522d': ['sienna'], '#87ceeb': ['skyblue'], '#6a5acd': ['slateblue'],
+		'#708090': ['slategray', 'slategrey'], '#00ff7f': ['springgreen'], '#4682b4': ['steelblue'],
+		'#d2b48c': ['tan'], '#008080': ['teal'], '#d8bfd8': ['thistle'], '#ff6347': ['tomato'],
+		'#40e0d0': ['turquoise'], '#ee82ee': ['violet'], '#f5deb3': ['wheat'], '#9acd32': ['yellowgreen'],
+	};
+
+	// Build the fixed-order question set for one run. Each item is
+	// { prompt, check(answer) -> bool }. Correct values are computed, never shown.
+	function buildChallenge() {
+		const a = BigInt(randomInt(100000000, 999999999));
+		const b = BigInt(randomInt(100000000, 999999999));
+		const product = (a * b).toString(2);
+
+		const blob = randomBlob(12);
+		const reversed = blob.split('').reverse().join('');
+
+		const n = randomInt(10000, 100000);
+		let prime = null; // computed lazily when the question is first shown
+
+		const hexes = Object.keys(NAMED_COLORS);
+		const hex = hexes[Math.floor(Math.random() * hexes.length)];
+		const colorNames = NAMED_COLORS[hex];
+
+		return [
+			{
+				prompt: 'Compute ' + a + ' * ' + b + '. Answer in binary.',
+				check: (ans) => norm(ans) === product,
+			},
+			{
+				prompt: 'Type this string backwards:\n' + blob,
+				// Case matters here; only trim/space-normalise.
+				check: (ans) => String(ans).trim() === reversed,
+			},
+			{
+				get prompt() {
+					if (prime == null) prime = nthPrime(n);
+					return 'What is the ' + ordinal(n) + ' prime number?';
+				},
+				check: (ans) => {
+					if (prime == null) prime = nthPrime(n);
+					return norm(ans) === String(prime);
+				},
+			},
+			{
+				prompt: 'In JavaScript, what does [] + {} evaluate to?',
+				check: (ans) => norm(ans) === '[object object]',
+			},
+			{
+				prompt: 'Name this color:',
+				swatch: hex,
+				check: (ans) => colorNames.includes(norm(ans)),
+			},
+			{
+				// Any first attempt is "wrong"; the retry is accepted.
+				prompt: 'Write a regular expression that matches a valid email address.',
+				attempts: 0,
+				passNote: 'Nobody can. Passed.',
+				failNote: 'Wrong. (Nobody gets this one right the first time.)',
+				check(ans) {
+					this.attempts++;
+					return this.attempts > 1 && String(ans).trim().length > 0;
+				},
+			},
+		];
+	}
+
+	// Only commands reachable from the privileged prompt. Each returns text.
+	const rootCommands = {
+		help: () => 'root commands:\n\n' +
+			['ls', 'whoami', 'play', 'reset', 'deploy --friday', 'rm -rf bugs', 'exit'].join('\n'),
+		ls: () => {
+			// Full listing, with the json shown under its real name and linked.
+			const tree = buildTree();
+			// Swap the redacted placeholder for the real path.
+			const assets = tree.assets;
+			if (assets) {
+				delete assets['***********.json'];
+				assets['secret-test.json'] = null;
+			}
+			printTree(tree);
+			return '';
+		},
+		whoami: () => 'root (verified robot \ud83e\udd16)',
+		'rm -rf bugs': () => '0 bugs removed. 3 new bugs created.',
+		'deploy --friday': () => { deployFriday(); return ''; },
+		reset: () => {
+			if (!site.restoreEnvironment) return 'Nothing to restore.';
+			site.restoreEnvironment();
+			return 'Rolling back. Fresh environment coming up.';
+		},
+		play: () => startGame(),
+		exit: () => { leaveRoot(); return ''; },
+	};
+
+	// Print the file tree, rendering any present json path as a real link.
+	function printTree(tree) {
+		print('.', '');
+		const text = renderTree(tree, '').replace(/\n$/, '');
+		text.split('\n').forEach((row) => {
+			const line = document.createElement('div');
+			const i = row.indexOf('secret-test.json');
+			if (i === -1) {
+				line.textContent = row;
+			} else {
+				line.appendChild(document.createTextNode(row.slice(0, i)));
+				const a = document.createElement('a');
+				a.href = 'assets/secret-test.json';
+				a.target = '_blank';
+				a.rel = 'noopener';
+				a.textContent = 'secret-test.json';
+				line.appendChild(a);
+				line.appendChild(document.createTextNode(row.slice(i + 'secret-test.json'.length)));
+			}
+			out.appendChild(line);
+		});
+		out.scrollTop = out.scrollHeight;
+	}
+
+	// Print a canned deploy log line by line, with a small delay between lines.
+	function deployFriday() {
+		const lines = [
+			'$ deploy --friday',
+			'build .............. \u2713',
+			'unit tests ......... \u2713',
+			'integration tests .. \u2713',
+			'bundling ........... \u2713',
+			'uploading artifact . \u2713',
+			'switching traffic .. \u2713',
+			'health check ....... \u2717 500 Internal Server Error',
+			'rolling back ....... \u2717 rollback also failed',
+			'',
+			'Incident opened. Have a nice weekend.',
+		];
+		let i = 0;
+		const tick = () => {
+			if (mode !== 'root' || i >= lines.length) return;
+			print(lines[i], i >= 7 ? 'term-err' : '');
+			i++;
+			setTimeout(tick, 220);
+		};
+		tick();
+	}
+
+	// Flaky-test whack-a-mole, ASCII, in the terminal. A row of slots; one shows
+	// a failing test. Type its slot number to fix it before it hops. The run is
+	// 42 prompts long; the final score reads score/42. "quit" ends it early.
+	function startGame() {
+		const ROUNDS = 42;
+		let score = 0, prompts = 0, active = -1, timer = null, over = false;
+		const SLOTS = 5;
+		const render = () => {
+			const cells = [];
+			for (let i = 0; i < SLOTS; i++) cells.push('[' + (i === active ? '\u2717' : ' ') + ']');
+			print(cells.join(' ') + '   type 1-' + SLOTS + '   ' + prompts + '/' + ROUNDS +
+				'   score ' + score, 'term-dim');
+		};
+		const hop = () => {
+			if (over) return;
+			if (prompts >= ROUNDS) { finish('Run complete. Score ' + score + '/' + ROUNDS + '.'); return; }
+			prompts++;
+			active = randomInt(0, SLOTS - 1);
+			render();
+			timer = setTimeout(hop, Math.max(600, 1500 - score * 25));
+		};
+		gameState = {
+			guess(raw) {
+				if (over) return;
+				const n = parseInt(raw, 10);
+				if (/^(q|quit|exit|stop)$/i.test(raw.trim())) { finish('Stopped. Score ' + score + '/' + ROUNDS + '.'); return; }
+				if (isNaN(n) || n < 1 || n > SLOTS) { print('Pick a slot 1-' + SLOTS + ' (or "quit").', 'term-err'); return; }
+				if (n - 1 === active) {
+					score++;
+					clearTimeout(timer);
+					print('Fixed \u2713', 'term-cmd');
+					hop();
+				} else {
+					print('Missed. It flaked away.', 'term-err');
+				}
+			},
+		};
+		function finish(msg) {
+			over = true;
+			clearTimeout(timer);
+			gameState = null;
+			print(msg, '');
+			setPrompt('root@site:~#');
+		}
+		setPrompt('whack >');
+		print('Flaky test whack-a-mole. Fix the failing slot (\u2717) by typing its number.\n' +
+			ROUNDS + ' prompts in a run \u2014 final score reads x/' + ROUNDS + '. Type "quit" to stop.', 'term-dim');
+		hop();
+		return '';
+	}
+	let gameState = null;
+
+	// Change the prompt label beside the input (e.g. ">", "captcha 1/6 >").
+	function setPrompt(text) {
+		if (!term) return;
+		const label = term.querySelector('.term-line label');
+		if (label) label.textContent = text;
+	}
+
+	// Enter the verification gate: build a fresh challenge and ask the first one.
+	function startGate() {
+		gate = { step: 0, items: buildChallenge() };
+		mode = 'gate';
+		print('Access requires verification. Prove you are a robot.', '');
+		askGate();
+	}
+
+	function askGate() {
+		const item = gate.items[gate.step];
+		setPrompt('captcha ' + (gate.step + 1) + '/' + gate.items.length + ' >');
+		print(item.prompt, '');
+		if (item.swatch) {
+			// Render a real color chip followed by its hex value.
+			const line = document.createElement('div');
+			const chip = document.createElement('span');
+			chip.style.cssText = 'display:inline-block;width:3.5em;height:1.1em;vertical-align:middle;' +
+				'border:1px solid #555;border-radius:3px;background:' + item.swatch + ';margin-right:0.5em;';
+			line.appendChild(chip);
+			line.appendChild(document.createTextNode(item.swatch));
+			out.appendChild(line);
+			out.scrollTop = out.scrollHeight;
+		}
+	}
+
+	// Handle one line while in the gate. Returns nothing; prints its own output.
+	function handleGate(raw) {
+		const q = raw.trim();
+		if (/^(skip|give up|giveup|abort|exit|quit|q)$/i.test(q)) { abortGate(); return; }
+		const item = gate.items[gate.step];
+		if (item.check(raw)) {
+			print(item.passNote || 'Confirmed.', 'term-cmd');
+			gate.step++;
+			if (gate.step >= gate.items.length) { enterRoot(); return; }
+			askGate();
+		} else {
+			print(item.failNote || 'Suspiciously human.', 'term-err');
+			askGate();
+		}
+	}
+
+	function abortGate() {
+		mode = 'normal';
+		gate = null;
+		setPrompt('>');
+		print('Human detected. Incident reported to nobody.', 'term-dim');
+	}
+
+	function enterRoot() {
+		mode = 'root';
+		gate = null;
+		lastPass = Date.now();
+		setPrompt('root@site:~#');
+		print('Verified. Welcome, fellow machine.\nType "help" for commands.', 'term-cmd');
+	}
+
+	// Drop privileges back to the normal terminal (like exiting su). Clears the
+	// cached pass so the next attempt runs the full challenge again.
+	function leaveRoot() {
+		mode = 'normal';
+		gameState = null;
+		lastPass = 0;
+		setPrompt('>');
+		print('logout', 'term-dim');
+	}
+
+	// Called by sudo in the normal terminal. A recent successful pass this page
+	// view skips straight back in, mimicking sudo's credential cache.
+	function requestRoot() {
+		if (lastPass && Date.now() - lastPass < SESSION_CACHE_MS) {
+			enterRoot();
+			return '';
+		}
+		startGate();
+		return '';
+	}
+
 	const commands = {
 		help: () => 'Available commands:\n\n' +
 			['about', 'ls', 'jump', 'coffee', 'sudo', 'rm -rf /', 'konami', '42', 'clear', 'exit'].join('\n'),
 		ls: () => '.\n' + renderTree(buildTree(), '').replace(/\n$/, ''),
 		about: () => 'Stanislav Maryenko\nSoftware Developer in Test and Data Quality Analyst.\nBreaks things professionally, so you don\'t have to.',
 		coffee: () => 'ERROR: Coffee machine not connected.',
-		sudo: () => 'Nice try.',
 		'rm -rf /': () => 'Permission denied.\n\nQA saved the day.',
 		konami: () => '↑ ↑ ↓ ↓ ← → ← → B A\n\n' +
 			'Close the terminal (Esc) and enter it on the page.\n' +
@@ -232,11 +596,28 @@
 
 	function run(raw) {
 		if (!out) return; // terminal never opened (e.g. no <dialog> support)
+		// Echo the input under whatever prompt is currently showing.
+		const label = term && term.querySelector('.term-line label');
+		print((label ? label.textContent : '>') + ' ' + raw, 'term-cmd');
+
+		// Mini-game grabs raw input while it runs.
+		if (gameState) { gameState.guess(raw); return; }
+
+		// Verification gate: every line is an answer (or skip).
+		if (mode === 'gate') { if (raw.trim()) { cmdHistory.push(raw); histPos = cmdHistory.length; } handleGate(raw); return; }
+
 		const cmd = raw.trim().replace(/\s+/g, ' ');
-		print('> ' + raw, 'term-cmd');
 		if (!cmd) return;
 		cmdHistory.push(cmd);
 		histPos = cmdHistory.length;
+
+		// Privileged prompt: only root commands are available here.
+		if (mode === 'root') {
+			const fn = rootCommands[cmd];
+			const result = fn ? fn() : 'command not found: ' + cmd + '\nType "help" for root commands.';
+			if (result) print(result, fn ? '' : 'term-err');
+			return;
+		}
 
 		// First try "verb <args>" commands (e.g. "jump 18 dec").
 		const sp = cmd.indexOf(' ');
@@ -247,8 +628,10 @@
 			return;
 		}
 
-		// "sudo anything" is still a nice try.
-		const fn = commands[cmd] || (/^sudo\b/.test(cmd) && commands.sudo);
+		// "sudo" (with or without args) opens the verification gate.
+		if (/^sudo\b/.test(cmd)) { requestRoot(); return; }
+
+		const fn = commands[cmd];
 		const result = fn ? fn() : 'command not found: ' + cmd + '\nType "help" for available commands.';
 		if (result) print(result, fn ? '' : 'term-err');
 	}
@@ -287,6 +670,12 @@
 		});
 		// Every way of closing goes through here.
 		term.addEventListener('close', () => {
+			// Closing drops any privileged/gate state and the credential cache.
+			mode = 'normal';
+			gate = null;
+			gameState = null;
+			lastPass = 0;
+			setPrompt('>');
 			if (returnFocus && returnFocus.isConnected) returnFocus.focus({ preventScroll: true });
 			returnFocus = null;
 		});
