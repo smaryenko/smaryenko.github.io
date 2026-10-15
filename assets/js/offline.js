@@ -32,6 +32,7 @@
 		root.classList.add('is-offline');
 
 		setText('.net-pill-text', 'offline · cached');
+		if (window.site && site.report) site.report('i14');
 	}
 
 	function goOnline() {

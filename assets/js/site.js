@@ -56,6 +56,38 @@
 	// "test_007" style ids for grid cells.
 	site.testId = (i) => 'test_' + String(i + 1).padStart(3, '0');
 
+	// Resolved-issue log. IDs are opaque strings ('i1', 'i5', …); their meaning
+	// lives elsewhere. Resolved IDs persist in localStorage, so a found feature
+	// stays resolved across reloads and tabs. report() also announces the ID on a
+	// 'site:issue' event so listeners (the status island) can refresh.
+	const RESOLVED_KEY = 'issues-resolved';
+
+	const readResolved = () => {
+		try {
+			const raw = localStorage.getItem(RESOLVED_KEY);
+			const list = raw ? JSON.parse(raw) : [];
+			return new Set(Array.isArray(list) ? list : []);
+		} catch (e) { return new Set(); }
+	};
+
+	const writeResolved = (set) => {
+		try { localStorage.setItem(RESOLVED_KEY, JSON.stringify([...set])); } catch (e) {}
+	};
+
+	// Mark an issue resolved: persist the id and announce it. No-op if already
+	// logged (so repeats don't re-announce a change).
+	site.report = (id) => {
+		if (!id) return;
+		const set = readResolved();
+		if (set.has(id)) return;
+		set.add(id);
+		writeResolved(set);
+		document.dispatchEvent(new CustomEvent('site:issue', { detail: { id } }));
+	};
+
+	// Is an id in the persistent resolved log?
+	site.isResolved = (id) => readResolved().has(id);
+
 	window.site = site;
 
 	try {

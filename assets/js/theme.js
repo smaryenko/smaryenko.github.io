@@ -54,6 +54,7 @@
 		bar.style.animationDuration = seconds + 's';
 		document.body.appendChild(overlay);
 		root.classList.add('is-frozen');
+		if (site.report) site.report('i7');
 
 		// Swallow every key until the timer runs out.
 		const block = (e) => {
@@ -65,16 +66,34 @@
 		// Move focus into the dialog so screen readers announce it.
 		win.focus();
 
-		const timer = setInterval(() => {
-			seconds--;
-			count.textContent = seconds;
-			if (seconds > 0) return;
+		// Finish off wall-clock time, not just interval ticks: a backgrounded tab
+		// throttles setInterval, which would otherwise leave the key blockers
+		// attached (keys stay swallowed) until the tab is focused again. The
+		// deadline and a visibility check guarantee the freeze always ends and the
+		// listeners are removed. end() is idempotent.
+		const deadline = Date.now() + seconds * 1000;
+		let timer;
+		let done = false;
+
+		const end = () => {
+			if (done) return;
+			done = true;
 			clearInterval(timer);
+			document.removeEventListener('visibilitychange', onVisible);
 			keyEvents.forEach((type) => window.removeEventListener(type, block, true));
 			overlay.remove();
 			root.classList.remove('is-frozen');
 			if (button) button.focus();
 			site.toast('Theme Switcher has recovered.\nPlease toggle responsibly.', 4000);
+		};
+
+		const onVisible = () => { if (!document.hidden && Date.now() >= deadline) end(); };
+		document.addEventListener('visibilitychange', onVisible);
+
+		timer = setInterval(() => {
+			const left = Math.ceil((deadline - Date.now()) / 1000);
+			count.textContent = Math.max(0, left);
+			if (left <= 0) end();
 		}, 1000);
 	}
 

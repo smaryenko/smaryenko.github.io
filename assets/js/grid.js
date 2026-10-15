@@ -33,7 +33,9 @@
 
 		// Test lifecycle: none -> queued -> pass (80%) | fail (20%) -> none.
 		// How long each state lasts, in ms [min, max]. Failures stay longer so they can be clicked.
-		const HOLD = { none: [1500, 9000], queued: [1000, 3000], pass: [2000, 5000], fail: [5000, 10000] };
+		// The ranges are deliberately slow so the live counts elsewhere stay
+		// readable; the Konami wave below runs on its own fixed, faster timing.
+		const HOLD = { none: [3000, 14000], queued: [2000, 5000], pass: [4000, 9000], fail: [8000, 16000] };
 		const BRIGHT = { none: 0, queued: 0.6, pass: 0.85, fail: 0.9 };
 		const BLEND = 450; // colour crossfade between states, ms
 
@@ -43,10 +45,35 @@
 			// Remember the colour we're coming from so we can crossfade.
 			c.prev = c.kind === 'none' ? kind : c.kind;
 			if (kind === 'none') c.prev = c.kind === 'none' ? c.prev : c.kind;
+			if (c.kind !== kind) changed = true;
 			c.kind = kind;
 			c.changed = now;
 			c.until = now + (hold || rand(HOLD[kind]));
 			if (kind === 'pass') c.ms = 5 + ((Math.random() * 400) | 0);
+		}
+
+		// Signal (throttled) that the mix of states moved, so anything mirroring
+		// the grid (e.g. the status island) can refresh without polling.
+		let changed = false;
+		function notifyChange() {
+			if (!changed) return;
+			changed = false;
+			document.dispatchEvent(new CustomEvent('site:grid', { detail: counts() }));
+		}
+
+		// Current tally of the states the island shows. Scheduled/Passed/Failing
+		// are the live counts; Fixed is the running total of bugs fixed by hand
+		// this page view (it only ever grows), so it reads like a CI "fixed"
+		// tally rather than blinking as hand-fixed dots cycle back out.
+		function counts() {
+			let scheduled = 0, passed = 0, failing = 0;
+			for (let i = 0; i < TOTAL; i++) {
+				const c = cells[i];
+				if (c.kind === 'queued') scheduled++;
+				else if (c.kind === 'fail') failing++;
+				else if (c.kind === 'pass') passed++;
+			}
+			return { scheduled, passed, fixed: fixedCount, failing, total: TOTAL };
 		}
 
 		function advance(c, now) {
@@ -182,6 +209,7 @@
 			}
 
 			if (t - waveStart > 7000) waveStart = t;
+			notifyChange();
 			draw(t);
 			// Keep the tooltip in sync with the hovered dot's live state.
 			if (hovered >= 0) {
@@ -203,6 +231,7 @@
 				konamiStart = -1;
 				// Let everything finish its run, then fade back out at staggered times.
 				cells.forEach((c) => { c.until = t + 800 + Math.random() * 2500; });
+				document.dispatchEvent(new CustomEvent('site:konami', { detail: { phase: 'recovered' } }));
 				site.toast('All ' + TOTAL + ' tests fixed ✓');
 			}
 		}
@@ -283,6 +312,9 @@
 			return i >= 0 ? site.testId(i) : null;
 		};
 
+		// Live state tally for the status island (scheduled/passed/fixed/failing).
+		site.gridCounts = counts;
+
 		// Live grid results, exposed on the site API for anyone poking at the console.
 		site.testStats = () => {
 			const s = { total: TOTAL, pass: 0, fail: 0, queued: 0, none: 0, failed: [] };
@@ -343,6 +375,7 @@
 				const dialog = document.getElementById('not-found');
 				if (dialog && !dialog.open && site.canDialog) {
 					dialog.querySelector('.report-time').textContent = ((40 + Math.random() * 400) | 0) + 'ms';
+					if (site.report) site.report('i4');
 					dialog.showModal();
 					// Focus the "Go back" button once the dialog is open.
 					const back = dialog.querySelector('.report-actions button');
@@ -354,22 +387,28 @@
 			// Fixed: turn green, hold a little longer, then back to no status.
 			setKind(cells[i], 'pass', performance.now(), 3500);
 			cells[i].ms = 12 + ((Math.random() * 60) | 0);
-			if (!animating()) cells[i].v = BRIGHT.pass;
+			if (!animating()) { cells[i].v = BRIGHT.pass; notifyChange(); }
 			fixedCount++;
 			hero.classList.remove('is-fixable');
 			updateTip();
 			if (fixedCount === 1) site.toast('Bug fixed.\nNice catch ✓');
 			// 42: the Answer to the Ultimate Question (and a nudge towards automation).
-			else if (fixedCount === 42) site.toast('42 bugs fixed by hand.\nThe answer is clear: automate it 🤖', 4000);
+			else if (fixedCount === 42) {
+				if (site.report) site.report('i3');
+				site.toast('42 bugs fixed by hand.\nThe answer is clear: automate it 🤖', 4000);
+			}
 			else site.toast(fixedCount + ' bugs fixed ✓');
 			if (!animating()) draw(performance.now());
 		});
 
 		document.addEventListener('konami', () => {
+			document.dispatchEvent(new CustomEvent('site:konami', { detail: { phase: 'broken' } }));
 			if (site.reduceMotion.matches) {
 				const now = performance.now();
 				cells.forEach((c) => { setKind(c, 'pass', now - BLEND); c.prev = 'pass'; c.v = BRIGHT.pass; });
+				notifyChange();
 				draw(now);
+				document.dispatchEvent(new CustomEvent('site:konami', { detail: { phase: 'recovered' } }));
 				site.toast('All ' + TOTAL + ' tests fixed ✓');
 				return;
 			}

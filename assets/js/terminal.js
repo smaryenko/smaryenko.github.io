@@ -327,7 +327,9 @@
 			{
 				prompt: 'Name this color:',
 				swatch: hex,
-				check: (ans) => colorNames.includes(norm(ans)),
+				// CSS color names have no spaces; accept "Antique White" etc. by
+				// stripping all whitespace from the answer before comparing.
+				check: (ans) => colorNames.includes(norm(ans).replace(/\s+/g, '')),
 			},
 			{
 				// Any first attempt is "wrong"; the retry is accepted.
@@ -346,7 +348,7 @@
 	// Only commands reachable from the privileged prompt. Each returns text.
 	const rootCommands = {
 		help: () => 'root commands:\n\n' +
-			['ls', 'whoami', 'play', 'reset', 'deploy --friday', 'rm -rf bugs', 'exit'].join('\n'),
+			['ls', 'whoami', 'play', 'reset --hard', 'deploy --friday', 'rm -rf bugs', 'exit'].join('\n'),
 		ls: () => {
 			// Full listing, with the json shown under its real name and linked.
 			const tree = buildTree();
@@ -362,10 +364,16 @@
 		whoami: () => 'root (verified robot \ud83e\udd16)',
 		'rm -rf bugs': () => '0 bugs removed. 3 new bugs created.',
 		'deploy --friday': () => { deployFriday(); return ''; },
-		reset: () => {
-			if (!site.restoreEnvironment) return 'Nothing to restore.';
-			site.restoreEnvironment();
-			return 'Rolling back. Fresh environment coming up.';
+		// Hard reset: wipe ALL web storage — localStorage (the known-issue log,
+		// saved theme, everything) and sessionStorage (per-session egg state:
+		// reload counter, moth-seen, incident, …) — then reload so every egg and
+		// the dashboard come back to a clean slate.
+		'reset --hard': () => {
+			print('Hard reset. Clearing storage and reloading…', '');
+			try { localStorage.clear(); } catch (e) {}
+			try { sessionStorage.clear(); } catch (e) {}
+			setTimeout(() => location.reload(), 150);
+			return '';
 		},
 		play: () => startGame(),
 		exit: () => { leaveRoot(); return ''; },
@@ -532,6 +540,7 @@
 		gate = null;
 		lastPass = Date.now();
 		setPrompt('root@site:~#');
+		if (site.report) site.report('i24');
 		print('Verified. Welcome, fellow machine.\nType "help" for commands.', 'term-cmd');
 	}
 
@@ -709,6 +718,7 @@
 		const active = document.activeElement;
 		returnFocus = active && active !== document.body ? active : null;
 		term.show();
+		if (site.report) site.report('i1');
 		fitViewport();
 		input.focus({ preventScroll: true });
 	}

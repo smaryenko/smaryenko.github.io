@@ -71,6 +71,7 @@
 			else pos = 0;
 			if (pos === code.length) {
 				pos = 0;
+				if (site.report) site.report('i11');
 				document.dispatchEvent(new Event('konami'));
 			}
 		});
@@ -114,6 +115,7 @@
 			// re-found later.
 			egg.addEventListener('beforematch', () => {
 				if (word) word.classList.add('found');
+				if (site.report) site.report('i16');
 				site.toast('🐛 You searched for a bug — and found one.\nStatus: won\'t fix (it\'s a feature).', 4000);
 				clearTimeout(rehideTimer);
 				rehideTimer = setTimeout(() => {
@@ -190,6 +192,7 @@
 				// All four found: run the name like a test suite.
 				pos = 0;
 				running = true;
+				if (site.report) site.report('i5');
 				setTimeout(() => {
 					clearHits();
 					h1.classList.add('name-run');
@@ -202,18 +205,10 @@
 		}
 	}
 
-	// Session-scoped "done" flags (survive reloads, cleared by "Restore environment").
-	const sessionFlag = (key) => ({
-		get() { try { return sessionStorage.getItem(key) === '1'; } catch (e) { return false; } },
-		set() { try { sessionStorage.setItem(key, '1'); } catch (e) {} },
-		clear() { try { sessionStorage.removeItem(key); } catch (e) {} }
-	});
-
-	// Dead pixel: a single pixel fixed on the screen. Clicking/tapping within ±4px shows a toast.
-	// Once fixed it stays gone for the session; rearmPixel() brings it back.
-	let rearmPixel = () => {};
+	// Dead pixel: a single pixel fixed on the screen. Clicking/tapping within ±4px
+	// shows a toast. Once fixed it's recorded in the persistent log and stays gone
+	// (even in new tabs) until `reset --hard`.
 	{
-		const fixed = sessionFlag('pixel-fixed');
 		// Mouse: ±4px around the pixel. Finger taps are far less precise, so allow more.
 		const TOLERANCE = 4;
 		const TOUCH_TOLERANCE = 12;
@@ -261,7 +256,9 @@
 		const onClick = (e) => {
 			if (!isHit(e)) return;
 			armed = false;
-			fixed.set();
+			// Resolved state lives in the persistent log, so a new tab counts it
+			// fixed and the pixel never comes back until `reset --hard`.
+			if (site.report) site.report('i6');
 			px.remove();
 			root.classList.remove('on-dead-pixel');
 			window.removeEventListener('resize', place);
@@ -270,8 +267,8 @@
 			site.toast('Dead pixel fixed ✓\nNo need to replace your screen yet', 4000);
 		};
 
-		if (!fixed.get()) arm();
-		rearmPixel = () => { fixed.clear(); arm(); };
+		// Only arm it if it hasn't been fixed before (any tab, any session).
+		if (!(site.isResolved && site.isResolved('i6'))) arm();
 	}
 
 	// Seasonal easter eggs:
@@ -370,6 +367,7 @@
 			letter.classList.add('has-deco');
 			deco.dataset.kind = kind;
 			deco.innerHTML = decoSvg(kind);
+			if (site.report) site.report('i2');
 			return kind;
 		}
 
@@ -442,6 +440,7 @@
 				overlay.setAttribute('aria-live', 'assertive');
 				overlay.setAttribute('aria-label', 'test_responsive failed');
 				document.body.appendChild(overlay);
+				if (site.report) site.report('i9');
 			}
 			// Mark whichever axis (or both) is under its threshold.
 			const wBad = w < MIN_W, hBad = heightCounts && h < MIN_H;
@@ -728,6 +727,7 @@
 				const chip = ensureLabel();
 				chip.textContent = text;
 				positionLabel();
+				if (site.report) site.report('i10');
 			}
 
 			document.addEventListener('keydown', (e) => {
@@ -753,19 +753,17 @@
 
 	// Typo hunt: the scroll hint label reads "Scrol". One click fixes it. It sits
 	// outside the scroll link, so the link (the band below it) keeps working.
-	// Once fixed it stays fixed for the session; rearmTypo() brings it back.
-	let rearmTypo = () => {};
+	// Once fixed it stays fixed (persistent log) until `reset --hard`.
 	{
 		const label = document.getElementById('scroll-hint-label');
-		const fixed = sessionFlag('typo-fixed');
 		if (label && label.classList.contains('is-typo')) {
-			const original = label.textContent;
 			const setFixed = () => {
 				label.classList.remove('is-typo');
 				label.classList.add('is-link');
 				label.textContent = 'Scroll';
 			};
-			if (fixed.get()) setFixed();
+			// Fixed in any past visit: show it already fixed.
+			if (site.isResolved && site.isResolved('i19')) setFixed();
 
 			label.addEventListener('click', () => {
 				// Once fixed, the label behaves like the scroll link below it.
@@ -774,40 +772,35 @@
 					if (link) link.click();
 					return;
 				}
-				fixed.set();
 				setFixed();
+				// Record permanently so a new tab keeps it fixed until reset --hard.
+				if (site.report) site.report('i19');
 				label.classList.add('is-fixed');
 				setTimeout(() => label.classList.remove('is-fixed'), 1200);
 				site.toast('Spellcheck test passed ✓\nOne of many discoveries hidden on this site. Keep exploring.', 4000);
 			});
-
-			rearmTypo = () => {
-				fixed.clear();
-				label.classList.remove('is-link', 'is-fixed');
-				label.classList.add('is-typo');
-				label.textContent = original;
-			};
 		}
 	}
 
 	// Idle moth: after 15s with no input (tab visible), a moth (a nod to the 1947
 	// Harvard Mark II bug) flutters around the screen. Click/tap it to catch it.
-	// rearmMoth() lets it appear once more (used by "Restore environment").
-	let rearmMoth = () => {};
 	{
 		const IDLE_MS = 15000;
 		let idleTimer;
 		let moth = null;
-		// Once it has appeared, it stays gone for the whole session (reloads
-		// included) until "Restore environment" re-arms it.
+		// `moth-seen` (session only) keeps an UNcaught moth from reappearing every
+		// idle period within a session; it clears naturally in a new tab. A caught
+		// moth is recorded permanently in the issue log instead.
 		const SEEN_KEY = 'moth-seen';
 		const seen = {
 			get() { try { return sessionStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; } },
-			set() { try { sessionStorage.setItem(SEEN_KEY, '1'); } catch (e) {} },
-			clear() { try { sessionStorage.removeItem(SEEN_KEY); } catch (e) {} }
+			set() { try { sessionStorage.setItem(SEEN_KEY, '1'); } catch (e) {} }
 		};
-		let spawned = seen.get();
-		const caught = sessionFlag('moth-caught');
+		// Seen (appeared) this session, or caught in any past visit: don't spawn.
+		// `moth-seen` is session-only and governs the once-per-session appearance
+		// of an UNcaught moth; a caught one is recorded permanently in the log.
+		const caughtBefore = () => site.isResolved && site.isResolved('i18');
+		let spawned = seen.get() || caughtBefore();
 		let raf = 0;
 
 		const SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="currentColor">' +
@@ -869,7 +862,9 @@
 			const catchIt = () => {
 				if (moth !== el) return;
 				el.classList.add('is-caught');
-				caught.set();
+				// Record permanently (persistent log) so a new tab counts it caught
+				// and the moth won't reappear until reset --hard clears localStorage.
+				if (site.report) site.report('i18');
 				cancelAnimationFrame(raf);
 				moth = null;
 				site.toast('Bug caught 🪲 Just like the 1947 moth.\nA history of famous bugs hides somewhere on this page.', 5000);
@@ -933,8 +928,8 @@
 		}
 
 		// Activity resets the timer. The moth appears once per session and stays
-		// until caught or the tab is left; after that the egg is done until the
-		// environment is restored.
+		// until caught or the tab is left. Catching it records the issue
+		// permanently; `reset --hard` is the only thing that brings it back.
 		const ACTIVITY = ['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'];
 		// Capture phase, so handlers that stop propagation (e.g. text inputs)
 		// still count as activity.
@@ -945,17 +940,6 @@
 			reset();
 		});
 		reset();
-
-		rearmMoth = () => {
-			if (moth) return; // still flying: nothing to do
-			seen.clear();
-			caught.clear();
-			spawned = false;
-			announced = false;
-			// Back to the normal rule: appear after 15s with no input.
-			ACTIVITY.forEach((t) => window.addEventListener(t, reset, LISTEN));
-			reset();
-		};
 	}
 
 	// Reload wash-out: the inline <head> script counts reloads and sets --fade.
@@ -984,11 +968,17 @@
 			}
 		}
 
-		// Fade the page back from any wash level, clear the reload counter, and
-		// re-arm the per-session items. Shared by the 100% "cleared" screen and
-		// site.restoreEnvironment() (callable even below 100%).
+		// Fade the page back from any wash level and clear the reload counter.
+		// Shared by the 100% "cleared" screen and site.restoreEnvironment()
+		// (callable even below 100%). Purely visual: it does not re-arm the
+		// per-session eggs (dead pixel / moth / typo) or clear stored state, so a
+		// plain restore leaves everything a visitor has already found alone. A
+		// full wipe is the admin `reset --hard` (clears storage and reloads).
 		const restore = (box) => {
 			try { sessionStorage.removeItem('reloads'); } catch (e) {}
+			// #20 resolves only on a full-wash restore (the 100% "cleared" screen),
+			// and stays resolved for the session.
+			if (box && site.report) site.report('i20');
 			if (box) box.classList.add('is-leaving');
 			root.classList.remove('is-washed');
 			root.classList.add('is-restoring');
@@ -1000,10 +990,6 @@
 				root.classList.remove('is-restoring');
 				root.style.removeProperty('--fade');
 				delete root.dataset.reloads;
-				// Fresh environment, fresh bugs.
-				rearmMoth();
-				rearmPixel();
-				rearmTypo();
 			}, done);
 		};
 
@@ -1050,6 +1036,7 @@
 
 		const enable = (z) => {
 			on = true;
+			if (site.report) site.report('i21');
 			root.style.setProperty('--zoom-fix', z.toFixed(2));
 			root.classList.add('is-overview');
 			banner = document.createElement('div');
@@ -1209,11 +1196,27 @@
 				window.setTimeout(() => { if (confirmEl === d) dismiss(); }, DEADLINE);
 			};
 
+			// Resolve #22 only when the visitor actually reaches the bottom of the
+			// dive (the "Here be dragons" line), not merely on confirming the warning.
+			let bottomWatch = null;
+			const watchBottom = () => {
+				const end = deep.querySelector('.deep-end');
+				if (!end || bottomWatch || !('IntersectionObserver' in window)) return;
+				bottomWatch = new IntersectionObserver((entries) => {
+					if (!entries.some((e) => e.isIntersecting)) return;
+					if (site.report) site.report('i22');
+					bottomWatch.disconnect();
+					bottomWatch = null;
+				});
+				bottomWatch.observe(end);
+			};
+
 			const dive = () => {
 				if (open) return;
 				open = true;
 				deep.hidden = false;
 				populate();
+				watchBottom();
 				site.toast('Fine.\nBut if we\'re doing this, we need to go deeper.', 3500);
 				const instant = site.reduceMotion.matches;
 				const target = deep.querySelector('.deep-note');
@@ -1335,6 +1338,7 @@
 			if (!active || resolved) return;
 			resolved = true;
 			markDone();
+			if (site.report) site.report('i23');
 			root.classList.add('is-incident-resolved');
 			if (pill) {
 				pill.classList.add('is-resolved');

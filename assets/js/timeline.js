@@ -169,6 +169,7 @@
 		if (!section || isRevealed()) return;
 		build();
 		section.hidden = false;
+		if (site.report) site.report('i17');
 		requestAnimationFrame(() => {
 			section.classList.add('is-in');
 			// The intro line is hidden on small screens to keep the strip compact;
