@@ -215,8 +215,20 @@
 		out.scrollTop = out.scrollHeight;
 	}
 
+	// On-call toggle: pin the effective clock to the small-hours window, or
+	// release it back to the real clock. Replies stay terse. Not advertised in
+	// help/ls; the override lives only in memory for this page view.
+	function oncall(arg) {
+		if (!site.setClock) return '';
+		const q = (arg || '').trim().toLowerCase();
+		if (/^(off|reset|stop|real)$/.test(q)) return site.setClock(null);
+		const d = new Date();
+		d.setHours(3, 0, 0, 0);
+		return site.setClock(d);
+	}
+
 	// Commands that take the rest of the line as an argument.
-	const argCommands = { jump, date: jump };
+	const argCommands = { jump, date: jump, oncall };
 
 	function run(raw) {
 		if (!out) return; // terminal never opened (e.g. no <dialog> support)

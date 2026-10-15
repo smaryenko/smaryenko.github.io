@@ -2058,6 +2058,110 @@ html.is-washed::after {
 }
 
 
+/* Section outlines and labels, red variant. Rules sit after the green set and
+   use the same specificity so they win where both apply. */
+.is-incident #intro,
+.is-incident #one,
+.is-incident #site-footer {
+	position: relative;
+	outline: 3px solid rgba(220, 38, 38, 0.85);
+	outline-offset: -3px;
+	background-image: linear-gradient(rgba(220, 38, 38, 0.12), rgba(220, 38, 38, 0.12));
+}
+
+.is-incident #intro::before,
+.is-incident #one::before,
+.is-incident #site-footer::before {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 5;
+	padding: 0.2em 0.6em;
+	border-radius: 0.4em;
+	background: rgb(220, 38, 38);
+	color: #fff;
+	font: 700 0.8rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+	pointer-events: none;
+}
+
+.is-incident #intro::before { content: '✗ hero · incident'; }
+.is-incident #one::before { content: '✗ projects · incident'; }
+.is-incident #site-footer::before { content: '✗ footer · incident'; }
+
+/* Flip the outlines green for a beat when the state is resolved. */
+.is-incident.is-incident-resolved #intro,
+.is-incident.is-incident-resolved #one,
+.is-incident.is-incident-resolved #site-footer {
+	outline-color: rgba(34, 197, 94, 0.85);
+	background-image: linear-gradient(rgba(34, 197, 94, 0.12), rgba(34, 197, 94, 0.12));
+}
+
+.is-incident.is-incident-resolved #intro::before,
+.is-incident.is-incident-resolved #one::before,
+.is-incident.is-incident-resolved #site-footer::before {
+	background: rgb(22, 163, 74);
+}
+
+.is-incident-resolved #intro::before { content: '✓ hero · resolved'; }
+.is-incident-resolved #one::before { content: '✓ projects · resolved'; }
+.is-incident-resolved #site-footer::before { content: '✓ footer · resolved'; }
+
+.incident-pill {
+	position: fixed;
+	top: 1rem;
+	left: 50%;
+	z-index: 21;
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
+	max-width: calc(100vw - 2rem);
+	padding: 0.5rem 0.6rem 0.5rem 1.1rem;
+	border: 1px solid var(--glass-border);
+	border-radius: 999px;
+	background: var(--glass-bg);
+	-webkit-backdrop-filter: blur(12px) saturate(160%);
+	backdrop-filter: blur(12px) saturate(160%);
+	color: var(--glass-text);
+	font: 600 0.95rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+	white-space: nowrap;
+	transform: translateX(-50%);
+	transform-origin: top center;
+	box-shadow: var(--shadow);
+}
+
+.incident-pill .report-badge { background: rgb(220, 38, 38); }
+
+.incident-pill.is-resolved .report-badge { background: rgb(22, 163, 74); }
+
+.incident-fix {
+	flex: none;
+	min-height: 44px;
+	min-width: 44px;
+	padding: 0 0.9rem;
+	border: 1px solid rgb(220, 38, 38);
+	border-radius: 999px;
+	background: rgb(220, 38, 38);
+	color: #fff;
+	font: 700 0.85rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+	cursor: pointer;
+}
+
+.incident-fix:hover,
+.incident-fix:focus-visible {
+	background: #b91c1c;
+	border-color: #b91c1c;
+}
+
+.incident-pill.is-leaving {
+	opacity: 0;
+	transition: opacity 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.incident-pill.is-leaving { transition: none; }
+}
+
+
 /* Red footer button */
 #footer-stop {
 	color: var(--fail);

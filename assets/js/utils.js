@@ -101,7 +101,7 @@
 		});
 	}
 
-	// Find-in-page egg: a footer line (#find-egg) carries the page's only "bug",
+	// Find-in-page egg: a hero line (#find-egg) carries the page's only "bug",
 	// marked hidden="until-found". The browser keeps it invisible and out of
 	// layout but still searchable by native Find — on desktop AND mobile — so
 	// scrolling never reveals it, only a search does. When Find matches inside
@@ -1248,5 +1248,152 @@
 
 			btn.addEventListener('click', () => askFirst(dive));
 		}
+	}
+
+	// Late-night state: once per night, at a per-night random minute between
+	// 02:00 and 05:00 local time, the page flips into a "failing" state (red
+	// section outlines + labels and a top-centre pill with a Fix button).
+	// Checked on load and once a minute, so it appears on its own at the chosen
+	// minute and clears itself at the 05:00 edge if left alone. Fixing it, or
+	// crossing 05:00, marks the night done (sessionStorage) until the next one.
+	//
+	// The effective clock is read through site.getClock(), which normally
+	// returns the real time; site.setClock() can pin or release an override for
+	// the current page view (used only for internal checks).
+	{
+		const START_H = 2;   // window opens at 02:00
+		const END_H = 5;     // window closes at 05:00
+		const root = document.documentElement;
+
+		// Clock override, in-memory only for this page view.
+		let override = null; // a Date, or null to use the real clock.
+		site.getClock = () => (override ? new Date(override) : new Date());
+		site.setClock = (date) => {
+			override = date instanceof Date && !isNaN(date) ? date : null;
+			check();
+			return override ? 'ok.' : 'off.';
+		};
+
+		// A stable per-night key (the window sits inside one calendar day).
+		const nightKey = (now) => now.getFullYear() + '-' +
+			(now.getMonth() + 1) + '-' + now.getDate();
+
+		// Done-for-this-night flag, cleared automatically when the key changes.
+		const doneFlag = {
+			get(key) { try { return sessionStorage.getItem('incident-done') === key; } catch (e) { return false; } },
+			set(key) { try { sessionStorage.setItem('incident-done', key); } catch (e) {} }
+		};
+
+		// Deterministic hash of the night key, so every tab/reload that night
+		// agrees on the same trigger minute and it varies from day to day.
+		const hash = (str) => {
+			let h = 2166136261;
+			for (let i = 0; i < str.length; i++) {
+				h ^= str.charCodeAt(i);
+				h = Math.imul(h, 16777619);
+			}
+			return (h >>> 0);
+		};
+
+		// Minutes past midnight for this night's trigger (random within the
+		// window, but fixed per night). Last minute is kept clear so there's
+		// always room to notice it before the window closes.
+		const triggerMinute = (now) => {
+			const span = (END_H - START_H) * 60 - 1; // 02:00 .. 04:59
+			return START_H * 60 + (hash(nightKey(now)) % span);
+		};
+
+		let pill = null;
+		let active = false;
+		let resolved = false;
+
+		const pad = (n) => String(n).padStart(2, '0');
+
+		const removePill = () => {
+			if (!pill) return;
+			const el = pill;
+			pill = null;
+			el.classList.add('is-leaving');
+			const done = site.reduceMotion.matches ? 0 : 400;
+			setTimeout(() => el.remove(), done);
+		};
+
+		const clearState = () => {
+			active = false;
+			resolved = false;
+			root.classList.remove('is-incident', 'is-incident-resolved');
+			removePill();
+		};
+
+		// Mark the current night finished so it doesn't re-open until tomorrow.
+		const markDone = () => doneFlag.set(nightKey(site.getClock()));
+
+		const resolve = () => {
+			if (!active || resolved) return;
+			resolved = true;
+			markDone();
+			root.classList.add('is-incident-resolved');
+			if (pill) {
+				pill.classList.add('is-resolved');
+				const badge = pill.querySelector('.report-badge');
+				if (badge) badge.textContent = 'PASSED';
+				const btn = pill.querySelector('.incident-fix');
+				if (btn) btn.remove();
+			}
+			site.toast('Hotfix deployed ✓ Now go to sleep.', 4000);
+			// Hold the green beat, then clear everything.
+			const beat = site.reduceMotion.matches ? 300 : 1200;
+			setTimeout(clearState, beat);
+		};
+
+		const open = (now) => {
+			if (active) return;
+			active = true;
+			resolved = false;
+			root.classList.add('is-incident');
+
+			pill = document.createElement('div');
+			pill.className = 'incident-pill';
+			pill.setAttribute('role', 'alert');
+			const label = document.createElement('span');
+			label.innerHTML = '<span class="report-badge">FAILED</span> prod incident · ' +
+				pad(now.getHours()) + ':' + pad(now.getMinutes());
+			const btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'incident-fix';
+			btn.textContent = 'Fix';
+			btn.addEventListener('click', resolve);
+			pill.appendChild(label);
+			pill.appendChild(btn);
+			document.body.appendChild(pill);
+
+			site.toast('Go to sleep, the tests will still fail tomorrow.', 5000);
+		};
+
+		function check() {
+			const now = site.getClock();
+			const mins = now.getHours() * 60 + now.getMinutes();
+			const inWindow = mins >= START_H * 60 && mins < END_H * 60;
+			const key = nightKey(now);
+
+			// An override forces the incident on regardless of clock or done flag.
+			if (override) {
+				if (!active) open(now);
+				return;
+			}
+
+			if (!inWindow || doneFlag.get(key)) {
+				// Past the window (or already handled): clear if we crossed the edge.
+				if (active && !resolved) { markDone(); clearState(); }
+				else if (!active) clearState();
+				return;
+			}
+
+			// Inside the window and not yet handled: open once we reach the minute.
+			if (!active && mins >= triggerMinute(now)) open(now);
+		}
+
+		check();
+		setInterval(check, 60000);
 	}
 })();
