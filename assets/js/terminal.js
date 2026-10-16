@@ -201,6 +201,9 @@
 	let mode = 'normal'; // 'normal' | 'gate' | 'root'
 	let gate = null; // { step, items } while in 'gate'
 	let lastPass = 0; // timestamp of last successful verification this page view
+	// A yes/no confirmation awaiting the next line (e.g. before `reset --hard`
+	// wipes everything). While set, the next input is treated as the answer.
+	let pendingConfirm = null; // { onYes, prompt } | null
 
 	// Normalise a free-text answer: trim, collapse spaces, lowercase, strip any
 	// 0b prefix and thousands separators so "0b1010", "1,024" etc. compare cleanly.
@@ -367,17 +370,30 @@
 		// Hard reset: wipe ALL web storage — localStorage (the known-issue log,
 		// saved theme, everything) and sessionStorage (per-session egg state:
 		// reload counter, moth-seen, incident, …) — then reload so every egg and
-		// the dashboard come back to a clean slate.
+		// the dashboard come back to a clean slate. Gated behind a confirmation
+		// because it is irreversible.
 		'reset --hard': () => {
-			print('Hard reset. Clearing storage and reloading…', '');
-			try { localStorage.clear(); } catch (e) {}
-			try { sessionStorage.clear(); } catch (e) {}
-			setTimeout(() => location.reload(), 150);
+			print(
+				'This wipes ALL saved progress: every resolved issue, your theme,\n' +
+				'and all per-session state. Every egg goes back to undiscovered.\n' +
+				'This cannot be undone.',
+				'term-err'
+			);
+			pendingConfirm = { prompt: 'reset --hard? type "yes" to confirm >', onYes: hardReset };
+			setPrompt(pendingConfirm.prompt);
 			return '';
 		},
 		play: () => startGame(),
 		exit: () => { leaveRoot(); return ''; },
 	};
+
+	// The actual wipe, run only after the confirmation is accepted.
+	function hardReset() {
+		print('Hard reset. Clearing storage and reloading…', '');
+		try { localStorage.clear(); } catch (e) {}
+		try { sessionStorage.clear(); } catch (e) {}
+		setTimeout(() => location.reload(), 150);
+	}
 
 	// Print the file tree, rendering any present json path as a real link.
 	function printTree(tree) {
@@ -609,6 +625,17 @@
 		const label = term && term.querySelector('.term-line label');
 		print((label ? label.textContent : '>') + ' ' + raw, 'term-cmd');
 
+		// A pending yes/no confirmation (e.g. before a hard reset) grabs the next
+		// line: only an explicit "yes"/"y" proceeds, anything else cancels.
+		if (pendingConfirm) {
+			const action = pendingConfirm;
+			pendingConfirm = null;
+			setPrompt('root@site:~#');
+			if (/^y(es)?$/i.test(raw.trim())) action.onYes();
+			else print('Cancelled. Nothing was changed.', 'term-dim');
+			return;
+		}
+
 		// Mini-game grabs raw input while it runs.
 		if (gameState) { gameState.guess(raw); return; }
 
@@ -683,6 +710,7 @@
 			mode = 'normal';
 			gate = null;
 			gameState = null;
+			pendingConfirm = null;
 			lastPass = 0;
 			setPrompt('>');
 			if (returnFocus && returnFocus.isConnected) returnFocus.focus({ preventScroll: true });

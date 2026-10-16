@@ -788,19 +788,13 @@
 		const IDLE_MS = 15000;
 		let idleTimer;
 		let moth = null;
-		// `moth-seen` (session only) keeps an UNcaught moth from reappearing every
-		// idle period within a session; it clears naturally in a new tab. A caught
-		// moth is recorded permanently in the issue log instead.
-		const SEEN_KEY = 'moth-seen';
-		const seen = {
-			get() { try { return sessionStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; } },
-			set() { try { sessionStorage.setItem(SEEN_KEY, '1'); } catch (e) {} }
-		};
-		// Seen (appeared) this session, or caught in any past visit: don't spawn.
-		// `moth-seen` is session-only and governs the once-per-session appearance
-		// of an UNcaught moth; a caught one is recorded permanently in the log.
+		// "Caught" is tracked solely by the persistent issue log: catching the moth
+		// calls site.report('i18'), so site.isResolved('i18') is true immediately
+		// and stays true across idle periods, reloads and tabs — until reset --hard
+		// clears localStorage. An uncaught moth records nothing, so it re-arms on a
+		// refresh. No separate session flag is needed.
 		const caughtBefore = () => site.isResolved && site.isResolved('i18');
-		let spawned = seen.get() || caughtBefore();
+		let spawned = caughtBefore();
 		let raf = 0;
 
 		const SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><g fill="currentColor">' +
@@ -832,7 +826,6 @@
 			// Not while the page is washed out: it would fly unseen under the overlay.
 			if (spawned || document.hidden || document.documentElement.classList.contains('is-washed')) return;
 			spawned = true;
-			seen.set();
 			ACTIVITY.forEach((t) => window.removeEventListener(t, reset, true));
 			moth = document.createElement('button');
 			moth.type = 'button';
@@ -862,8 +855,8 @@
 			const catchIt = () => {
 				if (moth !== el) return;
 				el.classList.add('is-caught');
-				// Record permanently (persistent log) so a new tab counts it caught
-				// and the moth won't reappear until reset --hard clears localStorage.
+				// Record permanently (persistent log) so later idle periods, new tabs
+				// and reloads all count it caught until reset --hard clears storage.
 				if (site.report) site.report('i18');
 				cancelAnimationFrame(raf);
 				moth = null;
@@ -1260,8 +1253,10 @@
 	// 02:00 and 05:00 local time, the page flips into a "failing" state (red
 	// section outlines + labels and a top-centre pill with a Fix button).
 	// Checked on load and once a minute, so it appears on its own at the chosen
-	// minute and clears itself at the 05:00 edge if left alone. Fixing it, or
-	// crossing 05:00, marks the night done (sessionStorage) until the next one.
+	// minute and clears itself at the 05:00 edge if left alone. Fixing it records
+	// i23 permanently (never returns, any night). If it appears unresolved and is
+	// dismissed or crosses 05:00, a per-night flag marks that night done so it
+	// won't re-open until the next night.
 	//
 	// The effective clock is read through site.getClock(), which normally
 	// returns the real time; site.setClock() can pin or release an override for
@@ -1284,7 +1279,11 @@
 		const nightKey = (now) => now.getFullYear() + '-' +
 			(now.getMonth() + 1) + '-' + now.getDate();
 
-		// Done-for-this-night flag, cleared automatically when the key changes.
+		// Per-night guard for the UNRESOLVED case only: if the incident appeared
+		// tonight and was dismissed/expired without a fix, this stops it re-opening
+		// on a reload later the same night. A fixed incident is covered by the
+		// permanent issue log (isResolved('i23')) and never reaches here. The flag
+		// stores the night key and is naturally stale once the key changes.
 		const doneFlag = {
 			get(key) { try { return sessionStorage.getItem('incident-done') === key; } catch (e) { return false; } },
 			set(key) { try { sessionStorage.setItem('incident-done', key); } catch (e) {} }
@@ -1337,7 +1336,8 @@
 		const resolve = () => {
 			if (!active || resolved) return;
 			resolved = true;
-			markDone();
+			// Resolving records i23 permanently; that alone keeps it from ever
+			// returning, so no per-night flag is needed on this path.
 			if (site.report) site.report('i23');
 			root.classList.add('is-incident-resolved');
 			if (pill) {
@@ -1357,6 +1357,11 @@
 			if (active) return;
 			active = true;
 			resolved = false;
+			// Mark the night done the moment it appears, so a same-night reload
+			// (while still unfixed, still inside the window) does NOT re-open it.
+			// It returns only the next night (new night key). A fix instead records
+			// i23 permanently; dismissing just leaves this per-night flag set.
+			markDone();
 			root.classList.add('is-incident');
 
 			pill = document.createElement('div');
@@ -1389,10 +1394,14 @@
 				return;
 			}
 
+			// Resolved once (ever) means it never returns — the permanent issue
+			// log is the source of truth, so no per-night flag is needed here.
+			if (site.isResolved && site.isResolved('i23')) { if (!active) clearState(); return; }
+
 			if (!inWindow || doneFlag.get(key)) {
-				// Past the window (or already handled): clear if we crossed the edge.
-				if (active && !resolved) { markDone(); clearState(); }
-				else if (!active) clearState();
+				// Past the window, or already shown tonight: make sure nothing is
+				// left on screen. The night flag was set when it first appeared.
+				if (active) clearState();
 				return;
 			}
 

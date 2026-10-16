@@ -2568,7 +2568,7 @@ html:has(#deep:not([hidden])) body {
    glass surface, border and shadow, so the two read as a matched set. */
 .status-island {
 	position: fixed;
-	top: calc(1.25rem + env(safe-area-inset-top, 0px));
+	top: 0;
 	left: 50%;
 	z-index: 10;
 	transform: translateX(-50%);
@@ -2576,23 +2576,35 @@ html:has(#deep:not([hidden])) body {
 	font-variant-numeric: tabular-nums;
 }
 
+/* Icon-only notch: a phone-style camera cutout hanging flush from the top edge.
+   The silhouette flares outward with a concave curve at each top shoulder (so it
+   blends into the edge like a real notch) rather than being a plain rounded tab,
+   then runs down straight sides to a rounded bottom. Shaped with an SVG mask so
+   the glass background follows the curves; honours the safe-area inset. A single
+   colour dot centred inside carries the status (amber = open, green = clear). */
 .si-collapsed {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.5rem;
-	height: 2.75rem;
-	padding: 0 1.1rem;
-	border: 1px solid var(--glass-border);
-	border-radius: 999px;
+	justify-content: center;
+	/* Fixed px box so the clip-path coordinates below line up 1:1. */
+	width: 88px;
+	height: 28px;
+	padding-top: env(safe-area-inset-top, 0px);
+	border: 0;
 	background: var(--glass-bg);
 	-webkit-backdrop-filter: blur(12px) saturate(160%);
 	backdrop-filter: blur(12px) saturate(160%);
-	box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 16px -6px var(--glass-glow);
+	/* Phone camera-notch outline (coords in px, matching the 88x28 box): the top
+	   edge is full-width and flush with the screen, with a small concave fillet at
+	   each top corner that curves outward into the edge (like a notch blending
+	   into the bezel), then short straight sides into a deeply rounded bottom.
+	   clip-path path() is widely supported and scales with the element's px box. */
+	-webkit-clip-path: path('M0,0 C7,0 8,7 8,8 L8,13 C8,21 14,28 22,28 L66,28 C74,28 80,21 80,13 L80,8 C80,7 81,0 88,0 Z');
+	clip-path: path('M0,0 C7,0 8,7 8,8 L8,13 C8,21 14,28 22,28 L66,28 C74,28 80,21 80,13 L80,8 C80,7 81,0 88,0 Z');
 	color: var(--glass-text);
 	font: inherit;
-	white-space: nowrap;
 	cursor: pointer;
-	transition: background 0.2s ease, box-shadow 0.2s ease;
+	transition: background 0.2s ease;
 }
 
 .si-collapsed:hover,
@@ -2601,8 +2613,8 @@ html:has(#deep:not([hidden])) body {
 }
 
 .si-dot {
-	width: 8px;
-	height: 8px;
+	width: 12px;
+	height: 12px;
 	flex: none;
 	border-radius: 50%;
 	/* Default amber ("work to do") so there's no green→amber flash before the
@@ -2611,6 +2623,10 @@ html:has(#deep:not([hidden])) body {
 }
 
 .status-island.is-all-clear .si-dot { background: var(--pass); }
+
+/* Flash the dot green for a beat when an issue resolves, then it returns to
+   amber (handled by removing .is-blink in JS after ~1s). */
+.status-island.is-blink .si-dot { background: var(--pass); }
 
 .status-island.is-alarm .si-dot,
 .status-island.is-alarm .si-collapsed {
@@ -2627,37 +2643,45 @@ html:has(#deep:not([hidden])) body {
 
 .si-expanded {
 	width: min(360px, calc(100vw - 2rem));
-	padding: 0.75rem 0.9rem 0.9rem;
+	/* Hangs flush from the top edge like the notch: square top corners, rounded
+	   only at the bottom, no gap above (just the safe-area inset so content on a
+	   notched phone clears the cutout). */
+	padding: calc(0.75rem + env(safe-area-inset-top, 0px)) 0.9rem 0.9rem;
 	border: 1px solid var(--glass-border);
-	border-radius: var(--radius);
+	border-top: 0;
+	border-radius: 0 0 var(--radius) var(--radius);
 	background: var(--glass-bg);
 	-webkit-backdrop-filter: blur(14px) saturate(160%);
 	backdrop-filter: blur(14px) saturate(160%);
 	color: var(--glass-text);
-	box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 32px -10px var(--glass-glow);
+	box-shadow: 0 10px 32px -10px var(--glass-glow);
 	transform-origin: top center;
-	animation: si-morph 0.22s ease;
+	/* Slide down from the top edge on open. */
+	animation: si-slide-down 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@keyframes si-morph {
-	from { opacity: 0; transform: translateY(-6px) scale(0.96); }
-	to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes si-slide-down {
+	from { opacity: 0; transform: translateY(-100%); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .si-head {
-	display: flex;
+	display: grid;
+	/* Centre the title across the full width: an empty cell balances the close
+	   button on the right so the label stays visually centred. */
+	grid-template-columns: 28px 1fr 28px;
 	align-items: center;
-	gap: 0.5rem;
 	margin-bottom: 0.7rem;
 }
 
-.si-badge { background: var(--pass); }
-.status-island.is-failing .si-badge { background: var(--fail); }
-
-.si-title { flex: 1; font-weight: 700; }
+.si-title {
+	grid-column: 2;
+	text-align: center;
+	font-weight: 700;
+}
 
 .si-close {
-	flex: none;
+	grid-column: 3;
 	width: 28px;
 	height: 28px;
 	border: none;
@@ -2694,8 +2718,9 @@ html:has(#deep:not([hidden])) body {
 
 .si-scheduled { color: var(--queued); }
 .si-passed { color: var(--pass); }
-/* Fixed (hand-repaired) is distinct from Passed: a teal/cyan, legible in both themes. */
-.si-fixed { color: light-dark(#0891b2, #22d3ee); }
+/* Known (open issue count) picks up the amber/green status colour. */
+.si-known-stat { color: light-dark(#b45309, #fbbf24); }
+.status-island.is-all-clear .si-known-stat { color: var(--pass); }
 .si-failing { color: var(--fail); }
 
 .si-issues { font-size: 0.8rem; }
@@ -2724,9 +2749,11 @@ html:has(#deep:not([hidden])) body {
    stay 44px. */
 @media (hover: none), (pointer: coarse) {
 	.si-close { width: 44px; height: 44px; }
+	/* Keep the centred-title balance with the larger touch close button. */
+	.si-head { grid-template-columns: 44px 1fr 44px; }
 	.si-expanded {
 		width: calc(100vw - 1.5rem);
-		padding: 0.6rem 0.75rem 0.75rem;
+		padding: calc(0.6rem + env(safe-area-inset-top, 0px)) 0.75rem 0.75rem;
 	}
 	.si-run { gap: 0.3rem; margin-bottom: 0.5rem; }
 	.si-stat { padding: 0.4rem 0.5rem; }

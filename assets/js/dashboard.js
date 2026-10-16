@@ -86,9 +86,9 @@
 		collapsed.className = 'si-collapsed';
 		collapsed.setAttribute('aria-expanded', 'false');
 		collapsed.setAttribute('aria-label', 'Test report');
-		collapsed.innerHTML =
-			'<span class="si-dot" aria-hidden="true"></span>' +
-			'<span class="si-compact"></span>';
+		// Icon-only indicator: a single colour dot (amber = issues open, green =
+		// all clear). The textual status lives in the aria-label / live region.
+		collapsed.innerHTML = '<span class="si-dot" aria-hidden="true"></span>';
 		collapsed.addEventListener('click', toggle);
 
 		expanded = document.createElement('div');
@@ -96,20 +96,18 @@
 		expanded.hidden = true;
 		expanded.innerHTML =
 			'<header class="si-head">' +
-				'<span class="report-badge si-badge">PASSED</span>' +
 				'<span class="si-title">Test report</span>' +
 				'<button type="button" class="si-close" aria-label="Collapse">\u00d7</button>' +
 			'</header>' +
 			'<div class="si-run" aria-label="Test run">' +
 				'<div class="si-stat"><span class="si-n si-scheduled" data-k="scheduled">0</span><span class="si-l">Scheduled</span></div>' +
 				'<div class="si-stat"><span class="si-n si-passed" data-k="passed">0</span><span class="si-l">Passed</span></div>' +
-				'<div class="si-stat"><span class="si-n si-fixed" data-k="fixed">0</span><span class="si-l">Fixed</span></div>' +
+				'<div class="si-stat"><span class="si-n si-known-stat" data-k="known">0</span><span class="si-l">Known</span></div>' +
 				'<div class="si-stat"><span class="si-n si-failing" data-k="failing">0</span><span class="si-l">Failing</span></div>' +
 			'</div>' +
 			'<div class="si-issues">' +
 				'<div class="si-group si-group-known">' +
-					'<p class="si-issue-row"><span class="si-issue-k">Known</span> <span class="si-known">0</span> ' +
-						'<span class="report-dim">(<span class="si-closed">0</span> resolved)</span></p>' +
+					'<p class="si-issue-row"><span class="si-issue-k">Resolved</span> <span class="si-closed">0</span></p>' +
 					'<p class="si-id-list si-known-list report-dim"></p>' +
 				'</div>' +
 				'<div class="si-group si-group-muted">' +
@@ -180,26 +178,26 @@
 		if (!island) return;
 		const t = tally();
 
-		// Collapsed status: open known issues, or an all-clear message at 0.
-		const compact = island.querySelector('.si-compact');
-		if (compact) compact.textContent = openSummary(t.open);
+		// Icon-only pill: no visible text. Keep the accessible name in sync so
+		// the status is still announced to assistive tech.
+		if (collapsed) collapsed.setAttribute('aria-label', 'Test report: ' + openSummary(t.open));
 
 		// Collapsed dot reflects issues: amber (default) while any known issue is
-		// still open, green once all are resolved. The expanded badge reflects the
-		// live run (grid failures / Konami), kept separate from the pill.
+		// still open, green once all are resolved.
 		island.classList.toggle('is-all-clear', t.open === 0);
 		const broken = grid.failing > 0 || konamiBroken;
 		island.classList.toggle('is-failing', broken);
-		const badge = island.querySelector('.si-badge');
-		if (badge) badge.textContent = broken ? 'FAILED' : 'PASSED';
 
 		// Expanded figures (only worth touching while open).
 		if (open) {
 			setNum('.si-scheduled', grid.scheduled);
 			setNum('.si-passed', grid.passed);
-			setNum('.si-fixed', grid.fixed);
+			// "Known" shows the current open known-issue count (live), replacing
+			// the former hand-fixed total.
+			setNum('.si-known-stat', t.open);
 			setNum('.si-failing', grid.failing);
-			setNum('.si-known', t.known);
+			// Known total now lives only in the run grid (open count); the issues
+			// section just lists how many are resolved, plus the Muted group.
 			setNum('.si-closed', t.closed);
 			setNum('.si-muted', t.muted);
 			// Found issues, listed under Known.
@@ -254,8 +252,19 @@
 		render();
 	});
 
-	// An issue closed (report()): refresh the tally.
-	document.addEventListener('site:issue', render);
+	// An issue closed (report()): refresh the tally and flash the notch dot green
+	// to acknowledge the resolve, then it falls back to amber (unless every issue
+	// is now resolved, where .is-all-clear keeps it green). A fixed hold keeps the
+	// behaviour consistent whether or not the egg also shows a toast; 4s matches
+	// the length of the resolve toasts most eggs use so the two clear together.
+	const BLINK_MS = 4000;
+	let blinkTimer = 0;
+	document.addEventListener('site:issue', () => {
+		render();
+		island.classList.add('is-blink');
+		clearTimeout(blinkTimer);
+		blinkTimer = setTimeout(() => island.classList.remove('is-blink'), BLINK_MS);
+	});
 
 	// Device class changed (DevTools device mode, tablet docked): the muted set
 	// may flip, so recompute.
