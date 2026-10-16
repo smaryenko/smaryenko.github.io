@@ -18,7 +18,7 @@
 	const ALL = [
 		'i1', 'i2', 'i3', 'i4', 'i5', 'i6', 'i7', 'i8', 'i9', 'i10', 'i11',
 		'i12', 'i13', 'i14', 'i15', 'i16', 'i17', 'i18', 'i19', 'i20', 'i21',
-		'i22', 'i23', 'i24'
+		'i22', 'i23', 'i24', 'i25'
 	];
 
 	// Muted on every device (features with no closeable in-page moment).
@@ -69,7 +69,7 @@
 	}
 
 	// --- UI ------------------------------------------------------------------
-	let island, collapsed, expanded, liveRegion;
+	let island, collapsed, expanded, liveRegion, stretch, stretchBand, stretchDot;
 	let open = false;
 	let konamiBroken = false;
 
@@ -90,6 +90,22 @@
 		// all clear). The textual status lives in the aria-label / live region.
 		collapsed.innerHTML = '<span class="si-dot" aria-hidden="true"></span>';
 		collapsed.addEventListener('click', toggle);
+
+		// Overlay used only while the pill is being pulled: the pill's glass body
+		// extruded toward the pointer. Built from HTML (not SVG) so it carries the
+		// exact same glass surface as the notch — gradient background, backdrop
+		// blur and highlight — which an SVG <path> can't (its fill ignores CSS
+		// gradients and backdrop-filter). The shape is a clip-path recomputed per
+		// frame; a fixed-size dot rides the tip.
+		stretch = document.createElement('div');
+		stretch.className = 'si-stretch';
+		stretch.setAttribute('aria-hidden', 'true');
+		stretchBand = document.createElement('div');
+		stretchBand.className = 'si-stretch-band';
+		stretchDot = document.createElement('span');
+		stretchDot.className = 'si-stretch-dot';
+		stretch.appendChild(stretchBand);
+		stretch.appendChild(stretchDot);
 
 		expanded = document.createElement('div');
 		expanded.className = 'si-expanded';
@@ -125,6 +141,7 @@
 
 		island.appendChild(collapsed);
 		island.appendChild(expanded);
+		island.appendChild(stretch);
 		island.appendChild(liveRegion);
 		document.body.appendChild(island);
 	}
@@ -283,4 +300,307 @@
 		}
 		render();
 	});
+
+	// --- Collapsed-pill pointer drag ----------------------------------------
+	// The collapsed pill can be grabbed and pulled: the pill's glass body extrudes
+	// toward the pointer as an elastic band (SVG overlay) anchored at the notch
+	// and pinched at the waist, so the container itself stretches. The status dot
+	// keeps its size and rides the centre of the stretched tip. On release the
+	// band retracts and clears. A plain press-and-release that never moves past
+	// START_PX stays a click, so tap-to-open is untouched; only a press that drags
+	// is a drag, and the trailing click is swallowed.
+	const START_PX = 6;      // movement before a press becomes a drag
+	const PULL_PX = 100;     // distance the travelling blob must reach to "stick"
+	const MAX_PX = 220;      // how far the blob can be pulled from the anchor
+	const BLOB_R = 9;        // radius of the travelling blob (matches the dot)
+	const reduceMotion = site.media('(prefers-reduced-motion: reduce)');
+
+	let drag = null;         // active gesture state, or null
+	let swallowClick = false; // suppress the click that follows a real drag
+
+	// Soft, capped radial displacement: the blob follows the pointer along the
+	// whole path, but can't be dragged past MAX_PX from the anchor. The top of the
+	// pill stays put — only the blob and the band it trails move.
+	function pull(delta) {
+		const dist = Math.hypot(delta.x, delta.y);
+		if (dist <= MAX_PX) return { x: delta.x, y: delta.y, dist };
+		const k = MAX_PX / dist;
+		return { x: delta.x * k, y: delta.y * k, dist: MAX_PX };
+	}
+
+	// Stretch the pill's own body toward the pointer: the notch is the anchor and
+	// the glass band is an extrusion of the pill, pinched at the waist like pulled
+	// slime, ending in a rounded tip. The status dot (fixed size) rides at the
+	// centre of that tip, so only the container stretches — the dot never grows.
+	// The band div is a generous box centred on the notch underside; the shape
+	// is a clip-path in that box's local coordinates (origin = box top-left).
+	const BAND_BOX = 640; // box side; must comfortably exceed 2*(MAX_PX+blob+cap)
+	const GRID = 3;       // contour sampling step, px
+
+	// Shape model: the notch and the stretched band are signed-distance fields
+	// (negative inside) blended with a smooth minimum, so wherever they meet the
+	// join is a rounded fillet instead of a seam — the whole thing behaves like
+	// one piece of goo. The top of the screen is a ceiling: the goo blends into
+	// it (the notch's flared shoulders) and nothing is drawn above it. The
+	// outline of the result is traced with marching squares.
+	const smin = (a, b, k) => {
+		const h = Math.max(k - Math.abs(a - b), 0) / k;
+		return Math.min(a, b) - h * h * k * 0.25;
+	};
+
+	function paint(off) {
+		if (!off) {
+			stretch.classList.remove('is-active');
+			return;
+		}
+		const cx = BAND_BOX / 2, cy = BAND_BOX / 2; // notch underside centre
+		const pillW = collapsed.offsetWidth;
+		const ceil = cy - collapsed.offsetHeight;   // screen top
+		const notchBottom = ceil + 28;              // visual notch height (px)
+		const endW = Math.max(12, pillW / 2 - 10);  // tip blob radius
+		const ax = cx, sy = notchBottom - 12;       // spine starts inside the notch
+		const bx = cx + off.x, by = cy + off.y;     // tip centre (follows pointer)
+
+		// Spine: leaves the notch heading down, straightening as the pull gets
+		// more sideways (a tight bend on a wide band would fold).
+		const dropY = Math.max(18, (by - sy) * 0.5);
+		const side = Math.min(1, Math.abs(bx - ax) / (Math.hypot(bx - ax, by - sy) || 1) * 1.15);
+		const C = {
+			x: ax + (bx - ax) * 0.5 * side,
+			y: (sy + dropY) * (1 - side) + ((sy + by) / 2) * side
+		};
+		const spine = (t) => {
+			const m = 1 - t;
+			return {
+				x: m * m * ax + 2 * m * t * C.x + t * t * bx,
+				y: m * m * sy + 2 * m * t * C.y + t * t * by
+			};
+		};
+
+		// Width along the band: full at both ends, thinning in the middle with
+		// pull length, never below ~40% of the ends.
+		const len = Math.hypot(bx - ax, by - sy);
+		const pinch = Math.min(endW * 0.6, len * 0.09);
+		const width = (t) => Math.max(endW * 0.4, endW - pinch * Math.sin(Math.PI * t));
+
+		// Band as a chain of overlapping discs along the spine.
+		const steps = Math.max(8, Math.ceil(len / 6));
+		const discs = [];
+		for (let i = 0; i <= steps; i++) {
+			const t = i / steps, p = spine(t);
+			discs.push([p.x, p.y, width(t)]);
+		}
+		const bandD = (x, y) => {
+			let d = Infinity;
+			for (let i = 0; i < discs.length; i++) {
+				const q = discs[i];
+				const v = Math.hypot(x - q[0], y - q[1]) - q[2];
+				if (v < d) d = v;
+			}
+			return d;
+		};
+
+		// Notch: a box with rounded bottom corners, running up past the ceiling.
+		const nHalf = pillW / 2 - 8, nR = 14;
+		const nTop = ceil - 60, nCy = (nTop + notchBottom) / 2, nHalfH = (notchBottom - nTop) / 2;
+		const notchD = (x, y) => {
+			const qx = Math.abs(x - cx) - nHalf + nR, qy = Math.abs(y - nCy) - nHalfH + nR;
+			return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - nR;
+		};
+
+		const field = (x, y) => {
+			let d = smin(notchD(x, y), bandD(x, y), 16); // notch ↔ band fillet
+			d = smin(d, y - ceil, 9);                    // flare into the screen top
+			return Math.max(d, ceil - y);                // nothing above the ceiling
+		};
+
+		// Sample over the shape's bounds (plus margin so the border is outside).
+		let minX = cx - pillW / 2, maxX = cx + pillW / 2, maxY = notchBottom;
+		discs.forEach((q) => {
+			minX = Math.min(minX, q[0] - q[2]);
+			maxX = Math.max(maxX, q[0] + q[2]);
+			maxY = Math.max(maxY, q[1] + q[2]);
+		});
+		const x0 = Math.floor(minX - 24), y0 = ceil - GRID;
+		const cols = Math.ceil((maxX + 24 - x0) / GRID), rows = Math.ceil((maxY + 24 - y0) / GRID);
+		const v = new Float32Array((cols + 1) * (rows + 1));
+		for (let j = 0; j <= rows; j++) {
+			for (let i = 0; i <= cols; i++) v[j * (cols + 1) + i] = field(x0 + i * GRID, y0 + j * GRID);
+		}
+
+		const d = traceContours(v, cols, rows, x0, y0);
+		const clip = 'path(evenodd, "' + d + '")';
+		stretchBand.style.webkitClipPath = clip;
+		stretchBand.style.clipPath = clip;
+
+		// Fixed-size dot centred in the tip blob. Positioned relative to the
+		// .si-stretch origin (notch-underside centre), so it uses the raw offset.
+		stretchDot.style.left = off.x.toFixed(1) + 'px';
+		stretchDot.style.top = off.y.toFixed(1) + 'px';
+		stretch.classList.add('is-active');
+	}
+
+	// Marching squares: turn the sampled field into closed outline loops (an SVG
+	// path string). Each crossing on a grid edge becomes a vertex; segments are
+	// chained edge-to-edge into loops.
+	function traceContours(v, cols, rows, x0, y0) {
+		const W = cols + 1;
+		const at = (i, j) => v[j * W + i];
+		const pts = new Map();   // edge key -> [x, y]
+		const next = new Map();  // edge key -> list of linked edge keys
+		const edgePoint = (key, i1, j1, i2, j2) => {
+			if (pts.has(key)) return;
+			const a = at(i1, j1), b = at(i2, j2), t = a / (a - b);
+			pts.set(key, [x0 + (i1 + (i2 - i1) * t) * GRID, y0 + (j1 + (j2 - j1) * t) * GRID]);
+		};
+		const link = (a, b) => {
+			(next.get(a) || next.set(a, []).get(a)).push(b);
+			(next.get(b) || next.set(b, []).get(b)).push(a);
+		};
+		for (let j = 0; j < rows; j++) {
+			for (let i = 0; i < cols; i++) {
+				const tl = at(i, j) < 0, tr = at(i + 1, j) < 0, br = at(i + 1, j + 1) < 0, bl = at(i, j + 1) < 0;
+				const c = (tl ? 8 : 0) | (tr ? 4 : 0) | (br ? 2 : 0) | (bl ? 1 : 0);
+				if (c === 0 || c === 15) continue;
+				const T = 'h' + i + ',' + j, B = 'h' + i + ',' + (j + 1);
+				const L = 'v' + i + ',' + j, R = 'v' + (i + 1) + ',' + j;
+				const need = (k) => {
+					if (k === T) edgePoint(T, i, j, i + 1, j);
+					else if (k === B) edgePoint(B, i, j + 1, i + 1, j + 1);
+					else if (k === L) edgePoint(L, i, j, i, j + 1);
+					else edgePoint(R, i + 1, j, i + 1, j + 1);
+				};
+				const seg = (a, b) => { need(a); need(b); link(a, b); };
+				switch (c) {
+					case 1: case 14: seg(L, B); break;
+					case 2: case 13: seg(B, R); break;
+					case 3: case 12: seg(L, R); break;
+					case 4: case 11: seg(T, R); break;
+					case 6: case 9: seg(T, B); break;
+					case 7: case 8: seg(L, T); break;
+					case 5: case 10: {
+						const mid = (at(i, j) + at(i + 1, j) + at(i + 1, j + 1) + at(i, j + 1)) / 4 < 0;
+						if ((c === 5) === mid) { seg(L, T); seg(B, R); } else { seg(L, B); seg(T, R); }
+						break;
+					}
+				}
+			}
+		}
+		const seen = new Set();
+		const f = (n) => n.toFixed(1);
+		let d = '';
+		next.forEach((_, start) => {
+			if (seen.has(start)) return;
+			let prev = null, cur = start;
+			const loop = [];
+			while (cur && !seen.has(cur)) {
+				seen.add(cur);
+				loop.push(pts.get(cur));
+				const n = next.get(cur);
+				const nxt = n[0] !== prev ? n[0] : n[1];
+				prev = cur;
+				cur = nxt;
+			}
+			if (loop.length > 2) d += 'M ' + loop.map((p) => f(p[0]) + ' ' + f(p[1])).join(' L ') + ' Z ';
+		});
+		return d;
+	}
+
+	let springRAF = 0;
+
+	// Snap the band back to the anchor. The blob retracts along its current
+	// direction with a touch of elastic overshoot, then the overlay clears and the
+	// pill's own dot returns.
+	function springBack(from, reached) {
+		cancelAnimationFrame(springRAF);
+		const finish = () => {
+			paint(null);
+			collapsed.classList.remove('is-dragging');
+			collapsed.querySelector('.si-dot').style.visibility = '';
+			if (reached) {
+				site.toast('The notch stays in the notch.');
+				site.report('i25');
+			}
+		};
+		if (reduceMotion.matches || !from) { finish(); return; }
+
+		const start = performance.now();
+		const DUR = 480;
+		// Ease back past zero and settle (elastic-ish overshoot).
+		const ease = (t) => {
+			const c = 1.70158 * 1.2;
+			const u = t - 1;
+			return u * u * ((c + 1) * u + c) + 1;
+		};
+		const step = (now) => {
+			const t = Math.min(1, (now - start) / DUR);
+			const k = 1 - ease(t); // 1 → 0 (with a small negative dip)
+			paint({ x: from.x * k, y: from.y * k, dist: from.dist * Math.abs(k) });
+			if (t < 1) { springRAF = requestAnimationFrame(step); }
+			else finish();
+		};
+		springRAF = requestAnimationFrame(step);
+	}
+
+	collapsed.addEventListener('pointerdown', (e) => {
+		// A fresh press always starts clean, so a previous gesture that never
+		// emitted a trailing click can't swallow this one's tap.
+		swallowClick = false;
+		// Once resolved, the pill is tap-to-open only — no more dragging.
+		if (open || site.isResolved('i25')) return;
+		if (e.button != null && e.button !== 0) return;
+		drag = {
+			id: e.pointerId,
+			x0: e.clientX,
+			y0: e.clientY,
+			active: false,
+			reached: false
+		};
+	});
+
+	collapsed.addEventListener('pointermove', (e) => {
+		if (!drag || e.pointerId !== drag.id) return;
+		const delta = { x: e.clientX - drag.x0, y: e.clientY - drag.y0 };
+		const dist = Math.hypot(delta.x, delta.y);
+		if (!drag.active) {
+			if (dist < START_PX) return; // still just a press
+			drag.active = true;
+			swallowClick = true;
+			try { collapsed.setPointerCapture(drag.id); } catch (err) {}
+			collapsed.classList.add('is-dragging');
+			// Hide the pill's resting dot so only the travelling tip dot shows.
+			collapsed.querySelector('.si-dot').style.visibility = 'hidden';
+			cancelAnimationFrame(springRAF);
+		}
+		// Keep the browser from scrolling/selecting mid-drag.
+		e.preventDefault();
+		// The blob follows the pointer along the whole path (capped by pull()).
+		const off = pull(delta);
+		drag.off = off;
+		if (off.dist >= PULL_PX) drag.reached = true;
+		paint(off);
+	});
+
+	function endDrag(e) {
+		if (!drag || (e && e.pointerId !== drag.id)) return;
+		const wasActive = drag.active;
+		const reached = drag.reached;
+		const off = drag.off;
+		try { collapsed.releasePointerCapture(drag.id); } catch (err) {}
+		drag = null;
+		if (wasActive) springBack(off, reached);
+		else collapsed.classList.remove('is-dragging');
+	}
+
+	collapsed.addEventListener('pointerup', endDrag);
+	collapsed.addEventListener('pointercancel', endDrag);
+
+	// A completed drag emits a trailing click; drop it so the report doesn't open.
+	collapsed.addEventListener('click', (e) => {
+		if (swallowClick) {
+			swallowClick = false;
+			e.stopImmediatePropagation();
+			e.preventDefault();
+		}
+	}, true);
 })();

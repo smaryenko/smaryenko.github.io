@@ -2604,6 +2604,8 @@ html:has(#deep:not([hidden])) body {
 	color: var(--glass-text);
 	font: inherit;
 	cursor: pointer;
+	/* Own the pointer gesture so a press-and-pull here doesn't scroll the page. */
+	touch-action: none;
 	transition: background 0.2s ease;
 }
 
@@ -2611,6 +2613,63 @@ html:has(#deep:not([hidden])) body {
 .si-collapsed:focus-visible {
 	background: var(--glass-bg-hover);
 }
+
+.si-collapsed.is-dragging,
+.si-collapsed.is-dragging:hover,
+.si-collapsed.is-dragging:focus-visible {
+	cursor: grabbing;
+	/* The overlay redraws the pill as part of one continuous shape. */
+	background: transparent;
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
+}
+
+/* The pill's body extruded toward the pointer. Pinned to the underside centre of
+   the notch; a child carries the glass surface and is shaped by a per-frame
+   clip-path, so it reads as the container stretching (gradient + blur that an SVG
+   fill can't do). Only drawn mid-drag via .is-active. */
+.si-stretch {
+	position: absolute;
+	left: 50%;
+	top: 100%; /* the notch underside */
+	width: 0;
+	height: 0;
+	pointer-events: none;
+	z-index: -1; /* behind the notch so the band reads as the pill extruding */
+	display: none;
+}
+
+.si-stretch.is-active { display: block; }
+
+/* Square box (matches BAND_BOX in JS), *centred* on the notch underside so
+   the shape has room in every direction (dragging up/sideways won't clip). The
+   clip-path carves the taffy shape out of this glass surface. */
+.si-stretch-band {
+	position: absolute;
+	left: -320px; /* -BAND_BOX / 2 */
+	top: -320px;  /* -BAND_BOX / 2 — box centred on the notch underside */
+	width: 640px;
+	height: 640px;
+	background: var(--glass-bg);
+	-webkit-backdrop-filter: blur(12px) saturate(160%);
+	backdrop-filter: blur(12px) saturate(160%);
+}
+
+/* Travelling dot: fixed size, rides the stretched tip (positioned in JS). Its
+   coordinates share the band box origin (notch-underside centre). */
+.si-stretch-dot {
+	position: absolute;
+	width: 12px;
+	height: 12px;
+	margin: -6px 0 0 -6px; /* centre on its (left, top) point */
+	border-radius: 50%;
+	background: #f59e0b;
+}
+
+.status-island.is-all-clear .si-stretch-dot { background: var(--pass); }
+
+/* While dragging, the pill's resting dot steps aside — the tip dot stands in. */
+.si-collapsed.is-dragging .si-dot { opacity: 0; }
 
 .si-dot {
 	width: 12px;
