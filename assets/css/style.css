@@ -730,8 +730,13 @@ a {
 
 @media (max-width: 900px) {
 	.test-grid {
+		/* Keep the whole (3D-rotated) canvas inside the viewport: a negative
+		   right offset plus the rotateY/Z used to push the painted box past the
+		   right edge, and WebKit lets that transformed child escape the hero's
+		   overflow: clip and add sideways scroll. Pin it on-screen instead; the
+		   radial mask already fades the edges so it still bleeds off visually. */
 		width: min(85vw, 24rem);
-		right: -3rem;
+		right: 0;
 		opacity: 0.25;
 	}
 }
