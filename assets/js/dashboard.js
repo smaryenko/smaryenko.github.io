@@ -53,13 +53,27 @@
 
 	const label = (id) => 'ISSUE-' + id.slice(1);
 
+	// One-word tag shown in brackets next to a resolved id, e.g. "ISSUE-19 (typo)".
+	// Only rendered under Resolved (ids the visitor has already found), so it never
+	// spoils an issue that is still open; the Muted list stays plain. Keyed by the
+	// opaque id; this mapping lives only here, like the rest of the egg knowledge.
+	const TAGS = {
+		i1: 'terminal', i2: 'calendar', i3: '42bugs', i4: 'test404', i5: 'T-E-S-T',
+		i6: 'pixel', i7: 'theme', i8: 'tabtitle', i9: 'responsive',
+		i10: 'selector', i11: 'konami', i12: 'console', i13: 'breadcrumb',
+		i14: 'offline', i15: 'favicon', i16: 'findbug', i17: 'timeline',
+		i18: 'moth', i19: 'typo', i20: 'refresh', i21: 'zoom', i22: 'godeeper',
+		i23: 'incident', i24: 'sudo', i25: 'notch'
+	};
+	const tagFor = (id) => TAGS[id] || '';
+
 	// Found (resolved) known ids, as neutral display labels — shown under Known.
 	// Never lists ids that are still open.
 	function resolvedLabels() {
 		const ignored = ignoredSet();
 		return ALL
 			.filter((id) => !ignored.has(id) && isClosed(id))
-			.map(label);
+			.map((id) => ({ text: label(id), tag: tagFor(id) }));
 	}
 
 	// Muted ids for the current device, as display labels — shown under Muted.
@@ -220,9 +234,9 @@
 			// Found issues, listed under Known.
 			const knownList = island.querySelector('.si-known-list');
 			if (knownList) {
-				const labels = resolvedLabels();
-				fillChips(knownList, labels, ' \u2713');
-				knownList.hidden = labels.length === 0;
+				const items = resolvedLabels();
+				fillChips(knownList, items, ' \u2713');
+				knownList.hidden = items.length === 0;
 			}
 			// Muted ids, listed under Muted (fixed set for the device).
 			const mutedList = island.querySelector('.si-muted-list');
@@ -242,14 +256,24 @@
 		}
 	}
 
-	// Render a list of id labels as individual chips (so CSS can grid them into
-	// fixed columns). `suffix` is appended to each (e.g. a resolved tick).
-	function fillChips(container, labels, suffix) {
+	// Render a list of ids as individual chips (so CSS can grid them into fixed
+	// columns). `suffix` is appended to each (e.g. a resolved tick). Items may be
+	// plain strings (Muted) or `{ text, tag }` (Resolved); when a tag is present
+	// it is shown as a small bracketed word after the id, e.g. "ISSUE-19 (typo)".
+	function fillChips(container, items, suffix) {
 		container.textContent = '';
-		labels.forEach((l) => {
+		items.forEach((item) => {
+			const text = typeof item === 'string' ? item : item.text;
+			const tag = typeof item === 'string' ? '' : item.tag;
 			const chip = document.createElement('span');
 			chip.className = 'si-chip';
-			chip.textContent = l + suffix;
+			chip.textContent = text + suffix;
+			if (tag) {
+				const t = document.createElement('span');
+				t.className = 'si-chip-tag';
+				t.textContent = ' (' + tag + ')';
+				chip.appendChild(t);
+			}
 			container.appendChild(chip);
 		});
 	}

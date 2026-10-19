@@ -2688,10 +2688,13 @@ html:has(#deep:not([hidden])) body {
 
 .status-island.is-all-clear .si-dot { background: var(--pass); }
 
-/* Flash the dot green for a beat when an issue resolves, then it returns to
-   amber (handled by removing .is-blink in JS after ~1s). */
+/* Flash green for a beat when an issue resolves: the dot turns green and the
+   whole collapsed pill pulses (same si-pulse as the alarm state, just green),
+   then it returns to normal (handled by removing .is-blink in JS after ~4s). */
 .status-island.is-blink .si-dot { background: var(--pass); }
 
+.status-island.is-blink .si-dot,
+.status-island.is-blink .si-collapsed,
 .status-island.is-alarm .si-dot,
 .status-island.is-alarm .si-collapsed {
 	animation: si-pulse 1s ease-in-out infinite;
@@ -2793,20 +2796,27 @@ html:has(#deep:not([hidden])) body {
 .si-issue-row { margin: 0.2rem 0; }
 .si-issue-k { display: inline-block; min-width: 4.5em; font-weight: 700; }
 
-/* Issue-id lists under Known (found) and Muted (fixed set). Fixed 4-column grid
-   so exactly four ids sit per row and the width is predictable; a small font
-   keeps four two-digit entries ("ISSUE-10 ✓") on one line. No height cap/scroll
-   — all rows show in full and the grid keeps the panel short enough to fit. */
+/* Issue-id lists under Known (found) and Muted (fixed set). Fixed-column grid
+   so the width is predictable and a small font keeps each entry on one line. No
+   height cap/scroll — all rows show in full and the grid keeps the panel short
+   enough to fit. */
 .si-id-list {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
 	gap: 0.1rem 0.4rem;
-	margin: 0.2rem 0 0 4.5em;
-	font-size: 0.6rem;
+	margin: 0.2rem 0 0 0.5em;
+	font-size: 0.55rem;
 	line-height: 1.4;
+}
+/* The Known (found) entries carry a one-word tag, so they are wider: three per
+   row. Muted entries share the same font size and style for a consistent look. */
+.si-known-list {
+	grid-template-columns: repeat(3, 1fr);
 }
 .si-id-list[hidden] { display: none; }
 .si-chip { white-space: nowrap; }
+/* The bracketed tag rides a touch smaller and dimmer than the id it labels. */
+.si-chip-tag { font-size: 0.9em; opacity: 0.65; }
 
 /* Phones: full-width card under the notch. It sizes to its content and never
    scrolls — the spacing below keeps the whole report on screen. Tap targets
@@ -2833,6 +2843,8 @@ html:has(#deep:not([hidden])) body {
 @media (prefers-reduced-motion: reduce) {
 	.si-collapsed { transition: none; }
 	.si-expanded { animation: si-fade 0.2s ease; }
+	.status-island.is-blink .si-dot,
+	.status-island.is-blink .si-collapsed,
 	.status-island.is-alarm .si-dot,
 	.status-island.is-alarm .si-collapsed { animation: none; }
 }
