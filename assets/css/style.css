@@ -2853,3 +2853,55 @@ html:has(#deep:not([hidden])) body {
 	from { opacity: 0; }
 	to { opacity: 1; }
 }
+
+/* Overlay layers mounted on the hero role line. The role box is given
+   position:relative at runtime so these anchor to it; both are decorative and
+   aria-hidden, so assistive tech always reads the real line beneath. */
+.scratch-under {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	color: var(--muted);
+	font: inherit;
+	line-height: inherit;
+	white-space: normal;
+	pointer-events: none;
+	/* Stays out of sight while the top line is being rubbed away, so it doesn't
+	   peek through the gaps; fades in once the line settles. */
+	opacity: 0;
+	transition: opacity 0.35s ease;
+}
+
+.scratch-under.is-shown {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.scratch-under { transition: none; }
+}
+
+.scratch-foil {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 2;
+	/* Keep native vertical scrolling over the line; only a deliberate left-right
+	   scrub is handled in JS. Default cursor so it reads as ordinary text. */
+	touch-action: pan-y;
+	user-select: none;
+	-webkit-user-select: none;
+	transition: opacity 0.3s ease;
+}
+
+.scratch-foil.is-revealing {
+	opacity: 0;
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.scratch-foil { transition: none; }
+}

@@ -1412,4 +1412,392 @@
 		check();
 		setInterval(check, 60000);
 	}
+
+	// The hero role line reads as ordinary text, but the visible copy is drawn on
+	// a canvas on top. Held-down scrubbing (a deliberate back-and-forth gesture,
+	// not a stray swipe or a scroll) rubs those words away to a different line
+	// underneath. Past ~65% erased the rest fades off on its own, the line below
+	// shows, and the canvas retires for good (logged, so it stays plain
+	// selectable text on later visits). An unfinished scratch just redraws so the
+	// line is never left half-rubbed.
+	{
+		const target = document.getElementById('hero-role');
+		const ID = 'i26';
+		// No <canvas> / 2D context, or already found before: leave the line plain.
+		const hasCanvas = (() => {
+			try { return !!document.createElement('canvas').getContext('2d'); }
+			catch (e) { return false; }
+		})();
+
+		if (target && hasCanvas && !(site.isResolved && site.isResolved(ID))) {
+			const dpr = () => Math.min(window.devicePixelRatio || 1, 3);
+
+			// The original line, drawn on the canvas so it looks like plain text.
+			const ORIGINAL = (target.textContent || '').trim();
+			// The line revealed underneath as the original is rubbed away. Light,
+			// factual, CV-toned; must not repeat the original and hint at nothing.
+			const PAYLOAD = 'Professional bug-finder & occasional bug-maker';
+
+			let canvas = null;    // the top layer: the original text, drawn + erasable
+			let ctx = null;
+			let under = null;     // the payload text element, sitting underneath
+			let boxes = [];       // per-line rects (relative to target box), for area
+			let foilArea = 1;     // total painted area in CSS px² (sum of line boxes)
+			let coatedBaseline = 0; // sampled painted-glyph pixel count after drawing
+			let W = 0, H = 0;     // canvas CSS size
+			let eraseR = 12;      // scratch radius, derived from line height
+			let retired = false;  // reveal fired, canvas on its way out
+			let revealing = false;
+
+			// Make the role box a positioning context for the absolute overlays
+			// without disturbing layout. It is restored on retire.
+			const prevPos = target.style.position;
+			target.style.position = target.style.position || 'relative';
+
+			// Capture the real text colour BEFORE hiding the element's glyphs, so
+			// the canvas copy is drawn in the right colour (not transparent).
+			const realColor = window.getComputedStyle(target).color || '#888';
+
+			// Hide the element's own glyphs (kept in the DOM for assistive tech) so
+			// only the canvas copy shows; restored on retire.
+			const prevColor = target.style.color;
+			target.style.color = 'transparent';
+
+			let font = '';        // CSS font shorthand captured from the element
+			let textColor = realColor; // the real role text colour, drawn on the canvas
+			let lineHeightPx = 0;
+
+			// Measure the text's line boxes with a Range, so the coating can hug the
+			// wrapped lines (ragged last line included) instead of one loose
+			// rectangle. Falls back to the element box if Range rects aren't usable.
+			function measure() {
+				const host = target.getBoundingClientRect();
+				W = Math.max(1, Math.ceil(host.width));
+				H = Math.max(1, Math.ceil(host.height));
+
+				// Capture the real font + colour so the canvas copy matches the line.
+				const cs = window.getComputedStyle(target);
+				const style = cs.fontStyle || 'normal';
+				const weight = cs.fontWeight || '400';
+				const size = cs.fontSize || '16px';
+				const family = cs.fontFamily || 'serif';
+				font = style + ' ' + weight + ' ' + size + ' ' + family;
+				// cs.color is now transparent (we hid the real glyphs); use the
+				// colour captured before hiding.
+				textColor = realColor;
+				lineHeightPx = parseFloat(cs.lineHeight) || (parseFloat(size) * 1.4);
+
+				boxes = [];
+				try {
+					const range = document.createRange();
+					range.selectNodeContents(target);
+					const rects = range.getClientRects();
+					for (const r of rects) {
+						if (r.width < 1 || r.height < 1) continue;
+						boxes.push({
+							x: r.left - host.left,
+							y: r.top - host.top,
+							w: r.width,
+							h: r.height
+						});
+					}
+				} catch (e) { /* fall through */ }
+				if (!boxes.length) boxes = [{ x: 0, y: 0, w: W, h: H }];
+
+				// Line height drives the erase radius so scratching one line doesn't
+				// bleed into its neighbour (lines sit close on a phone wrap).
+				const lineH = boxes.reduce((m, b) => Math.min(m, b.h), Infinity);
+				eraseR = Math.max(10, Math.min(24, lineH * 0.5));
+				foilArea = boxes.reduce((s, b) => s + b.w * b.h, 0) || 1;
+			}
+
+			// Greedily wrap the original string into the measured line boxes, so the
+			// drawn copy breaks at the same points as the real (now invisible) text.
+			function wrapToBoxes() {
+				const words = ORIGINAL.split(/\s+/).filter(Boolean);
+				const lines = [];
+				let wi = 0;
+				for (let b = 0; b < boxes.length && wi < words.length; b++) {
+					const max = boxes[b].w + 1;
+					let line = '';
+					while (wi < words.length) {
+						const next = line ? line + ' ' + words[wi] : words[wi];
+						if (ctx.measureText(next).width > max && line) break;
+						line = next;
+						wi++;
+					}
+					lines.push(line);
+				}
+				// Anything left (last box too tight) goes on the final line.
+				if (wi < words.length) {
+					lines[lines.length - 1] = (lines[lines.length - 1] + ' ' +
+						words.slice(wi).join(' ')).trim();
+				}
+				return lines;
+			}
+
+			// Draw the original role line onto the canvas, matching the element's
+			// font and colour so it reads as ordinary text (no foil, no cursor
+			// hint). This copy is what gets rubbed away to reveal the payload.
+			function paintText() {
+				const scale = dpr();
+				canvas.width = Math.max(1, Math.round(W * scale));
+				canvas.height = Math.max(1, Math.round(H * scale));
+				canvas.style.width = W + 'px';
+				canvas.style.height = H + 'px';
+				ctx.setTransform(scale, 0, 0, scale, 0, 0);
+				ctx.clearRect(0, 0, W, H);
+
+				ctx.font = font;
+				ctx.fillStyle = textColor;
+				ctx.textBaseline = 'middle';
+				ctx.textAlign = 'left';
+
+				const lines = wrapToBoxes();
+				lines.forEach((text, i) => {
+					const b = boxes[i] || boxes[boxes.length - 1];
+					ctx.fillText(text, b.x, b.y + b.h / 2);
+				});
+
+				// Baseline of how many glyph pixels were painted, so the 65% target
+				// is measured over the actual letters — not the box area.
+				coatedBaseline = sampleCoated();
+			}
+
+			// Count sampled pixels that still carry drawn ink (alpha high). Blank
+			// gaps between glyphs and rubbed-away pixels are both ~alpha 0, so the
+			// drop from the baseline is how much of the text has been erased.
+			function sampleCoated() {
+				try {
+					const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+					const d = img.data;
+					let coated = 0;
+					for (let i = 3; i < d.length; i += 16) { // alpha channel, every 4th px
+						if (d[i] > 128) coated++;
+					}
+					return coated;
+				} catch (e) { return coatedBaseline || 0; }
+			}
+
+			function build() {
+				// Payload sits underneath, revealed as the top text is rubbed off.
+				under = document.createElement('span');
+				under.className = 'scratch-under';
+				under.setAttribute('aria-hidden', 'true');
+				under.textContent = PAYLOAD;
+
+				// The erasable copy of the original line, on top.
+				canvas = document.createElement('canvas');
+				canvas.className = 'scratch-foil';
+				canvas.setAttribute('aria-hidden', 'true');
+				ctx = canvas.getContext('2d');
+
+				target.appendChild(under);
+				target.appendChild(canvas);
+				measure();
+				paintText();
+			}
+
+			// Carve a round-capped stroke along a path out of the coating.
+			function eraseSegment(ax, ay, bx, by) {
+				if (!ctx) return;
+				ctx.save();
+				ctx.globalCompositeOperation = 'destination-out';
+				ctx.lineWidth = eraseR * 2;
+				ctx.lineCap = 'round';
+				ctx.lineJoin = 'round';
+				ctx.beginPath();
+				ctx.moveTo(ax, ay);
+				ctx.lineTo(bx, by);
+				ctx.stroke();
+				ctx.restore();
+			}
+
+			// Fraction of the ORIGINAL coating cleared, relative to the baseline
+			// coated-pixel count (so it's measured over the glyph area, not the
+			// bounding box). Throttled by the caller, not read every move.
+			function clearedFraction() {
+				if (!coatedBaseline) return 0;
+				const stillCoated = sampleCoated();
+				return Math.max(0, Math.min(1, 1 - stillCoated / coatedBaseline));
+			}
+
+			// --- Gesture detection ------------------------------------------------
+			// A scratch only counts while the pointer is held down and moving over
+			// the text AND the visitor has racked up >= 3 horizontal direction
+			// reversals (a real back-and-forth scrub), after a short dwell. Hover, a
+			// single tap, a straight flick or a vertical scroll never erase — the
+			// line keeps touch-action: pan-y, so vertical scrolling over it stays
+			// native and we only take over for a deliberate left-right scrub.
+			const DWELL_MS = 60;
+			const REVERSALS_NEEDED = 2;
+			const REVEAL_AT = 0.65;
+			const SAMPLE_MS = 150;
+
+			let down = false;
+			let armed = false;      // dwell satisfied
+			let scrubbing = false;  // reversal threshold crossed: erasing is live
+			let activeId = null;    // the single pointer we track (ignore multitouch)
+			let pointerCount = 0;
+			let dwellTimer = 0;
+			let lastX = 0, lastY = 0;
+			let lastDir = 0;        // sign of the last horizontal move
+			let reversals = 0;
+			let lastSample = 0;
+
+			const localPoint = (e) => {
+				const r = canvas.getBoundingClientRect();
+				return { x: e.clientX - r.left, y: e.clientY - r.top };
+			};
+
+			// Is a point within the text line boxes (plus the erase radius)?
+			function onFoil(x, y) {
+				for (const b of boxes) {
+					if (x >= b.x - eraseR && x <= b.x + b.w + eraseR &&
+						y >= b.y - eraseR && y <= b.y + b.h + eraseR) return true;
+				}
+				return false;
+			}
+
+			function endGesture() {
+				down = armed = scrubbing = false;
+				activeId = null;
+				lastDir = 0;
+				reversals = 0;
+				clearTimeout(dwellTimer);
+			}
+
+			function onDown(e) {
+				if (retired || revealing) return;
+				pointerCount++;
+				// Any second pointer = pinch/scroll intent: abort the scratch.
+				if (pointerCount > 1) { endGesture(); return; }
+				if (e.button != null && e.button !== 0 && e.pointerType === 'mouse') return;
+				const p = localPoint(e);
+				if (!onFoil(p.x, p.y)) return;
+				down = true;
+				activeId = e.pointerId;
+				lastX = p.x; lastY = p.y;
+				lastDir = 0; reversals = 0; armed = false; scrubbing = false;
+				// Short dwell arms the gesture, so a fast pass-through doesn't scratch.
+				clearTimeout(dwellTimer);
+				dwellTimer = setTimeout(() => { if (down) armed = true; }, DWELL_MS);
+				// NB: no preventDefault / pointer capture here. touch-action stays
+				// pan-y so a plain vertical drag still scrolls the page; we only take
+				// over once a real horizontal scrub is detected (onMove).
+			}
+
+			function onMove(e) {
+				if (!down || e.pointerId !== activeId || retired || revealing) return;
+				if (pointerCount > 1) { endGesture(); return; }
+				const p = localPoint(e);
+				const dx = p.x - lastX;
+
+				// Count horizontal direction reversals (the scrub signature).
+				if (Math.abs(dx) > 1.5) {
+					const dir = dx > 0 ? 1 : -1;
+					if (lastDir && dir !== lastDir) reversals++;
+					lastDir = dir;
+				}
+				if (!scrubbing && armed && reversals >= REVERSALS_NEEDED) {
+					scrubbing = true;
+					// Now it's clearly a scratch (not a scroll): grab the pointer so
+					// the gesture stays with the line and the text isn't selected.
+					try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+				}
+
+				// Once scrubbing, suppress the default so the page doesn't also pan
+				// and no text selection happens; until then, let the browser scroll.
+				if (scrubbing) e.preventDefault();
+
+				// Only actually remove the drawn text once the scrub is confirmed and
+				// the pointer is over the glyph area.
+				if (scrubbing && onFoil(p.x, p.y)) {
+					eraseSegment(lastX, lastY, p.x, p.y);
+					const now = performance.now();
+					if (now - lastSample >= SAMPLE_MS) {
+						lastSample = now;
+						if (clearedFraction() >= REVEAL_AT) reveal();
+					}
+				}
+				lastX = p.x; lastY = p.y;
+			}
+
+			function onUp(e) {
+				if (pointerCount > 0) pointerCount--;
+				if (e.pointerId === activeId) {
+					try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+					endGesture();
+				}
+			}
+
+			// Reaching 65%: rub the rest away on its own (fade), reveal the line,
+			// log the issue, then retire the canvas to plain selectable text.
+			function reveal() {
+				if (revealing || retired) return;
+				revealing = true;
+				if (site.report) site.report(ID);
+				site.toast('Scratch win 🎟\nYou rubbed the title away. Turns out it was hiding the real one.', 4500);
+
+				const finish = () => {
+					retired = true;
+					if (canvas) canvas.remove();
+					canvas = ctx = null;
+					if (under) under.remove();
+					under = null;
+					// Hand the line back to normal flow: the element now shows the
+					// revealed payload as plain, selectable, copyable text.
+					target.textContent = PAYLOAD;
+					target.style.color = prevColor;
+					target.style.position = prevPos;
+					detach();
+				};
+
+				// Bring the new line in as the old one's remnants clear.
+				if (under) under.classList.add('is-shown');
+
+				if (site.reduceMotion.matches) {
+					// No fade: clear instantly, then remove after a short beat.
+					if (ctx) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+					setTimeout(finish, 3000);
+					return;
+				}
+				// Fade the remaining old text out, then settle to plain text after ~3s.
+				canvas.classList.add('is-revealing');
+				setTimeout(finish, 3000);
+			}
+
+			// Keep the drawn copy sized to the text as the wrap point moves (resize,
+			// orientation, font load). Skip once revealing/retired.
+			let resizeQueued = false;
+			function onResize() {
+				if (retired || revealing || resizeQueued) return;
+				resizeQueued = true;
+				requestAnimationFrame(() => {
+					resizeQueued = false;
+					if (retired || revealing || !ctx) return;
+					measure();
+					paintText(); // redraw: a partial unfinished scratch resets to full text
+					endGesture();
+				});
+			}
+
+			function attach() {
+				canvas.addEventListener('pointerdown', onDown);
+				canvas.addEventListener('pointermove', onMove);
+				canvas.addEventListener('pointerup', onUp);
+				canvas.addEventListener('pointercancel', onUp);
+				canvas.addEventListener('pointerleave', (e) => { if (e.pointerId === activeId) endGesture(); });
+				window.addEventListener('resize', onResize, { passive: true });
+				if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize);
+			}
+
+			function detach() {
+				window.removeEventListener('resize', onResize);
+			}
+
+			build();
+			attach();
+		}
+	}
 })();
