@@ -1801,3 +1801,480 @@
 		}
 	}
 })();
+
+// Timeline of notable software bugs, shown inline in the hero — a horizontal
+// strip on desktop, a vertical list on mobile. Each entry shows year + icon +
+// name; the description appears on hover, and on tap for touch devices.
+// Built lazily the first time it is shown.
+(() => {
+	// Each row: year label, emoji icon, short name, what went wrong, QA lesson.
+	// Wording is deliberately measured — several of these incidents have
+	// oversimplified pop-culture versions; these stick to the uncontroversial core.
+	const EVENTS = [
+		{ year: '1947', icon: '🦋', name: 'Harvard Mark II — the first "bug"',
+			what: 'A moth was found trapped in a relay and taped into the log.',
+			lesson: 'Inspect the actual system.' },
+		{ year: '1962', icon: '🚀', name: 'Mariner 1',
+			what: 'A missing/incorrect mathematical notation sent the guidance program — and the spacecraft — off course.',
+			lesson: 'Requirements and code must match.' },
+		{ year: '1969', icon: '🌕', name: 'Apollo 11 — 1202 alarm',
+			what: 'The guidance computer was overloaded during the lunar landing, but shed low-priority work and recovered.',
+			lesson: 'Graceful degradation matters.' },
+		{ year: '1985–87', icon: '☢️', name: 'Therac-25',
+			what: 'Race conditions and inadequate safety design caused massive radiation overdoses.',
+			lesson: 'Software can be a safety boundary.' },
+		{ year: '1990', icon: '☎️', name: 'AT&T network crash',
+			what: 'A software update triggered a cascading failure across the long-distance network.',
+			lesson: 'Test failure recovery, not just success.' },
+		{ year: '1991', icon: '🚀', name: 'Patriot missile',
+			what: 'Small timing/rounding errors accumulated until the system missed its target.',
+			lesson: 'Tiny numerical errors can become huge.' },
+		{ year: '1993', icon: '🧮', name: 'Intel Pentium FDIV',
+			what: 'A flaw in the floating-point division hardware produced incorrect results.',
+			lesson: 'Test the edge cases.' },
+		{ year: '1994', icon: '💾', name: 'Windows 95 — long-term date limits',
+			what: 'Date/time representation limits exposed long-term compatibility problems.',
+			lesson: 'Test beyond the expected lifetime.' },
+		{ year: '1996', icon: '🚀', name: 'Ariane 5 Flight 501',
+			what: 'A numeric conversion overflow shut down both inertial reference systems.',
+			lesson: 'Revalidate reused code.' },
+		{ year: '1998–99', icon: '🛰️', name: 'Mars Climate Orbiter',
+			what: 'One component used imperial units while another expected metric.',
+			lesson: 'Interfaces need explicit contracts.' },
+		{ year: '1999', icon: '📅', name: 'Y2K',
+			what: 'Two-digit years created ambiguity when the calendar reached 2000.',
+			lesson: 'Never assume today\'s constraints last forever.' },
+		{ year: '2000', icon: '💻', name: 'Excel leap-year quirk',
+			what: 'Excel treats 1900 as a leap year for Lotus 1-2-3 compatibility.',
+			lesson: 'Legacy compatibility creates strange requirements.' },
+		{ year: '2003', icon: '🛰️', name: 'Mars Rover Spirit',
+			what: 'A full flash file system left the rover stuck in a reboot loop.',
+			lesson: 'Resource limits are test cases.' },
+		{ year: '2010', icon: '🌍', name: 'Stuxnet',
+			what: 'Sophisticated malware exploited industrial-control systems.',
+			lesson: 'Security is part of software quality.' },
+		{ year: '2012', icon: '💰', name: 'Knight Capital',
+			what: 'A deployment left old code active on one server; losses reached ~$460M in 45 minutes.',
+			lesson: 'Deployment is part of testing.' },
+		{ year: '2013', icon: '🏥', name: 'Healthcare.gov launch',
+			what: 'Integration, performance and capacity problems overwhelmed the initial service.',
+			lesson: 'Load-test with realistic conditions.' },
+		{ year: '2014', icon: '🔐', name: 'Heartbleed',
+			what: 'A bounds-checking failure in OpenSSL exposed sensitive memory.',
+			lesson: 'Small defects can become security disasters.' },
+		{ year: '2018–19', icon: '✈️', name: 'Boeing 737 MAX / MCAS',
+			what: 'Software relying on erroneous sensor data contributed to two fatal crashes.',
+			lesson: 'Test assumptions and failure modes.' },
+		{ year: '2021', icon: '📈', name: 'Robinhood outage',
+			what: 'Infrastructure/software failures caused prolonged disruption during peak demand.',
+			lesson: 'Availability is a feature.' },
+		{ year: '2024', icon: '🖥️', name: 'CrowdStrike outage',
+			what: 'A faulty security-content update crashed millions of Windows systems.',
+			lesson: 'Test production updates before global rollout.' }
+	];
+
+	const section = document.getElementById('hero-timeline');
+	const track = section && section.querySelector('.hero-timeline-track');
+	let built = false;
+
+	// The story popover floats ABOVE the strip (outside the scrolling track, so it
+	// is never clipped) and never changes the strip's size.
+	const detail = section && section.querySelector('.tl-detail');
+
+	// How the visitor last interacted: 'mouse', 'touch'/'pen', or 'key'. A tap
+	// fires emulated mouseenter + focus before click, so hover/focus handlers
+	// must ignore touch, or the tap would open and instantly close the story.
+	let lastInput = 'mouse';
+	document.addEventListener('pointerdown', (e) => { lastInput = e.pointerType || 'mouse'; }, true);
+	document.addEventListener('keydown', () => { lastInput = 'key'; }, true);
+	const isTouch = () => lastInput === 'touch' || lastInput === 'pen';
+
+	// Build the timeline once, into the existing track.
+	function build() {
+		if (built || !track) return;
+		built = true;
+		EVENTS.forEach((ev) => track.appendChild(renderEntry(ev)));
+		// Leaving the strip with the mouse closes the popover.
+		section.addEventListener('mouseleave', () => { if (!isTouch()) clearSelection(); });
+		// On touch, tapping anywhere outside the strip closes it.
+		document.addEventListener('click', (e) => {
+			if (isTouch() && !section.contains(e.target)) clearSelection();
+		});
+	}
+
+	// Highlight one marker and show its story in the popover.
+	function select(li, ev) {
+		track.querySelectorAll('.tl-item.is-active').forEach((el) => {
+			if (el !== li) {
+				el.classList.remove('is-active');
+				el.querySelector('.tl-node').setAttribute('aria-expanded', 'false');
+			}
+		});
+		li.classList.add('is-active');
+		li.querySelector('.tl-node').setAttribute('aria-expanded', 'true');
+		if (!detail) return;
+		detail.innerHTML =
+			'<p class="tl-detail-title"><span>' + escapeHtml(ev.year) + '</span> ' + escapeHtml(ev.name) + '</p>' +
+			'<p class="tl-what">' + escapeHtml(ev.what) + '</p>' +
+			'<p class="tl-lesson"><span class="tl-lesson-tag">QA lesson</span> ' + escapeHtml(ev.lesson) + '</p>';
+		detail.classList.add('is-shown');
+	}
+
+	function clearSelection() {
+		track.querySelectorAll('.tl-item.is-active').forEach((el) => {
+			el.classList.remove('is-active');
+			el.querySelector('.tl-node').setAttribute('aria-expanded', 'false');
+		});
+		if (detail) detail.classList.remove('is-shown');
+	}
+
+	// One marker on the line: a <button> (keyboard- and screen-reader-friendly,
+	// and a tap target on touch) with icon dot, year and name. Hover/focus shows
+	// the story; a tap toggles it (touch has no hover).
+	function renderEntry(ev) {
+		const li = document.createElement('li');
+		li.className = 'tl-item';
+
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'tl-node';
+		btn.setAttribute('aria-expanded', 'false');
+		if (detail) btn.setAttribute('aria-controls', 'tl-detail');
+		btn.innerHTML =
+			'<span class="tl-dot" aria-hidden="true">' + ev.icon + '</span>' +
+			'<span class="tl-year">' + escapeHtml(ev.year) + '</span>' +
+			'<span class="tl-name">' + escapeHtml(ev.name) + '</span>';
+
+		// Mouse hover and keyboard focus open the story; touch ignores both.
+		btn.addEventListener('mouseenter', () => { if (!isTouch()) select(li, ev); });
+		btn.addEventListener('focus', () => { if (!isTouch()) select(li, ev); });
+		btn.addEventListener('click', () => {
+			// Touch: tap toggles. Mouse/keyboard: click just keeps it open.
+			const open = li.classList.contains('is-active') && detail && detail.classList.contains('is-shown');
+			if (isTouch() && open) clearSelection();
+			else select(li, ev);
+		});
+
+		li.appendChild(btn);
+		return li;
+	}
+
+	function escapeHtml(s) {
+		return s.replace(/[&<>"']/g, (c) => ({
+			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+		}[c]));
+	}
+
+	function isRevealed() {
+		return Boolean(section && !section.hidden);
+	}
+
+	function reveal() {
+		if (!section || isRevealed()) return;
+		build();
+		section.hidden = false;
+		if (site.report) site.report('i17');
+		requestAnimationFrame(() => {
+			section.classList.add('is-in');
+			// The intro line is hidden on small screens to keep the strip compact;
+			// show it as a toast there instead.
+			const intro = section.querySelector('.hero-timeline-intro');
+			if (intro && getComputedStyle(intro).display === 'none') {
+				site.toast(intro.textContent, 4000);
+			}
+			// Only scroll if the strip is off-screen (e.g. visitor is down in the
+			// projects); otherwise nothing on the page moves.
+			const r = section.getBoundingClientRect();
+			if (r.top < 0 || r.bottom > window.innerHeight) {
+				section.scrollIntoView({ behavior: site.reduceMotion.matches ? 'auto' : 'smooth', block: 'nearest' });
+			}
+		});
+	}
+
+	function hide() {
+		if (!section) return;
+		section.classList.remove('is-in');
+		section.hidden = true;
+	}
+
+	function toggle() {
+		if (isRevealed()) hide(); else reveal();
+	}
+
+	// --- History handling ----------------------------------------------------
+	// Chrome marks history entries added by pushState without a user gesture as
+	// "skippable", so the entry is pushed on the first real interaction
+	// (click/tap/key), never on load.
+	const page = location.pathname + location.search;
+
+	// A #bugs left over from a reload or old link: start clean.
+	if (location.hash === '#bugs') history.replaceState(null, '', page);
+
+	// After a reload the entry from the previous visit survives as the current one.
+	let armed = !!(history.state && history.state.bugsGuard);
+	// Touch only counts as a user gesture on release (pointerup/touchend), mouse
+	// already on press, so listen to both and push on the first one that the
+	// browser actually treats as activation. A push without activation would be
+	// marked skippable.
+	const ACTIVATION_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
+
+	function arm() {
+		if (armed || !section) return;
+		if (navigator.userActivation && !navigator.userActivation.isActive) return; // not a real gesture yet
+		armed = true;
+		ACTIVATION_EVENTS.forEach((t) => document.removeEventListener(t, arm, true));
+		history.pushState({ bugsGuard: true }, '', page);
+	}
+
+	if (!armed) ACTIVATION_EVENTS.forEach((t) => document.addEventListener(t, arm, true));
+
+	window.addEventListener('popstate', (e) => {
+		if (!armed || isRevealed()) return;
+		if (e.state && e.state.bugsGuard) return; // moved forward onto the guard
+		// In-page anchor links (#one etc.) also fire popstate with no state; ignore
+		// them. #bugs may survive from an earlier visit, so it still counts.
+		if (location.hash && location.hash !== '#bugs') return;
+		history.replaceState(null, '', page + '#bugs');
+		reveal();
+	});
+})();
+
+// The four hero contact icons double as slot-machine reels. Once enough of the
+// site's tracked issues have been closed (the all-time resolved log), the reels
+// spin up and land on a row of 7s with a staggered, bouncing settle; a lever
+// appears beside them. Pulling the lever spins the 7s back out to the real
+// icons, which become working links again. It arms on every load until the
+// lever is pulled, then never returns. Reduced motion swaps instantly both ways.
+(() => {
+	const list = document.getElementById('hero-social');
+	if (!list || !window.site) return;
+
+	const ID = 'i27';
+	const THRESHOLD = 7; // distinct closed issues needed to arm the payout
+	if (site.isResolved && site.isResolved(ID)) return; // already paid out: never again
+
+	// Count distinct resolved issues straight from the persistent log, excluding
+	// this egg's own id. The payout rewards finding enough of the OTHER
+	// discoveries, so its own close must never count toward the gate (that would
+	// let the threshold depend on itself once paid out).
+	function closedCount() {
+		const ids = site.resolvedIds ? site.resolvedIds() : [];
+		return ids.filter((id) => id !== ID).length;
+	}
+
+	const links = [...list.querySelectorAll('a')];
+	if (links.length < 4) return;
+
+	const reduceMotion = site.reduceMotion;
+	const CELL = () => links[0].getBoundingClientRect().height || 44;
+	const STRIP_LEN = 14; // symbols per reel; the last one is the landing 7
+	const SYMS = ['$', '★', '?', '#', '@', '%', '&', '✓', '✗'];
+
+	let lever = null;
+	let leverItem = null;
+	let busy = false;
+
+	// A vertical strip of random symbols whose final cell is a red 7.
+	function buildStrip() {
+		const strip = document.createElement('span');
+		strip.className = 'reel-strip';
+		for (let i = 0; i < STRIP_LEN; i++) {
+			const s = document.createElement('span');
+			s.className = 'reel-sym';
+			const landing = i === STRIP_LEN - 1;
+			s.textContent = landing ? '7' : SYMS[Math.floor(Math.random() * SYMS.length)];
+			if (landing) s.classList.add('reel-seven');
+			strip.appendChild(s);
+		}
+		return strip;
+	}
+
+	// Turn a link into an inert reel showing a (hidden) strip, remembering its
+	// real content so it can be restored on the way out.
+	// Swap a link's glyph for a reel strip, keeping the <a> a real, clickable,
+	// focusable link the whole time: only the visible content changes, the href,
+	// aria-label and keyboard behaviour stay. The strip is aria-hidden decoration.
+	function toReel(a) {
+		if (a.dataset.slotOrig == null) a.dataset.slotOrig = a.innerHTML;
+		a.classList.add('is-reel');
+		a.innerHTML = '';
+		const strip = buildStrip();
+		a.appendChild(strip);
+		return strip;
+	}
+
+	// Give the real glyph back.
+	function toLink(a) {
+		a.classList.remove('is-reel');
+		if (a.dataset.slotOrig != null) {
+			a.innerHTML = a.dataset.slotOrig;
+			delete a.dataset.slotOrig;
+		}
+	}
+
+	// Spin the four reels into a row of 7s, staggered left-to-right, each
+	// overshooting and bouncing into place. The lever shows right away, next to
+	// the reels, so the machine reads as pullable from the first moment.
+	function spinIn() {
+		const strips = links.map(toReel);
+		showLever();
+
+		if (reduceMotion.matches) {
+			strips.forEach((strip) => {
+				strip.style.transform = `translateY(${-(STRIP_LEN - 1) * CELL()}px)`;
+			});
+			return;
+		}
+
+		strips.forEach((strip, i) => {
+			const cell = CELL();
+			const finalY = -(STRIP_LEN - 1) * cell;
+			// Start a full strip-length higher, so symbols scroll down past the window.
+			strip.style.transition = 'none';
+			strip.style.transform = `translateY(${finalY - STRIP_LEN * cell}px)`;
+			strip.getBoundingClientRect(); // flush the start position
+			const delay = i * 150;
+			const dur = 950 + i * 130;
+			// Overshoot-and-settle easing gives the mechanical bounce on landing.
+			strip.style.transition = `transform ${dur}ms cubic-bezier(.12,.72,.2,1.28) ${delay}ms`;
+			strip.style.transform = `translateY(${finalY}px)`;
+		});
+	}
+
+	// Spin the 7s back out and hand the real icons back. Same staggered,
+	// bouncing motion. On the last reel, finish the payout (report).
+	function spinOut() {
+		if (busy) return;
+		busy = true;
+		hideLever();
+
+		const finishAll = () => {
+			if (site.report) site.report(ID);
+		};
+
+		if (reduceMotion.matches) {
+			links.forEach(toLink);
+			finishAll();
+			return;
+		}
+
+		links.forEach((a, i) => {
+			const strip = a.querySelector('.reel-strip');
+			if (!strip) { toLink(a); if (i === links.length - 1) finishAll(); return; }
+			const cell = CELL();
+			const delay = i * 150;
+			const dur = 820 + i * 130;
+			strip.style.transition = `transform ${dur}ms cubic-bezier(.3,.68,.28,1.2) ${delay}ms`;
+			strip.style.transform = `translateY(${-(STRIP_LEN * cell)}px)`;
+			strip.addEventListener('transitionend', () => {
+				toLink(a);
+				if (i === links.length - 1) finishAll();
+			}, { once: true });
+		});
+	}
+
+	// The lever: a real button beside the reels. Pulling it (click/Enter/Space)
+	// animates the arm, toasts the win, and spins the reels back out.
+	function showLever() {
+		if (lever) return;
+		leverItem = document.createElement('li');
+		leverItem.className = 'slot-lever-item';
+		lever = document.createElement('button');
+		lever.type = 'button';
+		lever.className = 'slot-lever';
+		lever.setAttribute('aria-label', 'Pull');
+		lever.innerHTML =
+			'<svg viewBox="0 0 20 40" aria-hidden="true">' +
+				'<defs>' +
+					'<radialGradient id="slot-knob" cx="38%" cy="32%" r="70%">' +
+						'<stop offset="0%" stop-color="#ff6b6b"/>' +
+						'<stop offset="45%" stop-color="#e23030"/>' +
+						'<stop offset="100%" stop-color="#9b1616"/>' +
+					'</radialGradient>' +
+					'<linearGradient id="slot-rod" x1="0" y1="0" x2="1" y2="0">' +
+						'<stop offset="0%" stop-color="#9a9a9a"/>' +
+						'<stop offset="45%" stop-color="#ededed"/>' +
+						'<stop offset="100%" stop-color="#8a8a8a"/>' +
+					'</linearGradient>' +
+				'</defs>' +
+				'<ellipse class="lever-shadow" cx="10" cy="37.5" rx="7.5" ry="2.2"/>' +
+				// mounting bracket the arm pivots in
+				'<rect class="lever-base" x="3.5" y="30" width="13" height="6" rx="3"/>' +
+				'<rect class="lever-base-hi" x="3.5" y="30" width="13" height="2.4" rx="1.2"/>' +
+				'<circle class="lever-bolt" cx="10" cy="33" r="1.5"/>' +
+				'<g class="lever-arm">' +
+					'<rect class="lever-rod" x="8.5" y="11" width="3" height="22" rx="1.5" fill="url(#slot-rod)"/>' +
+					'<circle class="lever-knob" cx="10" cy="9" r="6.2" fill="url(#slot-knob)"/>' +
+					'<ellipse class="lever-shine" cx="7.7" cy="6.7" rx="2.2" ry="1.5"/>' +
+				'</g>' +
+			'</svg>';
+		lever.addEventListener('click', pull);
+		leverItem.appendChild(lever);
+		list.appendChild(leverItem);
+		if (!reduceMotion.matches) requestAnimationFrame(() => lever.classList.add('is-in'));
+	}
+
+	function hideLever() {
+		if (!lever) return;
+		const item = leverItem;
+		lever = null; leverItem = null;
+		if (reduceMotion.matches) { if (item) item.remove(); return; }
+		item.classList.add('is-out');
+		setTimeout(() => item.remove(), 300);
+	}
+
+	let pulled = false;
+	function pull() {
+		if (pulled) return;
+		pulled = true;
+		lever.classList.add('is-pulled');
+		lever.disabled = true;
+		site.toast('Jackpot! 🎰\nYou explored enough to line up the sevens. The icons are yours again.', 5000);
+		const wait = reduceMotion.matches ? 0 : 340;
+		setTimeout(spinOut, wait);
+	}
+
+	// Can the reels be seen right now? Any trackable egg can be the 7th to close,
+	// and several resolve while something covers or scrolls away the icon row:
+	// an open modal dialog (#4 404 report, #1/#24 terminal), a full-screen
+	// takeover class (#7 freeze `is-frozen`, #20 wash `is-washed`), the
+	// responsive-fail overlay (#9), or the hero scrolled out of view (#22's
+	// deep-sea dive). Spinning then would roll behind the overlay or off-screen.
+	// So gate on: no open dialog, no takeover, and the icon row actually within
+	// the viewport. Checking the row's geometry also covers future overlays and
+	// any case where the visitor is simply scrolled down the page.
+	function canShow() {
+		if (document.querySelector('dialog[open]')) return false;
+		const r = document.documentElement.classList;
+		if (r.contains('is-frozen') || r.contains('is-washed')) return false;
+		if (document.querySelector('.responsive-fail')) return false;
+		const box = list.getBoundingClientRect();
+		const vh = window.innerHeight || document.documentElement.clientHeight;
+		const vw = window.innerWidth || document.documentElement.clientWidth;
+		// Fully within the viewport (with a small margin), so the whole row rolls
+		// in where it can be seen.
+		return box.top >= 0 && box.left >= 0 && box.bottom <= vh + 1 && box.right <= vw + 1 && box.height > 0;
+	}
+
+	// Arm the payout once the threshold is met, whether that was already true on
+	// load or crossed live this session (a `site:issue` close bumps the count).
+	// It fires once; while the reels can't be seen (see canShow) it retries,
+	// so the roll always plays in view rather than behind an overlay.
+	let armed = false;
+	function tryArm() {
+		if (armed) return;
+		if (closedCount() < THRESHOLD) return;
+		if (!canShow()) {
+			setTimeout(tryArm, 400); // something is covering/scrolling the row; wait
+			return;
+		}
+		armed = true;
+		document.removeEventListener('site:issue', tryArm);
+		requestAnimationFrame(spinIn);
+	}
+
+	// Re-check whenever an issue closes, so the 7th close arms the reels in the
+	// same session (e.g. right after the theme freeze ends), not only on reload.
+	document.addEventListener('site:issue', tryArm);
+	tryArm();
+})();

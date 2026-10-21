@@ -9,8 +9,7 @@ Live at <https://smaryenko.github.io/>.
 - `index.html`: the whole page
 - `assets/css/style.css`: styles, including light/dark themes
 - `assets/js/`: plain deferred scripts, loaded in order from `index.html`
-  - `site.js`: shared helpers on `window.site` (theme check, toast, 404 overlay)
-  - `theme.js`: light/dark toggle
+  - `site.js`: shared helpers on `window.site` (theme check, toast, 404 overlay), the light/dark toggle and the About panel
   - `grid.js`: interactive test grid in the hero
   - `terminal.js`: hidden terminal
   - `utils.js`: back-to-top, card reveal, 404 handling

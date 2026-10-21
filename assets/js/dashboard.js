@@ -18,7 +18,7 @@
 	const ALL = [
 		'i1', 'i2', 'i3', 'i4', 'i5', 'i6', 'i7', 'i8', 'i9', 'i10', 'i11',
 		'i12', 'i13', 'i14', 'i15', 'i16', 'i17', 'i18', 'i19', 'i20', 'i21',
-		'i22', 'i23', 'i24', 'i25', 'i26'
+		'i22', 'i23', 'i24', 'i25', 'i26', 'i27'
 	];
 
 	// Muted on every device (features with no closeable in-page moment).
@@ -63,7 +63,7 @@
 		i10: 'selector', i11: 'konami', i12: 'console', i13: 'breadcrumb',
 		i14: 'offline', i15: 'favicon', i16: 'findbug', i17: 'timeline',
 		i18: 'moth', i19: 'typo', i20: 'refresh', i21: 'zoom', i22: 'godeeper',
-		i23: 'incident', i24: 'sudo', i25: 'notch', i26: 'scratch'
+		i23: 'incident', i24: 'sudo', i25: 'notch', i26: 'scratch', i27: 'slot'
 	};
 	const tagFor = (id) => TAGS[id] || '';
 

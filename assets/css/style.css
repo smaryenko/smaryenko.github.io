@@ -2905,3 +2905,113 @@ html:has(#deep:not([hidden])) body {
 @media (prefers-reduced-motion: reduce) {
 	.scratch-foil { transition: none; }
 }
+
+/* Hero contact icons: rolling-display variant. A link becomes a fixed-size
+   window with a vertical strip of symbols that scrolls behind it. The circle,
+   size, border and background are inherited from .icons a so the shape never
+   changes — only the glyph inside. The link stays fully operational. */
+.icons a.is-reel {
+	position: relative;
+	overflow: hidden;
+}
+
+.icons a.is-reel .reel-strip {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	will-change: transform;
+}
+
+.icons a.is-reel .reel-sym {
+	flex: 0 0 2.75rem;
+	width: 100%;
+	height: 2.75rem;
+	display: grid;
+	place-items: center;
+	font: 800 1.4rem/1 "Fraunces", Georgia, serif;
+	color: var(--muted);
+}
+
+.icons a.is-reel .reel-seven {
+	color: #dc2626;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Pull control that appears beside the icon row: a ball-topped arm on a small
+   baseplate, drawn so it overflows the pill upward (the knob rises above the
+   circle) while keeping the same pill footprint as the icons. */
+.slot-lever-item {
+	display: flex;
+	align-items: center;
+}
+
+.slot-lever {
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: var(--surface);
+	color: var(--muted);
+	cursor: pointer;
+	transition: color 0.2s ease, border-color 0.2s ease, transform 0.25s cubic-bezier(0.3, 1.2, 0.5, 1), opacity 0.25s ease;
+	transform: scale(0.4);
+	opacity: 0;
+}
+
+.slot-lever.is-in {
+	transform: scale(1);
+	opacity: 1;
+}
+
+.slot-lever.is-out {
+	transform: scale(0.4);
+	opacity: 0;
+}
+
+.slot-lever:hover,
+.slot-lever:focus-visible {
+	color: var(--accent);
+	border-color: var(--accent);
+}
+
+.slot-lever svg {
+	width: 1.7rem;
+	height: 2.6rem;
+	overflow: visible;
+}
+
+/* Rod and knob carry SVG gradients (metallic shaft, glossy ball); the rest are
+   flat parts: a cast shadow, the mounting bracket and its pivot bolt. */
+.slot-lever .lever-shadow { fill: rgba(0, 0, 0, 0.18); }
+.slot-lever .lever-base { fill: #6b6b6b; }
+.slot-lever .lever-base-hi { fill: #8f8f8f; }
+.slot-lever .lever-bolt { fill: #4a4a4a; }
+.slot-lever .lever-shine { fill: #fff; opacity: 0.55; }
+
+/* Pivot the arm at the bracket so a pull rocks it forward. */
+.slot-lever .lever-arm {
+	transform-origin: 10px 33px;
+	transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.slot-lever.is-pulled .lever-arm {
+	transform: rotate(34deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.slot-lever {
+		transition: none;
+		transform: none;
+		opacity: 1;
+	}
+	.slot-lever .lever-arm {
+		transition: none;
+	}
+}
