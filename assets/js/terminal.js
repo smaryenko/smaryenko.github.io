@@ -368,10 +368,10 @@
 		'rm -rf bugs': () => '0 bugs removed. 3 new bugs created.',
 		'deploy --friday': () => { deployFriday(); return ''; },
 		// Hard reset: wipe ALL web storage — localStorage (the known-issue log,
-		// saved theme, everything) and sessionStorage (per-session egg state:
-		// reload counter, moth-seen, incident, …) — then reload so every egg and
-		// the dashboard come back to a clean slate. Gated behind a confirmation
-		// because it is irreversible.
+		// saved theme, everything) and sessionStorage (the two remaining session
+		// guards: the reload counter and the per-night incident flag) — then
+		// reload so every egg and the dashboard come back to a clean slate. Gated
+		// behind a confirmation because it is irreversible.
 		'reset --hard': () => {
 			print(
 				'This wipes ALL saved progress: every resolved issue, your theme,\n' +

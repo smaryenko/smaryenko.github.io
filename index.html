@@ -53,6 +53,15 @@
 		<script>
 			(function () {
 				try {
+					// Once this behaviour has been seen through to the end, it is
+					// retired for good: the persistent log carries that flag, so the
+					// counter never runs and the page never fades again.
+					var done = false;
+					try {
+						var log = JSON.parse(localStorage.getItem('issues-resolved') || '[]');
+						done = Array.isArray(log) && log.indexOf('i20') !== -1;
+					} catch (e) {}
+					if (done) return;
 					var nav = performance.getEntriesByType('navigation')[0];
 					var n = +sessionStorage.getItem('reloads') || 0;
 					if (nav && nav.type === 'reload') sessionStorage.setItem('reloads', ++n);
@@ -162,26 +171,25 @@
 
 							<h3>2. Specifications</h3>
 							<dl class="about-spec">
-								<dt>Experience</dt><dd>Since 2010</dd>
-								<dt>Code</dt><dd>Java, C#, Python, JavaScript, SQL</dd>
+								<dt>Active since</dt><dd>2010</dd>
+								<dt>Code</dt><dd>JavaScript, Java, C#, Python, SQL</dd>
 								<dt>Languages</dt><dd>Ukrainian, English, Dutch (basic)</dd>
 								<dt>Education</dt><dd>Master's degree in Mathematics</dd>
-								<dt>Certificates</dt><dd>ISTQB, SAFe 4, Google and IBM Data Analytics</dd>
 							</dl>
 							</div>
 							<div>
 							<h3>3. Highlights</h3>
 							<div class="about-notice about-notice--note">
 								<strong>Note</strong>
-								<p>I increased the e2e build stability from 50% to 95%.</p>
+								<p>I built company-wide AI testing steering files and skills.</p>
 							</div>
 							<div class="about-notice about-notice--pass">
 								<strong>Note</strong>
-								<p>I decreased the full regression time from 2 weeks to 2 days.</p>
+								<p>I increased the e2e build stability from 50% to 95%.</p>
 							</div>
 							<div class="about-notice about-notice--caution">
 								<strong>Note</strong>
-								<p>I integrated more than 15 payment providers.</p>
+								<p>I decreased the full regression time from 2 weeks to 2 days.</p>
 							</div>
 							</div>
 							</div>

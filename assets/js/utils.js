@@ -920,9 +920,10 @@
 			if (!spawned && !document.hidden) idleTimer = setTimeout(spawn, IDLE_MS);
 		}
 
-		// Activity resets the timer. The moth appears once per session and stays
-		// until caught or the tab is left. Catching it records the issue
-		// permanently; `reset --hard` is the only thing that brings it back.
+		// Activity resets the timer. The moth reappears each idle period until
+		// it's caught, and stays until caught or the tab is left. Catching it
+		// records the issue permanently (it never returns after that); only
+		// `reset --hard` clears that and brings it back.
 		const ACTIVITY = ['pointermove', 'pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'];
 		// Capture phase, so handlers that stop propagation (e.g. text inputs)
 		// still count as activity.
@@ -963,8 +964,8 @@
 
 		// Fade the page back from any wash level and clear the reload counter.
 		// Shared by the 100% "cleared" screen and site.restoreEnvironment()
-		// (callable even below 100%). Purely visual: it does not re-arm the
-		// per-session eggs (dead pixel / moth / typo) or clear stored state, so a
+		// (callable even below 100%). Purely visual: it does not reopen or
+		// re-arm any other egg or clear stored state, so a
 		// plain restore leaves everything a visitor has already found alone. A
 		// full wipe is the admin `reset --hard` (clears storage and reloads).
 		const restore = (box) => {
