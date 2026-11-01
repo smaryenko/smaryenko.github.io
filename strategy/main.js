@@ -793,12 +793,16 @@
       if (badgeEl) badgeEl.textContent = ok ? "Triaged ✓" : "Re-triage";
       if (scoreEl) scoreEl.textContent = "Triaged: " + right + " / " + total;
       pending = null;
+      wrap.classList.add("locked"); // freeze the cards until the next deal
       advanceTimer = window.setTimeout(deal, autoAdvanceMs());
     }
 
     cards.forEach(function (card, i) {
       card.addEventListener("click", function () {
-        if (pending && !answered) {
+        // answer is locked until the next change deals — ignore clicks so the
+        // graded result can't be changed or wiped during the read window
+        if (answered) return;
+        if (pending) {
           grade(card, i);
           return;
         }
@@ -815,6 +819,7 @@
         c.classList.remove("correct", "wrong");
         c.setAttribute("aria-pressed", "false");
       });
+      wrap.classList.remove("locked"); // cards are interactive again
       pending = deck.draw();
       answered = false;
       if (badgeEl) badgeEl.textContent = "Change";

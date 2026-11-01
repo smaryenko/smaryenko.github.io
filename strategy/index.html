@@ -233,21 +233,21 @@
         data-risk-evidence="unit + component + one focused check.">
         <span class="risk-tag">Low risk</span>
         <h3>Prove it and move</h3>
-        <p>Isolated, reversible, small impact. Unit and component coverage plus a focused check is enough. Don't gold-plate it.</p>
+        <p>Isolated, reversible, small impact. Don't gold-plate it.</p>
       </button>
       <button class="card risk-med" data-risk-card data-rtier="med" type="button" aria-pressed="false"
         data-risk-example="a new checkout step across two services"
         data-risk-evidence="add contracts, integration and regression.">
         <span class="risk-tag">Medium risk</span>
         <h3>Widen the net</h3>
-        <p>Crosses a service, adds a data flow, or is a significant journey. Add contracts, integration and regression coverage.</p>
+        <p>Crosses a service, adds a data flow, or spans a journey.</p>
       </button>
       <button class="card risk-high" data-risk-card data-rtier="high" type="button" aria-pressed="false"
         data-risk-example="payments, login or deleting an account"
         data-risk-evidence="deep negative + performance + staged rollout + QA sign-off.">
         <span class="risk-tag">High risk</span>
         <h3>Deepen evidence; QA decides</h3>
-        <p>Security, money, identity, irreversible data or compliance may need deep negative, performance and resilience checks, a staged rollout, and QA sign-off.</p>
+        <p>Security, money, identity, irreversible data or compliance.</p>
       </button>
     </div>
     <!-- mini-game: a change lands. Triage it to the right risk tier. -->
@@ -354,25 +354,25 @@
       <button class="card gate-card" data-gate type="button" aria-pressed="false">
         <span class="card-num rainbow-num">01</span>
         <h3>Required checks pass</h3>
-        <p>Agree which checks block a merge. For example, a team may require critical unit and component checks to pass and use coverage thresholds to flag gaps—not as proof of quality on their own.</p>
+        <p>Agree which checks block a merge. Coverage flags gaps, not quality.</p>
         <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
       </button>
       <button class="card gate-card" data-gate type="button" aria-pressed="false">
         <span class="card-num rainbow-num">02</span>
         <h3>Deterministic &amp; independent</h3>
-        <p>No shared mutable state. No ordering or timing dependence. No sleeping and hoping. A test must prove something every run.</p>
+        <p>No shared state, no ordering or timing luck. Proves something every run.</p>
         <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
       </button>
       <button class="card gate-card" data-gate type="button" aria-pressed="false">
         <span class="card-num rainbow-num">03</span>
         <h3>Challenge assumptions</h3>
-        <p>Consider invalid inputs, boundaries and failure conditions. Boundary-value and equivalence analysis are useful techniques, chosen according to the risk.</p>
+        <p>Test invalid inputs, boundaries and failure conditions by risk.</p>
         <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
       </button>
       <button class="card gate-card" data-gate type="button" aria-pressed="false">
         <span class="card-num rainbow-num">04</span>
         <h3>Every check earns its place</h3>
-        <p>Keep evidence that protects a distinct risk or critical rule. For example, quarantine flaky checks with a reason, owner and expiry; remove duplicates and obsolete cases.</p>
+        <p>Keep what protects a distinct risk. Quarantine flakes; cut duplicates.</p>
         <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
       </button>
     </div>
@@ -436,25 +436,25 @@
       <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
         <span class="card-tag">See it</span>
         <h3 class="c-cyan">Meaningful signals</h3>
-        <p>Events, error codes and health endpoints that say what happened, not just that something did.</p>
+        <p>Events, error codes and health endpoints that say what happened.</p>
         <span class="obs-dot" aria-hidden="true"></span>
       </button>
       <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
         <span class="card-tag">Trace it</span>
         <h3 class="c-pink">Correlation across boundaries</h3>
-        <p>A shared ID that follows a request through every service, so a failure can be traced end to end.</p>
+        <p>A shared ID that follows a request through every service.</p>
         <span class="obs-dot" aria-hidden="true"></span>
       </button>
       <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
         <span class="card-tag">Measure it</span>
         <h3 class="c-lime">Success defined up front</h3>
-        <p>The technical and business signals that say the change worked: error rate, latency, the key outcome.</p>
+        <p>Signals that say it worked: error rate, latency, key outcome.</p>
         <span class="obs-dot" aria-hidden="true"></span>
       </button>
       <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
         <span class="card-tag">Set it up</span>
         <h3 class="c-amber">Safe test hooks</h3>
-        <p>API setup paths and visible feature-flag state, so tests arrange data fast and read the system's real state.</p>
+        <p>API setup paths and visible feature-flag state for fast arrange.</p>
         <span class="obs-dot" aria-hidden="true"></span>
       </button>
     </div>
@@ -489,7 +489,7 @@
       <div class="pipe-link"></div>
       <div class="pipe-stage" data-pipe-stage="3"><span class="pipe-ico">S</span><b>System</b><em>smoke &amp; regression green</em></div>
       <div class="pipe-link"></div>
-      <div class="pipe-stage ship" data-pipe-stage="4"><span class="pipe-ico">&#10003;</span><b>Release</b><em>required evidence and risk checks met</em></div>
+      <div class="pipe-stage ship" data-pipe-stage="4"><span class="pipe-ico">&#10003;</span><b>Release</b><em>evidence &amp; risk checks met</em></div>
     </div>
     <div class="pipe-controls reveal">
       <button class="btn-run" data-pipe-run>Run the pipeline</button>
@@ -512,18 +512,18 @@
       </p>
     </div>
     <div class="canary stagger" data-canary>
-      <div class="canary-stage" data-canary-stage="0"><b>Build</b><em>a release candidate</em></div>
+      <div class="canary-stage" data-canary-stage="0"><b>Build</b><em>release candidate</em></div>
       <div class="pipe-link"></div>
-      <div class="canary-stage" data-canary-stage="1"><b>Canary</b><em>expose a small % behind a flag</em></div>
+      <div class="canary-stage" data-canary-stage="1"><b>Canary</b><em>small % behind a flag</em></div>
       <div class="pipe-link"></div>
-      <div class="canary-stage" data-canary-stage="2"><b>Observe</b><em>error rate, latency, key outcome</em></div>
+      <div class="canary-stage" data-canary-stage="2"><b>Observe</b><em>errors, latency, outcome</em></div>
       <div class="pipe-link"></div>
-      <div class="canary-stage branch" data-canary-stage="3"><b>Promote, pause or roll back</b><em>pre-agreed thresholds guide action</em></div>
+      <div class="canary-stage branch" data-canary-stage="3"><b>Promote or roll back</b><em>by pre-agreed thresholds</em></div>
     </div>
     <div class="canary-note stagger">
-      <span class="gate-pill pass">healthy &rarr; promote within agreed risk limits</span>
-      <span class="gate-pill fail">safety threshold breached &rarr; auto-pause or roll back</span>
-      <span class="gate-pill amber">high impact &rarr; QA reviews evidence and owns the release verdict</span>
+      <span class="gate-pill pass">healthy &rarr; promote</span>
+      <span class="gate-pill fail">threshold breached &rarr; roll back</span>
+      <span class="gate-pill amber">high impact &rarr; QA owns the verdict</span>
     </div>
 
     <!-- mini-game: you are on call. Watch the canary, then make the call. -->

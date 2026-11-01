@@ -682,10 +682,10 @@ em{font-style:normal;color:var(--cyan)}
 .canary-stage em{font-style:normal;font-size:.8rem;color:var(--muted);line-height:1.4}
 .canary-stage.branch{border-color:rgba(198,255,61,.4);background:rgba(198,255,61,.05)}
 .canary-note{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:1000px;margin:0 auto}
-.gate-pill{display:flex;align-items:flex-start;gap:9px;min-height:74px;padding:14px 16px;
+.gate-pill{display:flex;align-items:center;gap:9px;padding:12px 16px;
   border:1px solid var(--line);border-radius:13px;background:var(--card);
   font-family:"Space Grotesk";font-size:.82rem;font-weight:500;line-height:1.45;color:#d9deef}
-.gate-pill::before{content:"";flex:0 0 8px;width:8px;height:8px;margin-top:.38em;border-radius:50%;
+.gate-pill::before{content:"";flex:0 0 8px;width:8px;height:8px;border-radius:50%;
   background:currentColor;box-shadow:0 0 10px currentColor}
 .gate-pill.pass{color:var(--lime);border-color:rgba(198,255,61,.28);background:rgba(198,255,61,.055)}
 .gate-pill.fail{color:var(--pink);border-color:rgba(255,92,200,.28);background:rgba(255,92,200,.055)}
@@ -694,7 +694,6 @@ em{font-style:normal;color:var(--cyan)}
   .canary{flex-direction:column;align-items:center}
   .canary-stage{max-width:320px;width:100%}
   .canary-note{grid-template-columns:1fr;max-width:320px}
-  .gate-pill{min-height:0}
 }
 
 /* ---------- AI assurance ladder ---------- */
@@ -812,6 +811,10 @@ em{font-style:normal;color:var(--cyan)}
 .obs-gauge-read.full{color:var(--lime)}
 
 /* ---- Risk tiles: click to see an example + verdict ---- */
+/* while an answer is locked (graded, waiting for the next change) the tiles
+   stop responding so the verdict can't be changed or cleared */
+[data-risk].locked .card[data-risk-card]{cursor:default}
+[data-risk].locked .card[data-risk-card]:not(.correct):not(.wrong){opacity:.55}
 .card[data-risk-card][aria-pressed="true"]{border-width:1px;box-shadow:0 10px 34px rgba(0,0,0,.35)}
 .card.risk-low[aria-pressed="true"]{border-color:var(--lime);box-shadow:0 0 0 1px rgba(198,255,61,.4),0 10px 30px rgba(198,255,61,.12)}
 .card.risk-med[aria-pressed="true"]{border-color:var(--amber);box-shadow:0 0 0 1px rgba(255,178,61,.4),0 10px 30px rgba(255,178,61,.12)}
@@ -894,22 +897,25 @@ em{font-style:normal;color:var(--cyan)}
 .lg-controls{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px}
 .lg-score{font-family:"Space Grotesk";font-size:.82rem;color:var(--muted)}
 .ladder[data-ladder] .ladder-row{cursor:pointer;width:100%;text-align:left;font:inherit;color:inherit;
-  -webkit-tap-highlight-color:transparent;transition:border-color .2s,background .2s,transform .15s,box-shadow .2s}
+  -webkit-tap-highlight-color:transparent;transition:border-color .2s,background .2s,transform .15s,box-shadow .2s,opacity .2s}
 .ladder[data-ladder].armed .ladder-row:hover{transform:translateX(4px);border-color:rgba(255,255,255,.28)}
+/* answer locked (not armed): rows stop reading as clickable until the next deal */
+.ladder[data-ladder]:not(.armed) .ladder-row{cursor:default}
+.ladder[data-ladder]:not(.armed) .ladder-row:not(.correct):not(.wrong){opacity:.55}
 .ladder-row:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .ladder-row.correct{border-color:var(--lime)!important;background:rgba(198,255,61,.08)!important;
   box-shadow:0 0 0 1px rgba(198,255,61,.35)}
 .ladder-row.wrong{border-color:var(--pink)!important;background:rgba(255,92,200,.08)!important}
 
 /* ---- Risk: triage a dealt change to the right tier ---- */
-.risk-triage{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:12px;
-  max-width:860px;margin:0 auto 20px;padding:12px 18px;border-radius:14px;
-  border:1px solid var(--line);background:rgba(2,3,6,.5)}
-.rt-label{flex:0 0 auto;font-family:"Space Grotesk";font-size:.68rem;letter-spacing:.1em;
+.risk-triage{display:flex;flex-direction:column;align-items:center;gap:10px;
+  max-width:860px;margin:20px auto;padding:14px 18px;border-radius:14px;
+  border:1px solid var(--line);background:rgba(2,3,6,.5);text-align:center}
+.rt-label{font-family:"Space Grotesk";font-size:.68rem;letter-spacing:.1em;
   text-transform:uppercase;padding:4px 10px;border-radius:999px;color:var(--amber);
   border:1px solid rgba(255,178,61,.4);background:rgba(255,178,61,.08)}
-.rt-ask{flex:1 1 320px;min-width:220px;font-size:.98rem;color:var(--ink)}
-.rt-score{flex:0 0 auto;font-family:"Space Grotesk";font-size:.82rem;color:var(--muted);white-space:nowrap}
+.rt-ask{font-size:.98rem;color:var(--ink);line-height:1.5;text-align:center}
+.rt-score{font-family:"Space Grotesk";font-size:.82rem;color:var(--muted);white-space:nowrap}
 
 /* ---- T-shaped QA: which lens did AI miss? ---- */
 .tshape-game{max-width:760px;margin:18px auto 0;padding:16px 20px;border-radius:16px;
