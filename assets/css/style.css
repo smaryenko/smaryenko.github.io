@@ -598,6 +598,21 @@ a {
 .about-notice--caution { border-color: #d97706; }
 .about-notice--caution strong { color: #d97706; }
 
+.about-notice--note .about-link {
+	font-weight: 600;
+	color: var(--queued);
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 2px;
+	border-radius: 3px;
+	transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.about-notice--note .about-link:hover {
+	background-color: color-mix(in srgb, var(--queued) 16%, transparent);
+	color: var(--accent-hover);
+}
+
 .about-panel h3 + .about-notice { margin-top: 0; }
 .about-notice + .about-notice { margin-top: 0.4rem; }
 
@@ -1362,8 +1377,10 @@ body::after {
 	width: 100%;
 	height: 100%;
 	max-height: none;
-	object-fit: cover;
-	object-position: top center;
+	/* contain, not cover, so wide shots (e.g. 1200x630 OG images) show every
+	   edge instead of having their text cropped off */
+	object-fit: contain;
+	object-position: center;
 	transition: transform 0.4s ease;
 }
 
@@ -1478,6 +1495,17 @@ body::after {
 
 .is-dark .project:hover .project-image {
 	background: #ffffff;
+}
+
+/* Screenshot shots are already dark images, so in dark mode their contain
+   letterbox bars should be dark too — not the light logo-thumbnail backdrop. */
+.is-dark .project-image--shot,
+.is-dark .project:hover .project-image--shot {
+	background: #0c0a09;
+}
+
+.is-dark .project-image--shot img {
+	filter: none;
 }
 
 @media (hover: none) {

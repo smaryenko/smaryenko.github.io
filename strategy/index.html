@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>An AI-Era Testing Strategy — Quality, Built In</title>
+<meta name="description" content="A practical AI-era testing strategy: build quality in through risk-led checks, trustworthy evidence, and QA that connects the whole product." />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<meta name="theme-color" content="#05060a" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://smaryenko.github.io/strategy/" />
+<meta property="og:title" content="An AI-Era Testing Strategy — Quality, Built In" />
+<meta property="og:description" content="Build quality in through risk-led checks, trustworthy evidence, and QA that connects the whole product." />
+<meta property="og:image" content="https://smaryenko.github.io/strategy/og-image.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="An AI-era testing strategy with orbiting dots around QA, and the message: Quality isn't a final gate. It's built in from the first line." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="An AI-Era Testing Strategy — Quality, Built In" />
+<meta name="twitter:description" content="Build quality in through risk-led checks, trustworthy evidence, and QA that connects the whole product." />
+<meta name="twitter:image" content="https://smaryenko.github.io/strategy/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="progress"><span id="progressBar"></span></div>
+
+<a class="back-home" href="/" aria-label="Back to Stanislav Maryenko's home page">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+  <span>Back</span>
+</a>
+
+<nav class="dots" id="dots" aria-label="Section navigation"></nav>
+<div class="mini-dots" id="miniDots" aria-hidden="true">
+  <span class="mini-dot"></span>
+  <span class="mini-dot"></span>
+  <span class="mini-dot"></span>
+</div>
+<button class="back-to-top" id="backToTop" type="button" aria-label="Go to top" aria-hidden="true" tabindex="-1">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="m5 15 7-7 7 7" />
+  </svg>
+</button>
+
+<!-- ============ 1. HERO ============ -->
+<section class="slide hero" id="s-hero" data-label="The idea">
+  <div class="wrap center">
+    <p class="kicker reveal">An AI-Era Testing Strategy</p>
+    <h1 class="reveal">
+      <span class="line">Quality isn't a <span class="strike">final gate</span>.</span>
+      <span class="line">It's <span class="hl hl-lime">built in</span> from the first line.</span>
+    </h1>
+    <p class="lede reveal">
+      AI increases the pace and scale of change. Quality depends on
+      understanding risk, gathering trustworthy evidence and learning from
+      real outcomes. The whole team builds quality; AI accelerates the work;
+      QA connects the context and assures the outcome.
+    </p>
+    <div class="hero-orbit reveal" aria-hidden="true">
+      <span class="orbit-core">QA</span>
+      <span class="orbit-ring r1"></span>
+      <span class="orbit-ring r2"></span>
+      <span class="orbit-ring r3"></span>
+      <i class="sat s1"></i><i class="sat s2"></i><i class="sat s3"></i>
+      <i class="sat s4"></i><i class="sat s5"></i><i class="sat sm s6"></i>
+      <i class="sat s7"></i><i class="sat sm s8"></i><i class="sat sm s9"></i>
+      <i class="sat sm s10"></i>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. WHY — cost ============ -->
+<section class="slide" id="s-shift" data-label="Why early">
+  <div class="wrap grid-2">
+    <div class="col">
+      <p class="kicker c-lime reveal">Start here · why bother testing early</p>
+      <h2 class="reveal">A bug gets pricier every step it survives.</h2>
+      <p class="body reveal">
+        Caught in a unit test, a defect costs a coffee break. The same defect
+        caught in production costs a war room. That single curve is the reason
+        for everything that follows.
+      </p>
+      <p class="body reveal">
+        So the strategy is to <strong>catch each defect at the earliest,
+        smallest, cheapest check that can provide enough confidence.</strong>
+        The exact multiple is debated; the direction isn't. The right check
+        depends on the risk and the system.
+      </p>
+    </div>
+    <div class="col viz">
+      <!-- mini-game: a bug falls through the stages; catch it as early as you can. -->
+      <div class="cost-chart reveal" data-cost>
+        <div class="cost-game-head">
+          <span class="cost-read-note" data-read-note>Press “Drop a bug”, then catch it fast.</span>
+          <span class="cost-cost" data-cost-cost>cost: —</span>
+        </div>
+        <div class="cost-bars">
+          <button class="cost-row active" data-stage="Unit" data-i="0"><span class="cost-label">Unit</span><div class="cost-track"><span class="cost-fill f1"></span></div><span class="cost-x">lowest</span></button>
+          <button class="cost-row" data-stage="Component" data-i="1"><span class="cost-label">Component</span><div class="cost-track"><span class="cost-fill f2"></span></div><span class="cost-x">low</span></button>
+          <button class="cost-row" data-stage="Integration" data-i="2"><span class="cost-label">Integration</span><div class="cost-track"><span class="cost-fill f3"></span></div><span class="cost-x">medium</span></button>
+          <button class="cost-row" data-stage="System" data-i="3"><span class="cost-label">System</span><div class="cost-track"><span class="cost-fill f4"></span></div><span class="cost-x">high</span></button>
+          <button class="cost-row" data-stage="Production" data-i="4"><span class="cost-label">Production</span><div class="cost-track"><span class="cost-fill f5"></span></div><span class="cost-x">highest</span></button>
+        </div>
+        <div class="cost-controls">
+          <button class="btn-run sm" data-cost-drop type="button">Drop a bug</button>
+          <button class="btn-run sm cost-catch" data-cost-catch type="button" disabled>Catch it!</button>
+          <span class="cost-best" data-cost-best>Best: —</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AI-ERA DELIVERY ============ -->
+<section class="slide" id="s-flow" data-label="AI changes delivery">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-cyan reveal">The context · machine-speed change</p>
+      <h2 class="reveal">AI changes the pace of delivery.</h2>
+      <p class="body wide reveal">
+        AI can help understand a codebase, shape requirements, generate changes
+        and tests, and diagnose failures. These are capabilities to use with
+        judgement, not proof that the change is right. More generated change
+        makes independent evidence and risk-based controls more important.
+      </p>
+      <p class="slop-note reveal" data-slop>
+        <b>The catch:</b> without standards and process, AI just ships
+        <span class="slop-word">slop</span> faster — more code, more tests, more
+        churn that <em>looks</em> like progress. Unchecked, it grows
+        <b class="c-amber">technical debt</b>, not real productivity. The
+        guardrails below are what turn raw speed into shipped quality.
+      </p>
+    </div>
+    <div class="loop-wrap reveal" data-loop>
+      <div class="loop-ring" aria-hidden="true">
+        <svg class="loop-svg" viewBox="0 0 320 320">
+          <circle class="loop-path" cx="160" cy="160" r="128" />
+          <circle class="loop-token" data-loop-token cx="160" cy="32" r="9" />
+        </svg>
+        <button class="loop-node n-top active" data-loop-node="0"><b>Understand</b></button>
+        <button class="loop-node n-right" data-loop-node="1"><b>Shape</b></button>
+        <button class="loop-node n-bottom" data-loop-node="2"><b>Generate</b></button>
+        <button class="loop-node n-left" data-loop-node="3"><b>Fix</b></button>
+      </div>
+      <div class="loop-detail">
+        <span class="loop-detail-step" data-loop-step>Understand</span>
+        <p class="loop-detail-text" data-loop-text>Reads the existing codebase and maps how it behaves today, before a single line changes.</p>
+        <p class="body small">A loop, not a line: each pass feeds the next.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ T-SHAPED QA ============ -->
+<section class="slide" id="s-tshape" data-label="T-shaped QA">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-lime reveal">The T-shaped QA transformation · from test writer to product-wide quality partner</p>
+      <h2 class="reveal">T-shaped QA: beyond writing tests.</h2>
+      <p class="body wide reveal">
+        AI writes tests and explores code. QA connects the whole product: why it
+        matters, how it works, how it fails, and what the customer feels.
+      </p>
+    </div>
+    <div class="tshape-layout reveal">
+      <div class="tshape-graphic" role="img" aria-label="The T shape: broad understanding across business, customer, product, development, security and operations, supported by deep technical quality expertise">
+        <div class="tshape-wide">
+          <b class="tshape-wide-label">QA understands and connects</b>
+          <span>Business</span>
+          <span>Customer</span>
+          <span>Product</span>
+          <span>Development</span>
+          <span>Security</span>
+          <span>Operations</span>
+        </div>
+        <div class="tshape-depth">
+          <b>Technical quality depth</b>
+          <span>Code · tests · architecture · data · risk</span>
+          <small>AI accelerates the work. QA owns the connected view.</small>
+        </div>
+      </div>
+      <aside class="tshape-callout">
+        <span class="tshape-label">AI solves tasks. QA sees the whole task.</span>
+        <p>AI works from partial context and can miss how a local change ripples across the product end to end.</p>
+        <div class="tshape-questions">
+          <span>What matters?</span>
+          <span>What could fail?</span>
+          <span>Who feels the impact?</span>
+        </div>
+        <small class="tshape-footer">QA connects these answers into one end-to-end quality judgement.</small>
+      </aside>
+    </div>
+
+    <!-- mini-game: AI greenlights a change. Which lens does it miss? -->
+    <div class="tshape-game reveal" data-tgame>
+      <p class="tg-scenario" data-tg-scenario>AI says each change is fine. Spot the lens it didn't look through — a new one appears automatically.</p>
+      <div class="tg-lenses" data-tg-lenses>
+        <button class="tg-lens" data-lens="Business" type="button">Business</button>
+        <button class="tg-lens" data-lens="Customer" type="button">Customer</button>
+        <button class="tg-lens" data-lens="Product" type="button">Product</button>
+        <button class="tg-lens" data-lens="Development" type="button">Development</button>
+        <button class="tg-lens" data-lens="Security" type="button">Security</button>
+        <button class="tg-lens" data-lens="Operations" type="button">Operations</button>
+      </div>
+      <p class="tg-feedback" data-tg-feedback></p>
+      <div class="tg-controls">
+        <span class="tg-score" data-tg-score>Caught: 0 / 0</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RISK DECIDES DEPTH ============ -->
+<section class="slide" id="s-risk" data-label="Risk decides depth">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-amber reveal">Example · a risk-based way to scale testing</p>
+      <h2 class="reveal">Risk decides how deep you test.</h2>
+      <p class="body wide reveal">
+        Not every change needs the same evidence. This low / medium / high
+        grouping is one example: scale testing to impact, reversibility, and
+        what is at stake. Adapt the categories to the product and its risks.
+      </p>
+    </div>
+    <div class="cards-3 stagger" data-risk>
+      <button class="card risk-low" data-risk-card data-rtier="low" type="button" aria-pressed="false"
+        data-risk-example="a copy tweak or a flag default"
+        data-risk-evidence="unit + component + one focused check.">
+        <span class="risk-tag">Low risk</span>
+        <h3>Prove it and move</h3>
+        <p>Isolated, reversible, small impact. Unit and component coverage plus a focused check is enough. Don't gold-plate it.</p>
+      </button>
+      <button class="card risk-med" data-risk-card data-rtier="med" type="button" aria-pressed="false"
+        data-risk-example="a new checkout step across two services"
+        data-risk-evidence="add contracts, integration and regression.">
+        <span class="risk-tag">Medium risk</span>
+        <h3>Widen the net</h3>
+        <p>Crosses a service, adds a data flow, or is a significant journey. Add contracts, integration and regression coverage.</p>
+      </button>
+      <button class="card risk-high" data-risk-card data-rtier="high" type="button" aria-pressed="false"
+        data-risk-example="payments, login or deleting an account"
+        data-risk-evidence="deep negative + performance + staged rollout + QA sign-off.">
+        <span class="risk-tag">High risk</span>
+        <h3>Deepen evidence; QA decides</h3>
+        <p>Security, money, identity, irreversible data or compliance may need deep negative, performance and resilience checks, a staged rollout, and QA sign-off.</p>
+      </button>
+    </div>
+    <!-- mini-game: a change lands. Triage it to the right risk tier. -->
+    <div class="risk-triage reveal" data-rgame>
+      <span class="rt-label" data-rt-badge>Change</span>
+      <p class="rt-ask" data-rt-ask>Click the tier each change belongs in — a new one deals itself.</p>
+      <span class="rt-score" data-rt-score>Triaged: 0 / 0</span>
+    </div>
+    <p class="risk-readout reveal" data-risk-readout>Tap a tier to see a change that fits it — and the evidence it earns.</p>
+  </div>
+</section>
+
+<!-- ============ TEST LEVELS ============ -->
+<section class="slide" id="s-levels" data-label="Where to check">
+  <div class="wrap grid-2">
+    <div class="col viz">
+      <span class="card-tag level-example-tag">Example · test levels</span>
+      <div class="pyramid stagger" data-pyramid
+           data-detail-acceptance="Business and regulatory sign-off on the real journey. Slow and rare; run only when a human must say yes."
+           data-detail-system="The whole system end to end, as a user meets it. Broad coverage, slow feedback, kept deliberate."
+           data-detail-integration="Two or more components wired together. Use it only when the interaction matters more than isolation."
+           data-detail-component="One deployable service through its API, with boundaries mocked. Fast, and the workhorse of the suite."
+           data-detail-unit="One class or function, pure logic, no I/O. Thousands of these, milliseconds each.">
+        <button class="pyr-row p-accept" data-level="acceptance"><span>Acceptance</span><em>business sign-off</em></button>
+        <button class="pyr-row p-system" data-level="system"><span>System</span><em>full journey, end to end</em></button>
+        <button class="pyr-row p-integ" data-level="integration"><span>Integration</span><em>2+ components together</em></button>
+        <button class="pyr-row p-comp" data-level="component"><span>Component</span><em>one service, boundaries mocked</em></button>
+        <button class="pyr-row p-unit active" data-level="unit"><span>Unit</span><em>one class or function</em></button>
+      </div>
+      <p class="pyr-detail reveal" data-pyramid-detail>Unit: one class or function, pure logic, no I/O. Thousands of these, milliseconds each.</p>
+    </div>
+    <div class="col">
+      <p class="kicker c-cyan reveal">Principle · test at the lowest level that gives confidence</p>
+      <h2 class="reveal">Where should we check?</h2>
+      <p class="body reveal">
+        Catch defects as close as practical to their source. <strong>Choose the
+        lowest level that gives enough confidence</strong> for the risk; the
+        mix of levels depends on the system.
+      </p>
+      <ul class="ticks stagger">
+        <li><b>Unit</b> — pure logic, one class or function.</li>
+        <li><b>Component</b> — one deployable service via its API, boundaries mocked.</li>
+        <li><b>Integration</b> — only when two or more parts together beat isolation.</li>
+        <li><b>System</b> — the whole thing, end to end.</li>
+        <li><b>Acceptance</b> — business and regulatory sign-off.</li>
+      </ul>
+      <p class="body small reveal">This pyramid is one example, not a required shape or quota. Adapt the levels to architecture and risk; integration-heavy systems may lean more on contracts and component tests.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. HOW 2 — types ============ -->
+<section class="slide" id="s-types" data-label="What and how to check">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-pink reveal">Principle · combine dimensions of evidence</p>
+      <h2 class="reveal">What should we protect—and how?</h2>
+      <p class="body wide reveal">
+        Decide where to check, what could go wrong, and how to find out.
+        These choices work together; they are not competing kinds of tests.
+      </p>
+    </div>
+    <div class="test-dimensions reveal" aria-label="Three complementary testing dimensions">
+      <div><b>1 · WHERE?</b><span>At what level should we check it? A service, or the whole user journey?</span></div>
+      <div><b>2 · WHAT?</b><span>What matters most to protect? For example, security, speed, or ease of use.</span></div>
+      <div><b>3 · HOW?</b><span>How will we find problems? Automated checks, hands-on exploration, or review?</span></div>
+    </div>
+    <div class="dimension-example reveal">
+      <b class="dimension-example-label">Example · changing sign-in</b>
+      <span><strong>Where:</strong> check the sign-in service and the full login journey.</span>
+      <span><strong>What:</strong> check account security and whether people can still sign in.</span>
+      <span><strong>How:</strong> automate permission checks, then explore unusual user paths.</span>
+    </div>
+    <div class="chips stagger" data-chips>
+      <button class="chip" data-detail="Does each feature do what the spec says?">Functional</button>
+      <button class="chip" data-detail="Does a whole user journey hold together across screens and services?">End&#8209;to&#8209;end</button>
+      <button class="chip" data-detail="Did a change quietly break something that used to work?">Regression</button>
+      <button class="chip" data-detail="Is the build even worth deeper testing? A quick breadth check.">Smoke</button>
+      <button class="chip" data-detail="After a fix, does the narrow area around it still behave?">Sanity</button>
+      <button class="chip" data-detail="What breaks when a human pokes it in ways no script expected?">Exploratory</button>
+      <button class="chip" data-detail="Can a real person actually complete the task without friction?">Usability</button>
+      <button class="chip accent2" data-detail="Does it stay fast and stable under realistic load? Thresholds per journey, run on change, not when someone remembers.">Performance</button>
+      <button class="chip accent2" data-detail="Can it be abused, leaked through, or broken into? Dependency scans, secrets detection, static analysis, authorization tests — at every level.">Security</button>
+      <button class="chip accent2" data-detail="Does it survive timeouts, retries, degraded dependencies and failover without losing data?">Resilience</button>
+      <button class="chip" data-detail="Does an API still honour what its consumers actually rely on, not just what the schema allows?">Contract</button>
+      <button class="chip accent" data-detail="Can everyone use it, including with assistive tech? Automated checks in CI plus manual keyboard and screen-reader checks.">Accessibility</button>
+    </div>
+    <p class="chips-detail reveal" data-chips-detail>These examples overlap: security is a concern, exploratory is an approach, and end-to-end describes scope. Give each relevant risk a place in the strategy.</p>
+  </div>
+</section>
+
+<!-- ============ 5. HOW 3 — the rules ============ -->
+<section class="slide" id="s-gates" data-label="Trust the evidence">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-lime reveal">Principles · make evidence trustworthy</p>
+      <h2 class="reveal">Trust the evidence.</h2>
+      <p class="body wide reveal">
+        These principles help keep test evidence useful. The specific checks
+        and thresholds are examples to adapt to risk, architecture and context.
+      </p>
+    </div>
+    <div class="cards-grid four stagger" data-gates>
+      <button class="card gate-card" data-gate type="button" aria-pressed="false">
+        <span class="card-num rainbow-num">01</span>
+        <h3>Required checks pass</h3>
+        <p>Agree which checks block a merge. For example, a team may require critical unit and component checks to pass and use coverage thresholds to flag gaps—not as proof of quality on their own.</p>
+        <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
+      </button>
+      <button class="card gate-card" data-gate type="button" aria-pressed="false">
+        <span class="card-num rainbow-num">02</span>
+        <h3>Deterministic &amp; independent</h3>
+        <p>No shared mutable state. No ordering or timing dependence. No sleeping and hoping. A test must prove something every run.</p>
+        <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
+      </button>
+      <button class="card gate-card" data-gate type="button" aria-pressed="false">
+        <span class="card-num rainbow-num">03</span>
+        <h3>Challenge assumptions</h3>
+        <p>Consider invalid inputs, boundaries and failure conditions. Boundary-value and equivalence analysis are useful techniques, chosen according to the risk.</p>
+        <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
+      </button>
+      <button class="card gate-card" data-gate type="button" aria-pressed="false">
+        <span class="card-num rainbow-num">04</span>
+        <h3>Every check earns its place</h3>
+        <p>Keep evidence that protects a distinct risk or critical rule. For example, quarantine flaky checks with a reason, owner and expiry; remove duplicates and obsolete cases.</p>
+        <span class="gate-stamp" data-gate-stamp aria-hidden="true">enforced ✓</span>
+      </button>
+    </div>
+    <!-- mini-game: the merge button stays locked until all four gates are on. -->
+    <div class="gate-merge reveal" data-gate-merge>
+      <p class="gate-meter" data-gate-meter>Enforce every gate to unlock the merge. <b data-gate-count>0</b>/4 on.</p>
+      <button class="gate-btn" data-gate-btn type="button" aria-live="polite">
+        <span class="gate-btn-lock" aria-hidden="true">🔒</span>
+        <span class="gate-btn-label" data-gate-btn-label>Merge blocked</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. the subtle failure — test data ============ -->
+<section class="slide" id="s-data" data-label="Independent checks">
+  <div class="wrap grid-2">
+    <div class="col">
+      <p class="kicker c-amber reveal">The rule that's easiest to break</p>
+      <h2 class="reveal">Make checks independent.</h2>
+      <p class="body reveal">
+        Keeping tests deterministic and independent sounds simple, until two
+        suites share an environment that never resets. That's where green tests
+        turn flaky. So tests are written to assume the world is already dirty.
+      </p>
+      <div class="delta-demo reveal" data-delta>
+        <p class="delta-caption">Shared counter starts at <b data-delta-start>7</b>. Run a test:</p>
+        <div class="delta-line" data-delta-strict><span class="x">✕</span> assert count <code>== 10</code> <em data-delta-strict-res></em></div>
+        <div class="delta-line ok" data-delta-delta><span class="c">✓</span> assert count <code>increased by 10</code> <em data-delta-delta-res></em></div>
+        <div class="delta-controls">
+          <button class="btn-run sm" data-delta-run>Run the test</button>
+          <button class="btn-ghost sm" data-delta-reset>Reset the environment</button>
+        </div>
+      </div>
+      <p class="body small reveal">Same run, two assertions. The absolute check breaks the moment someone else touched the data; the delta check survives.</p>
+    </div>
+    <div class="col viz">
+      <ol class="rules-list stagger">
+        <li><span>Run&#8209;unique IDs</span>never reuse a fixed record two suites both write to.</li>
+        <li><span>Delta, not absolute</span>capture state at start, assert on the change you made.</li>
+        <li><span>Clean what you can</span>records, artifacts, config overrides, all torn down.</li>
+        <li><span>Never touch production</span>test data stays out of prod, full stop.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6b. OBSERVABILITY = TESTABILITY ============ -->
+<section class="slide" id="s-observe" data-label="Observability">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-cyan reveal">The other half of a trustworthy test</p>
+      <h2 class="reveal">Build for observability.</h2>
+      <p class="body wide reveal">
+        A feature isn't fully testable until it exposes enough evidence to prove
+        it worked, in a test and later in production. Observability is a
+        requirement of the feature, not an afterthought.
+      </p>
+    </div>
+    <div class="cards-grid center-last stagger" data-observe>
+      <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
+        <span class="card-tag">See it</span>
+        <h3 class="c-cyan">Meaningful signals</h3>
+        <p>Events, error codes and health endpoints that say what happened, not just that something did.</p>
+        <span class="obs-dot" aria-hidden="true"></span>
+      </button>
+      <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
+        <span class="card-tag">Trace it</span>
+        <h3 class="c-pink">Correlation across boundaries</h3>
+        <p>A shared ID that follows a request through every service, so a failure can be traced end to end.</p>
+        <span class="obs-dot" aria-hidden="true"></span>
+      </button>
+      <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
+        <span class="card-tag">Measure it</span>
+        <h3 class="c-lime">Success defined up front</h3>
+        <p>The technical and business signals that say the change worked: error rate, latency, the key outcome.</p>
+        <span class="obs-dot" aria-hidden="true"></span>
+      </button>
+      <button class="card mini obs-card" data-obs type="button" aria-pressed="false">
+        <span class="card-tag">Set it up</span>
+        <h3 class="c-amber">Safe test hooks</h3>
+        <p>API setup paths and visible feature-flag state, so tests arrange data fast and read the system's real state.</p>
+        <span class="obs-dot" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="obs-gauge reveal" data-obs-gauge>
+      <span class="obs-gauge-label">Testability</span>
+      <div class="obs-gauge-track"><span class="obs-gauge-fill" data-obs-fill></span></div>
+      <span class="obs-gauge-read" data-obs-read>Dark box — light up each signal to make it testable.</span>
+    </div>
+    <p class="body small center-note reveal">Good observability pays off three times: reliable automated checks, faster diagnosis, and safer canaries.</p>
+  </div>
+</section>
+
+<!-- ============ 7. enforcement — pipeline ============ -->
+<section class="slide" id="s-pipeline" data-label="Automate checks">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-cyan reveal">Example · enforcing agreed quality principles</p>
+      <h2 class="reveal">Automate the right checks.</h2>
+      <p class="body wide reveal">
+        Automate repeatable checks where practical so teams get consistent
+        feedback. This is one possible pipeline: choose gates that fit the
+        architecture and risk. Contract checks are useful when changes cross
+        service boundaries; they are not required everywhere.
+      </p>
+    </div>
+    <div class="pipeline stagger" data-pipeline>
+      <div class="pipe-stage" data-pipe-stage="0"><span class="pipe-ico">&lt;/&gt;</span><b>Commit</b><em>lint, build &amp; scan</em></div>
+      <div class="pipe-link"></div>
+      <div class="pipe-stage" data-pipe-stage="1"><span class="pipe-ico">U</span><b>Unit + Component</b><em>critical checks pass</em></div>
+      <div class="pipe-link"></div>
+      <div class="pipe-stage" data-pipe-stage="2"><span class="pipe-ico">I</span><b>Integration</b><em>contracts where relevant</em></div>
+      <div class="pipe-link"></div>
+      <div class="pipe-stage" data-pipe-stage="3"><span class="pipe-ico">S</span><b>System</b><em>smoke &amp; regression green</em></div>
+      <div class="pipe-link"></div>
+      <div class="pipe-stage ship" data-pipe-stage="4"><span class="pipe-ico">&#10003;</span><b>Release</b><em>required evidence and risk checks met</em></div>
+    </div>
+    <div class="pipe-controls reveal">
+      <button class="btn-run" data-pipe-run>Run the pipeline</button>
+      <label class="pipe-toggle"><input type="checkbox" data-pipe-fail /> <span>inject a failure</span></label>
+      <span class="pipe-status" data-pipe-status>idle, press run</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7b. RELEASE SAFELY — canary ============ -->
+<section class="slide" id="s-release" data-label="Release and learn">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-lime reveal">Past the gate · release is the start, not the end</p>
+      <h2 class="reveal">Release in stages. Learn from real outcomes.</h2>
+      <p class="body wide reveal">
+        Test environments never match production, so some defects only show under
+        real traffic. Expose the change to a small slice, watch the signals, then
+        promote it — or roll it back before most users notice.
+      </p>
+    </div>
+    <div class="canary stagger" data-canary>
+      <div class="canary-stage" data-canary-stage="0"><b>Build</b><em>a release candidate</em></div>
+      <div class="pipe-link"></div>
+      <div class="canary-stage" data-canary-stage="1"><b>Canary</b><em>expose a small % behind a flag</em></div>
+      <div class="pipe-link"></div>
+      <div class="canary-stage" data-canary-stage="2"><b>Observe</b><em>error rate, latency, key outcome</em></div>
+      <div class="pipe-link"></div>
+      <div class="canary-stage branch" data-canary-stage="3"><b>Promote, pause or roll back</b><em>pre-agreed thresholds guide action</em></div>
+    </div>
+    <div class="canary-note stagger">
+      <span class="gate-pill pass">healthy &rarr; promote within agreed risk limits</span>
+      <span class="gate-pill fail">safety threshold breached &rarr; auto-pause or roll back</span>
+      <span class="gate-pill amber">high impact &rarr; QA reviews evidence and owns the release verdict</span>
+    </div>
+
+    <!-- mini-game: you are on call. Watch the canary, then make the call. -->
+    <div class="canary-game reveal" data-cgame>
+      <div class="cg-head">
+        <span class="cg-title">You're on call. Ship it to 5% — then make the call.</span>
+        <span class="cg-score" data-cg-score>Calls: 0 right · 0 wrong</span>
+      </div>
+      <div class="cg-dials">
+        <div class="cg-dial"><span class="cg-dial-label">Error rate</span><b class="cg-dial-val" data-cg-err>—</b><span class="cg-dial-cap">SLO &lt; 1.0%</span></div>
+        <div class="cg-dial"><span class="cg-dial-label">p95 latency</span><b class="cg-dial-val" data-cg-lat>—</b><span class="cg-dial-cap">SLO &lt; 300ms</span></div>
+        <div class="cg-dial"><span class="cg-dial-label">Key outcome</span><b class="cg-dial-val" data-cg-out>—</b><span class="cg-dial-cap">must hold steady</span></div>
+      </div>
+      <div class="cg-spark"><span class="cg-spark-fill" data-cg-spark></span></div>
+      <p class="cg-status" data-cg-status>Press “Expose to 5%” to start the canary.</p>
+      <div class="cg-controls">
+        <button class="btn-run sm" data-cg-start type="button">Expose to 5%</button>
+        <button class="btn-run sm cg-promote" data-cg-promote type="button" disabled>Promote</button>
+        <button class="btn-ghost sm cg-rollback" data-cg-rollback type="button" disabled>Roll back</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10b. AI ASSURANCE LADDER ============ -->
+<section class="slide" id="s-assurance" data-label="AI autonomy">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-amber reveal">Example · scale AI controls with autonomy and risk</p>
+      <h2 class="reveal">Bound AI autonomy by risk.</h2>
+      <p class="body wide reveal">
+        As AI takes on more consequential actions, require stronger controls.
+        Adapt the rungs and safeguards to the task and its risk.
+      </p>
+    </div>
+    <!-- mini-game: an AI request comes in. Place it on the right rung. -->
+    <div class="ladder-game reveal" data-lgame>
+      <div class="lg-request">
+        <span class="lg-badge" data-lg-badge>Incoming</span>
+        <p class="lg-ask" data-lg-ask>Pick the rung that bounds each request — a new one arrives automatically.</p>
+      </div>
+      <p class="lg-feedback" data-lg-feedback></p>
+      <div class="lg-controls">
+        <span class="lg-score" data-lg-score>Score: 0 / 0</span>
+      </div>
+    </div>
+    <div class="ladder stagger" data-ladder>
+      <button class="ladder-row" data-rung="assist" type="button">
+        <span class="ladder-level c-cyan">Assist</span>
+        <span class="ladder-does">Analyse code, draft requirements and test cases</span>
+        <span class="ladder-ctrl">Check assumptions and impact</span>
+      </button>
+      <button class="ladder-row" data-rung="generate" type="button">
+        <span class="ladder-level c-lime">Generate</span>
+        <span class="ladder-does">Turn requirements into tests and changes</span>
+        <span class="ladder-ctrl">Independent tests, security checks, review</span>
+      </button>
+      <button class="ladder-row" data-rung="repair" type="button">
+        <span class="ladder-level c-pink">Repair</span>
+        <span class="ladder-does">Diagnose failures and propose repairs</span>
+        <span class="ladder-ctrl">Isolated env; a person approves</span>
+      </button>
+      <button class="ladder-row" data-rung="release" type="button">
+        <span class="ladder-level c-amber">Release support</span>
+        <span class="ladder-does">Summarise evidence, recommend the call</span>
+        <span class="ladder-ctrl">QA reviews and owns the verdict</span>
+      </button>
+      <button class="ladder-row" data-rung="prod" type="button">
+        <span class="ladder-level c-violet">Production action</span>
+        <span class="ladder-does">Never autonomous by default</span>
+        <span class="ladder-ctrl">Approval, dry-run, audit trail, circuit breaker</span>
+      </button>
+    </div>
+    <p class="body small center-note reveal">Every rung needs data guardrails: approved models, repo and ticket content treated as untrusted, and auditable decisions.</p>
+  </div>
+</section>
+
+<!-- ============ 11. QUALITY OWNERSHIP + INDEPENDENT CHECK ============ -->
+<section class="slide" id="s-guard" data-label="QA release verdict">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-amber reveal">Ownership at machine scale</p>
+      <h2 class="reveal">Everyone builds quality. <br /> <span class="hl">QA owns the release verdict.</span></h2>
+      <p class="body wide reveal">QA does not review every generated line. It connects domain context to independent evidence, makes gaps visible, and decides whether the product is ready to release.</p>
+    </div>
+    <div class="split stagger">
+      <div class="split-col ai">
+        <h3 class="c-cyan">The whole team builds it</h3>
+        <ul>
+          <li>Engineering designs and automates for quality</li>
+          <li>Product defines outcomes and residual risk</li>
+          <li>Security and operations own specialised controls and signals</li>
+        </ul>
+      </div>
+      <div class="split-divider" aria-hidden="true"><span>&rarr;</span></div>
+      <div class="split-col human">
+        <h3 class="c-lime">QA owns assurance</h3>
+        <ul>
+          <li>Connects customer, business and technical context to critical expectations</li>
+          <li>Assesses evidence against risk; unknowns are not passes</li>
+          <li>Owns the quality verdict and blocks release when the evidence is not sufficient</li>
+        </ul>
+      </div>
+    </div>
+    <p class="body small center-note reveal">Automation may pause or roll back against pre-agreed safety thresholds; QA owns the decision to approve or block release.</p>
+    <p class="independent-example reveal"><b>Why independence matters:</b> if only admins may delete a record, write that expectation first. Otherwise, AI can allow any signed-in user and generate a test that confirms the same mistake—green, but wrong.</p>
+    <div class="decide reveal" data-decide>
+      <span class="decide-end c-cyan">AI&#8209;only</span>
+      <div class="decide-track" data-decide-track>
+        <span class="decide-fill" data-decide-fill></span>
+        <button class="decide-knob" data-decide-knob aria-label="Release assurance control"></button>
+      </div>
+      <span class="decide-end c-lime">QA&#8209;assured</span>
+      <p class="decide-msg" data-decide-msg>Try moving the control toward "AI-only".</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11b. MEASURE WHAT MATTERS ============ -->
+<section class="slide" id="s-metrics" data-label="Did quality improve">
+  <div class="wrap">
+    <div class="col center-head">
+      <p class="kicker c-cyan reveal">Does the strategy actually work?</p>
+      <h2 class="reveal">Did quality improve?</h2>
+      <p class="body wide reveal">
+        Don't mistake more tests for better outcomes. Read signals across
+        customer impact, delivery flow and independent assurance.
+      </p>
+    </div>
+    <div class="scorecard stagger">
+      <article class="score-lane outcome">
+        <span class="score-index">01 <i>Customer outcome</i></span>
+        <h3>Did users get a better, safer product?</h3>
+        <div class="score-signal"><b>Escaped defects</b><span>Track severity and source</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8 6.5 6.5M16 8l1.5-1.5M7 13H4m16 0h-3M8 18l-1.5 1.5M16 18l1.5 1.5"/><path d="M8 9.5h8v5a4 4 0 0 1-8 0zM12 5v2M10.5 12h.01M13.5 12h.01"/></svg></div>
+        <div class="score-signal"><b>Post-release impact</b><span>Key journeys and service health</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2.2-6 4.2 12 2.2-6H21"/><path d="M4 4h16v16H4z"/></svg></div>
+        <div class="score-signal"><b>Rollback signal</b><span>Canaries stopped before wider impact</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.6 7.8"/><path d="M4 4v6h6"/></svg></div>
+      </article>
+      <article class="score-lane delivery">
+        <span class="score-index">02 <i>Delivery flow</i></span>
+        <h3>Can the team trust its feedback?</h3>
+        <div class="score-signal"><b>Feedback time</b><span>Commit to trustworthy signal</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6M12 2v3"/></svg></div>
+        <div class="score-signal"><b>Flaky rate</b><span>Plus time to stabilise</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10a4 4 0 1 1-4 4"/><path d="m7 4-3 3 3 3M20 17H10a4 4 0 1 1 4-4"/><path d="m17 14 3 3-3 3"/></svg></div>
+        <div class="score-signal"><b>Pipeline reliability</b><span>Separate product failures from pipeline noise</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h5v5H4zM15 14h5v5h-5z"/><path d="M9 7.5h3a3 3 0 0 1 3 3V14M12 10.5 15 14l3-3.5"/></svg></div>
+      </article>
+      <article class="score-lane assurance">
+        <span class="score-index">03 <i>Independent assurance</i></span>
+        <h3>Is the evidence strong enough to trust?</h3>
+        <div class="score-signal"><b>Risk-weighted proof</b><span>Critical needs traced to evidence</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><circle cx="10.5" cy="10.5" r="2"/><path d="m15.5 15.5 5 5M10.5 1.5v3M1.5 10.5h3"/></svg></div>
+        <div class="score-signal"><b>AI validated</b><span>Changes checked against independently defined expectations</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 7 3v5c0 5-3 9-7 12-4-3-7-7-7-12V5z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></div>
+      </article>
+    </div>
+    <p class="scorecard-note reveal"><b>A metric only matters if it changes a decision.</b> Choose signals that fit the product and risk; define a baseline, owner, review cadence, threshold and response. For example, stabilise flaky tests instead of retrying them, and pause or roll back when a canary breaches its service objective.</p>
+
+    <!-- mini-game: drag the metric into a bin — does it change a decision? -->
+    <div class="metric-game reveal" data-mgame>
+      <p class="mg-claim" data-mg-claim>Drag each metric into the bin that fits — a new one deals itself.</p>
+      <div class="mg-arena">
+        <div class="mg-bin" data-mg-bin="real">
+          <span class="mg-bin-label">Changes a decision</span>
+        </div>
+        <div class="mg-card-slot">
+          <button class="mg-card" data-mg-card type="button" hidden aria-describedby="mg-howto"></button>
+          <span class="mg-howto" id="mg-howto">drag me, or use the buttons</span>
+        </div>
+        <div class="mg-bin" data-mg-bin="vanity">
+          <span class="mg-bin-label">Vanity metric</span>
+        </div>
+      </div>
+      <!-- keyboard / fallback controls -->
+      <div class="mg-controls">
+        <button class="btn-run sm mg-real" data-mg-real type="button" disabled>↤ Decision</button>
+        <button class="btn-ghost sm mg-vanity" data-mg-vanity type="button" disabled>Vanity ↦</button>
+      </div>
+      <p class="mg-feedback" data-mg-feedback></p>
+      <div class="mg-foot">
+        <span class="mg-score" data-mg-score>Score: 0 / 0</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. CLOSE ============ -->
+<section class="slide close" id="s-close" data-label="Quality, built in">
+  <div class="wrap center">
+    <p class="kicker reveal">The strategy · in one line</p>
+    <h2 class="big reveal">
+      Test <span class="hl hl-lime">low</span>, test <span class="hl hl-cyan">early</span>,
+      <br />test <span class="hl hl-pink">by risk</span> —
+      <br />let AI accelerate, with QA connecting context and evidence.
+    </h2>
+    <div class="stat-row stagger">
+      <div class="stat"><b>Low</b><span>lower levels run faster and pinpoint the bug</span></div>
+      <div class="stat"><b>Early</b><span>the sooner you catch it, the less it costs</span></div>
+      <div class="stat"><b>By&nbsp;risk</b><span>depth matched to blast radius, not everything</span></div>
+      <div class="stat"><b>QA&#8209;assured</b><span>the whole team builds quality; QA connects context to proof</span></div>
+    </div>
+    <p class="footnote reveal">An AI-era testing strategy. Quality, built in, released safely, and improved from what production teaches you. Tune the levels, risk tiers, gates and AI autonomy to fit yours.</p>
+    <p class="sources reveal">Principles informed by
+      <a href="https://sre.google/workbook/canarying-releases/" target="_blank" rel="noopener noreferrer">canarying releases</a>,
+      <a href="https://sre.google/resources/practices-and-processes/ai-engineering-reliable-operations/" target="_blank" rel="noopener noreferrer">AI reliability operations</a>, and
+      <a href="https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1695965/full" target="_blank" rel="noopener noreferrer">Test Pyramid 2.0</a>.
+    </p>
+  </div>
+</section>
+
+<script src="main.js"></script>
+</body>
+</html>

@@ -2040,7 +2040,7 @@
 	});
 })();
 
-// The four hero contact icons double as slot-machine reels. Once enough of the
+// The hero contact icons double as slot-machine reels. Once enough of the
 // site's tracked issues have been closed (the all-time resolved log), the reels
 // spin up and land on a row of 7s with a staggered, bouncing settle; a lever
 // appears beside them. Pulling the lever spins the 7s back out to the real
@@ -2113,7 +2113,7 @@
 		}
 	}
 
-	// Spin the four reels into a row of 7s, staggered left-to-right, each
+	// Spin every reel into a row of 7s, staggered left-to-right, each
 	// overshooting and bouncing into place. The lever shows right away, next to
 	// the reels, so the machine reads as pullable from the first moment.
 	function spinIn() {
