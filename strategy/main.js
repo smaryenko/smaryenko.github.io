@@ -1014,315 +1014,52 @@
   })();
 
   /* =========================================================
-     13. ASSURANCE — an AI request arrives; place it on the
-         rung whose safeguards actually bound that action
+     13. MINI FLIP — tap a metric chip: real signal or vanity?
+         Tapping again cycles to the next one.
      ========================================================= */
   (function () {
-    var game = document.querySelector("[data-lgame]");
-    var ladder = document.querySelector("[data-ladder]");
-    if (!game || !ladder) return;
-    var askEl = game.querySelector("[data-lg-ask]");
-    var badgeEl = game.querySelector("[data-lg-badge]");
-    var fbEl = game.querySelector("[data-lg-feedback]");
-    var scoreEl = game.querySelector("[data-lg-score]");
-    var rows = Array.prototype.slice.call(ladder.querySelectorAll(".ladder-row"));
-
-    var requests = [
-      { rung: "assist", text: "“Explain how this payment service can fail.”", why: "Read-only analysis — Assist." },
-      { rung: "generate", text: "“Here's the spec — write the tests and code.”", why: "Produces change — Generate." },
-      { rung: "repair", text: "“Diagnose this flaky test and propose a fix.”", why: "Diagnose and repair — Repair." },
-      { rung: "release", text: "“Recommend whether we promote this release.”", why: "Release support — QA owns the verdict." },
-      { rung: "prod", text: "“Delete the stuck records in prod.”", why: "Production action — never autonomous." },
-      { rung: "generate", text: "“Turn these tickets into tests and code.”", why: "Produces change — Generate." },
-      { rung: "prod", text: "“Roll back the live deploy right now.”", why: "Acts on prod — never autonomous." },
-      { rung: "assist", text: "“Draft the acceptance criteria for this feature.”", why: "Drafting, not shipping — Assist." },
+    var box = document.querySelector("[data-mflip]");
+    if (!box) return;
+    var chip = box.querySelector("[data-mflip-chip]");
+    var metricEl = box.querySelector("[data-mflip-metric]");
+    var verdictEl = box.querySelector("[data-mflip-verdict]");
+    var whyEl = box.querySelector("[data-mflip-why]");
+    var items = [
+      { metric: "“87% code coverage”", real: false, why: "No threshold, no action — looks good, changes nothing." },
+      { metric: "“Flaky rate crossed 2%”", real: true, why: "Triggers a decision: pause and stabilise." },
+      { metric: "“1,200 new tests this quarter”", real: false, why: "Test count alone decides nothing." },
+      { metric: "“Feedback time dropped below 10 min”", real: true, why: "Changes what the team gates on." },
+      { metric: "“Dashboard had 4,000 views”", real: false, why: "Views don't change what you ship." },
+      { metric: "“Canary breached its SLO”", real: true, why: "Threshold → automatic rollback." },
     ];
-    var deck = makeDeck(requests);
-    var current = null,
-      answered = false,
-      right = 0,
-      total = 0,
-      advanceTimer = null;
+    var i = 0;
+    var flipped = false;
 
-    function clearRows() {
-      rows.forEach(function (r) {
-        r.classList.remove("correct", "wrong");
-      });
+    function showMetric() {
+      flipped = false;
+      metricEl.textContent = items[i].metric;
+      verdictEl.textContent = "tap to judge";
+      verdictEl.className = "mf-verdict";
+      whyEl.textContent = "Real signal or vanity? Tap the chip.";
+      box.className = "mini-flip reveal in-view";
     }
-    function deal() {
-      if (advanceTimer) {
-        window.clearTimeout(advanceTimer);
-        advanceTimer = null;
+    function reveal() {
+      flipped = true;
+      var it = items[i];
+      verdictEl.textContent = it.real ? "real signal" : "vanity";
+      verdictEl.className = "mf-verdict " + (it.real ? "is-real" : "is-vanity");
+      whyEl.textContent = it.why;
+      box.className = "mini-flip reveal in-view " + (it.real ? "is-real" : "is-vanity");
+    }
+    chip.addEventListener("click", function () {
+      if (!flipped) {
+        reveal();
+      } else {
+        i = (i + 1) % items.length;
+        showMetric();
       }
-      clearRows();
-      answered = false;
-      current = deck.draw();
-      badgeEl.textContent = "Incoming";
-      badgeEl.style.color = "";
-      askEl.textContent = current.text;
-      fbEl.textContent = "Pick the rung that bounds this action.";
-      fbEl.className = "lg-feedback";
-      ladder.classList.add("armed");
-    }
-    rows.forEach(function (row) {
-      row.addEventListener("click", function () {
-        if (!current || answered) return;
-        answered = true;
-        total++;
-        var picked = row.getAttribute("data-rung");
-        var ok = picked === current.rung;
-        if (ok) right++;
-        row.classList.add(ok ? "correct" : "wrong");
-        if (!ok) {
-          var good = rows.filter(function (r) {
-            return r.getAttribute("data-rung") === current.rung;
-          })[0];
-          if (good) good.classList.add("correct");
-        }
-        fbEl.textContent = (ok ? "Right. " : "Not quite. ") + current.why;
-        fbEl.className = "lg-feedback " + (ok ? "good" : "bad");
-        badgeEl.textContent = ok ? "Bounded ✓" : "Review";
-        scoreEl.textContent = "Score: " + right + " / " + total;
-        ladder.classList.remove("armed");
-        advanceTimer = window.setTimeout(deal, autoAdvanceMs());
-      });
     });
-    onFirstInView(game, deal); // first request deals itself
+    showMetric();
   })();
 
-  /* =========================================================
-     14. T-SHAPED QA — AI greenlights a change; pick the lens
-         it looked past that QA's connected view would catch
-     ========================================================= */
-  (function () {
-    var game = document.querySelector("[data-tgame]");
-    if (!game) return;
-    var scenarioEl = game.querySelector("[data-tg-scenario]");
-    var fbEl = game.querySelector("[data-tg-feedback]");
-    var scoreEl = game.querySelector("[data-tg-score]");
-    var lenses = Array.prototype.slice.call(game.querySelectorAll(".tg-lens"));
-
-    var changes = [
-      { text: "“Tests pass — the ‘export my data’ button ships.”", lens: "Security", why: "It exports personal data — who's allowed?" },
-      { text: "“Latency's fine locally — recommendations ship.”", lens: "Operations", why: "How does it behave under real load?" },
-      { text: "“Unit tests green on the new one-click checkout.”", lens: "Customer", why: "Can a real person complete it?" },
-      { text: "“The refactor compiles and the suite is green.”", lens: "Business", why: "Does it still serve the outcome?" },
-      { text: "“The API change works; mobile wasn't in scope.”", lens: "Product", why: "How does it land across the product?" },
-      { text: "“Feature added; old integration tests still pass.”", lens: "Development", why: "What else depends on this code path?" },
-    ];
-    var deck = makeDeck(changes);
-    var current = null,
-      answered = false,
-      caught = 0,
-      total = 0,
-      advanceTimer = null;
-
-    function reset() {
-      lenses.forEach(function (l) {
-        l.classList.remove("correct", "wrong");
-        l.disabled = false;
-      });
-    }
-    function next() {
-      if (advanceTimer) {
-        window.clearTimeout(advanceTimer);
-        advanceTimer = null;
-      }
-      reset();
-      answered = false;
-      current = deck.draw();
-      scenarioEl.textContent = current.text;
-      fbEl.textContent = "Which lens did AI look past?";
-      fbEl.className = "tg-feedback";
-    }
-    lenses.forEach(function (lens) {
-      lens.addEventListener("click", function () {
-        if (!current || answered) return;
-        answered = true;
-        total++;
-        var ok = lens.getAttribute("data-lens") === current.lens;
-        if (ok) caught++;
-        lens.classList.add(ok ? "correct" : "wrong");
-        if (!ok) {
-          lenses.forEach(function (l) {
-            if (l.getAttribute("data-lens") === current.lens)
-              l.classList.add("correct");
-          });
-        }
-        lenses.forEach(function (l) {
-          l.disabled = true;
-        });
-        fbEl.textContent = (ok ? "Yes. " : "The missed lens was " + current.lens + ". ") + current.why;
-        fbEl.className = "tg-feedback " + (ok ? "good" : "bad");
-        scoreEl.textContent = "Caught: " + caught + " / " + total;
-        advanceTimer = window.setTimeout(next, autoAdvanceMs());
-      });
-    });
-    onFirstInView(game, next); // first scenario deals itself
-  })();
-
-  /* =========================================================
-     15. METRICS — real signal or vanity? Does it change a
-         decision, or just look good on a dashboard?
-     ========================================================= */
-  (function () {
-    var game = document.querySelector("[data-mgame]");
-    if (!game) return;
-    var claimEl = game.querySelector("[data-mg-claim]");
-    var fbEl = game.querySelector("[data-mg-feedback]");
-    var scoreEl = game.querySelector("[data-mg-score]");
-    var realBtn = game.querySelector("[data-mg-real]");
-    var vanityBtn = game.querySelector("[data-mg-vanity]");
-    var card = game.querySelector("[data-mg-card]");
-    var bins = Array.prototype.slice.call(game.querySelectorAll("[data-mg-bin]"));
-
-    var metrics = [
-      { real: true, text: "“Flaky rate crossed 2% — pause and stabilise.”", why: "Triggers an action and an owner." },
-      { real: false, text: "“We wrote 1,200 new tests this quarter.”", why: "Test count alone changes nothing." },
-      { real: true, text: "“Escaped defects in checkout rose — add a gate.”", why: "Names a risk and a response." },
-      { real: false, text: "“Overall code coverage is 87%.”", why: "No threshold, no action — vanity." },
-      { real: true, text: "“Canary breached its SLO, so it rolled back.”", why: "Threshold → automatic action." },
-      { real: false, text: "“The dashboard had 4,000 views.”", why: "Views don't change what you ship." },
-      { real: true, text: "“Feedback time dropped below 10 min — gate on it.”", why: "Changes what the team gates on." },
-      { real: false, text: "“We ran the full suite 300 times.”", why: "Activity, not outcome." },
-    ];
-    var deck = makeDeck(metrics);
-    var current = null,
-      answered = false,
-      right = 0,
-      total = 0,
-      advanceTimer = null;
-
-    function binEl(kind) {
-      return bins.filter(function (b) {
-        return b.getAttribute("data-mg-bin") === kind;
-      })[0];
-    }
-    function clearBins() {
-      bins.forEach(function (b) {
-        b.classList.remove("over", "hit-correct", "hit-wrong");
-      });
-    }
-    function next() {
-      if (advanceTimer) {
-        window.clearTimeout(advanceTimer);
-        advanceTimer = null;
-      }
-      answered = false;
-      clearBins();
-      current = deck.draw();
-      card.textContent = current.text;
-      card.hidden = false;
-      card.disabled = false;
-      card.setAttribute("draggable", "true");
-      fbEl.textContent = "";
-      fbEl.className = "mg-feedback";
-      realBtn.disabled = false;
-      vanityBtn.disabled = false;
-    }
-    // kind: "real" -> "Changes a decision"; "vanity" -> "Vanity"
-    function resolve(kind) {
-      if (!current || answered) return;
-      answered = true;
-      total++;
-      var saysReal = kind === "real";
-      var ok = saysReal === current.real;
-      if (ok) right++;
-      card.disabled = true;
-      card.setAttribute("draggable", "false");
-      card.classList.remove("dragging");
-      realBtn.disabled = true;
-      vanityBtn.disabled = true;
-      clearBins();
-      var dropped = binEl(kind);
-      if (dropped) dropped.classList.add(ok ? "hit-correct" : "hit-wrong");
-      if (!ok) {
-        var correct = binEl(current.real ? "real" : "vanity");
-        if (correct) correct.classList.add("hit-correct");
-      }
-      fbEl.textContent =
-        (ok ? "Right. " : "Actually " + (current.real ? "a real signal. " : "vanity. ")) +
-        current.why;
-      fbEl.className = "mg-feedback " + (ok ? "good" : "bad");
-      scoreEl.textContent = "Score: " + right + " / " + total;
-      advanceTimer = window.setTimeout(next, autoAdvanceMs());
-    }
-
-    /* ---- pointer drag (mouse + touch) ---- */
-    var drag = null; // {startX, startY, moved}
-    function binUnder(x, y) {
-      return bins.filter(function (b) {
-        var r = b.getBoundingClientRect();
-        return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-      })[0];
-    }
-    function pointerDown(e) {
-      if (card.disabled || answered) return;
-      var t = e.touches ? e.touches[0] : e;
-      drag = { x: t.clientX, y: t.clientY, moved: false };
-      card.classList.add("dragging");
-    }
-    function pointerMove(e) {
-      if (!drag) return;
-      var t = e.touches ? e.touches[0] : e;
-      var dx = t.clientX - drag.x,
-        dy = t.clientY - drag.y;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) drag.moved = true;
-      card.style.transform = "translate(" + dx + "px," + dy + "px)";
-      var over = binUnder(t.clientX, t.clientY);
-      bins.forEach(function (b) {
-        b.classList.toggle("over", b === over);
-      });
-      if (e.cancelable && drag.moved) e.preventDefault();
-    }
-    function pointerUp(e) {
-      if (!drag) return;
-      var t = e.changedTouches ? e.changedTouches[0] : e;
-      var over = binUnder(t.clientX, t.clientY);
-      card.classList.remove("dragging");
-      card.style.transform = "";
-      bins.forEach(function (b) {
-        b.classList.remove("over");
-      });
-      var wasDragging = drag.moved;
-      drag = null;
-      if (over) resolve(over.getAttribute("data-mg-bin"));
-      // a tap without movement falls through to the click handler
-      else if (wasDragging) {
-        /* dropped outside a bin: no-op, card stays for another try */
-      }
-    }
-    card.addEventListener("mousedown", pointerDown);
-    card.addEventListener("touchstart", pointerDown, { passive: true });
-    window.addEventListener("mousemove", pointerMove);
-    window.addEventListener("touchmove", pointerMove, { passive: false });
-    window.addEventListener("mouseup", pointerUp);
-    window.addEventListener("touchend", pointerUp);
-
-    /* ---- keyboard on the card: ← decision, → vanity ---- */
-    card.addEventListener("keydown", function (e) {
-      if (card.disabled) return;
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        resolve("real");
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        resolve("vanity");
-      }
-    });
-
-    /* ---- fallback buttons + clicking a bin ---- */
-    realBtn.addEventListener("click", function () {
-      resolve("real");
-    });
-    vanityBtn.addEventListener("click", function () {
-      resolve("vanity");
-    });
-    bins.forEach(function (b) {
-      b.addEventListener("click", function () {
-        resolve(b.getAttribute("data-mg-bin"));
-      });
-    });
-    onFirstInView(game, next); // first metric deals itself
-  })();
 })();

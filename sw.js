@@ -16,7 +16,7 @@
  * (offline.js never registers this worker on localhost.)
  */
 
-const CACHE_VERSION = 'v46';
+const CACHE_VERSION = 'v47';
 const CACHE_NAME = 'site-' + CACHE_VERSION;
 
 // Everything the page actually references (see index.html). Fonts live in CSS,

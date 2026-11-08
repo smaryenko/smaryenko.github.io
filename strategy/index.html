@@ -160,7 +160,7 @@
 <section class="slide" id="s-tshape" data-label="T-shaped QA">
   <div class="wrap">
     <div class="col center-head">
-      <p class="kicker c-lime reveal">The T-shaped QA transformation · from test writer to product-wide quality partner</p>
+      <p class="kicker c-lime reveal">T-shaped QA · from test writer to quality partner</p>
       <h2 class="reveal">T-shaped QA: beyond writing tests.</h2>
       <p class="body wide reveal">
         AI writes tests and explores code. QA connects the whole product: why it
@@ -196,22 +196,6 @@
       </aside>
     </div>
 
-    <!-- mini-game: AI greenlights a change. Which lens does it miss? -->
-    <div class="tshape-game reveal" data-tgame>
-      <p class="tg-scenario" data-tg-scenario>AI says each change is fine. Spot the lens it didn't look through — a new one appears automatically.</p>
-      <div class="tg-lenses" data-tg-lenses>
-        <button class="tg-lens" data-lens="Business" type="button">Business</button>
-        <button class="tg-lens" data-lens="Customer" type="button">Customer</button>
-        <button class="tg-lens" data-lens="Product" type="button">Product</button>
-        <button class="tg-lens" data-lens="Development" type="button">Development</button>
-        <button class="tg-lens" data-lens="Security" type="button">Security</button>
-        <button class="tg-lens" data-lens="Operations" type="button">Operations</button>
-      </div>
-      <p class="tg-feedback" data-tg-feedback></p>
-      <div class="tg-controls">
-        <span class="tg-score" data-tg-score>Caught: 0 / 0</span>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -559,17 +543,6 @@
         Adapt the rungs and safeguards to the task and its risk.
       </p>
     </div>
-    <!-- mini-game: an AI request comes in. Place it on the right rung. -->
-    <div class="ladder-game reveal" data-lgame>
-      <div class="lg-request">
-        <span class="lg-badge" data-lg-badge>Incoming</span>
-        <p class="lg-ask" data-lg-ask>Pick the rung that bounds each request — a new one arrives automatically.</p>
-      </div>
-      <p class="lg-feedback" data-lg-feedback></p>
-      <div class="lg-controls">
-        <span class="lg-score" data-lg-score>Score: 0 / 0</span>
-      </div>
-    </div>
     <div class="ladder stagger" data-ladder>
       <button class="ladder-row" data-rung="assist" type="button">
         <span class="ladder-level c-cyan">Assist</span>
@@ -677,30 +650,13 @@
     </div>
     <p class="scorecard-note reveal"><b>A metric only matters if it changes a decision.</b> Choose signals that fit the product and risk; define a baseline, owner, review cadence, threshold and response. For example, stabilise flaky tests instead of retrying them, and pause or roll back when a canary breaches its service objective.</p>
 
-    <!-- mini-game: drag the metric into a bin — does it change a decision? -->
-    <div class="metric-game reveal" data-mgame>
-      <p class="mg-claim" data-mg-claim>Drag each metric into the bin that fits — a new one deals itself.</p>
-      <div class="mg-arena">
-        <div class="mg-bin" data-mg-bin="real">
-          <span class="mg-bin-label">Changes a decision</span>
-        </div>
-        <div class="mg-card-slot">
-          <button class="mg-card" data-mg-card type="button" hidden aria-describedby="mg-howto"></button>
-          <span class="mg-howto" id="mg-howto">drag me, or use the buttons</span>
-        </div>
-        <div class="mg-bin" data-mg-bin="vanity">
-          <span class="mg-bin-label">Vanity metric</span>
-        </div>
-      </div>
-      <!-- keyboard / fallback controls -->
-      <div class="mg-controls">
-        <button class="btn-run sm mg-real" data-mg-real type="button" disabled>↤ Decision</button>
-        <button class="btn-ghost sm mg-vanity" data-mg-vanity type="button" disabled>Vanity ↦</button>
-      </div>
-      <p class="mg-feedback" data-mg-feedback></p>
-      <div class="mg-foot">
-        <span class="mg-score" data-mg-score>Score: 0 / 0</span>
-      </div>
+    <!-- mini: tap a metric to reveal whether it's a real signal or vanity -->
+    <div class="mini-flip reveal" data-mflip>
+      <button class="mf-chip" data-mflip-chip type="button">
+        <span class="mf-metric" data-mflip-metric>“87% code coverage”</span>
+        <span class="mf-verdict" data-mflip-verdict>tap to judge</span>
+      </button>
+      <span class="mf-why" data-mflip-why>Real signal or vanity? Tap the chip.</span>
     </div>
   </div>
 </section>
