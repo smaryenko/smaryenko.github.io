@@ -505,7 +505,7 @@
     <div class="canary-note stagger">
       <span class="gate-pill pass">healthy &rarr; promote</span>
       <span class="gate-pill fail">threshold breached &rarr; roll back</span>
-      <span class="gate-pill amber">high impact &rarr; QA owns the verdict</span>
+      <span class="gate-pill amber">high impact &rarr; QA signs off</span>
     </div>
 
     <!-- mini-game: you are on call. Watch the canary, then make the call. -->
@@ -560,7 +560,7 @@
       <button class="ladder-row" data-rung="release" type="button">
         <span class="ladder-level c-amber">Release support</span>
         <span class="ladder-does">Summarise evidence, recommend the call</span>
-        <span class="ladder-ctrl">QA reviews and owns the verdict</span>
+        <span class="ladder-ctrl">QA reviews; can block release</span>
       </button>
       <button class="ladder-row" data-rung="prod" type="button">
         <span class="ladder-level c-violet">Production action</span>
@@ -574,12 +574,12 @@
 </section>
 
 <!-- ============ 11. QUALITY OWNERSHIP + INDEPENDENT CHECK ============ -->
-<section class="slide" id="s-guard" data-label="QA release verdict">
+<section class="slide" id="s-guard" data-label="QA assurance">
   <div class="wrap">
     <div class="col center-head">
       <p class="kicker c-amber reveal">Ownership at machine scale</p>
-      <h2 class="reveal">Everyone builds quality. <br /> <span class="hl">QA owns the release verdict.</span></h2>
-      <p class="body wide reveal">QA does not review every generated line. It connects context to independent evidence and decides whether the product is ready.</p>
+      <h2 class="reveal">Everyone builds quality. <br /> <span class="hl">QA owns independent assurance.</span></h2>
+      <p class="body wide reveal">QA does not review every generated line. It connects context to independent evidence and judges whether the product is ready.</p>
     </div>
     <div class="split stagger">
       <div class="split-col ai">
@@ -592,7 +592,7 @@
       </div>
       <div class="split-divider" aria-hidden="true"><span>&rarr;</span></div>
       <div class="split-col human">
-        <h3 class="c-lime">QA owns assurance</h3>
+        <h3 class="c-lime">QA assures and can block</h3>
         <ul>
           <li>Connects customer, business and technical context to critical expectations</li>
           <li>Assesses evidence against risk; unknowns are not passes</li>
@@ -600,8 +600,7 @@
         </ul>
       </div>
     </div>
-    <p class="body small center-note reveal">Release accountability is shared. QA owns independent assurance and the authority to block.</p>
-    <p class="independent-example reveal"><b>Why independence matters:</b> if only admins may delete a record, write that first. Otherwise AI can let any user delete and generate a test that agrees—green, but wrong.</p>
+    <p class="independent-example reveal"><b>Expected results come before the implementation.</b> If only admins may delete a record, write that first. AI can't redefine the expectation to match what it built—otherwise its test agrees with its own mistake: green, but wrong.</p>
     <div class="decide reveal" data-decide>
       <span class="decide-end c-cyan">AI&#8209;only</span>
       <div class="decide-track" data-decide-track>
