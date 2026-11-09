@@ -122,11 +122,13 @@
     <div class="col center-head">
       <p class="kicker c-cyan reveal">The context · machine-speed change</p>
       <h2 class="reveal">AI changes the pace of delivery.</h2>
-      <p class="body wide reveal">
-        AI can understand code, shape requirements, generate changes and tests,
-        and diagnose failures. Speed is the easy win; the bigger one is aiming
-        it at an outcome, not a task.
-      </p>
+      <p class="body wide reveal">AI can run much of the testing lifecycle. What changes for QA:</p>
+      <ul class="qa-shift stagger" aria-label="How the QA role shifts">
+        <li><s>Writes test cases</s><span aria-hidden="true">&rarr;</span><b>Defines quality expectations</b></li>
+        <li><s>Runs the automation</s><span aria-hidden="true">&rarr;</span><b>Assures the evidence</b></li>
+        <li><s>Finds defects</s><span aria-hidden="true">&rarr;</span><b>Finds systemic risks</b></li>
+        <li><s>Checks a change</s><span aria-hidden="true">&rarr;</span><b>Sees its product impact</b></li>
+      </ul>
       <p class="slop-note reveal" data-slop>
         <b>The catch:</b> without guardrails, AI just ships
         <span class="slop-word">slop</span> faster — churn that <em>looks</em>
@@ -184,7 +186,7 @@
       </div>
       <aside class="tshape-callout">
         <span class="tshape-label">AI solves tasks. QA sees the whole task.</span>
-        <p>AI works from partial context and can miss how a local change ripples across the product end to end. It does make range cheap: ask it to do what a red team, accessibility expert or SRE would do on a risky change, not to talk like them.</p>
+        <p>AI works from partial context and can miss how a local change ripples across the product end to end.</p>
         <div class="tshape-questions">
           <span>What matters?</span>
           <span>What could fail?</span>
@@ -409,9 +411,8 @@
       <p class="kicker c-cyan reveal">The other half of a trustworthy test</p>
       <h2 class="reveal">Build for observability.</h2>
       <p class="body wide reveal">
-        A feature isn't fully testable until it exposes enough evidence to prove
-        it worked, in a test and later in production. Observability is a
-        requirement of the feature, not an afterthought.
+        A feature isn't testable until it shows evidence that it worked, in a
+        test and in production. Build that in from the start.
       </p>
     </div>
     <div class="cards-grid center-last stagger" data-observe>
@@ -445,7 +446,7 @@
       <div class="obs-gauge-track"><span class="obs-gauge-fill" data-obs-fill></span></div>
       <span class="obs-gauge-read" data-obs-read>Dark box — light up each signal to make it testable.</span>
     </div>
-    <p class="body small center-note reveal">Good observability pays off three times: reliable automated checks, faster diagnosis, and safer canaries. It is also what lets AI own an outcome rather than a task: it can only keep a journey healthy if it can see, reproduce and verify.</p>
+    <p class="body small center-note reveal">It pays off three times: reliable checks, faster diagnosis, safer canaries.</p>
   </div>
 </section>
 
@@ -488,9 +489,8 @@
       <p class="kicker c-lime reveal">Past the gate · release is the start, not the end</p>
       <h2 class="reveal">Release in stages. Learn from real outcomes.</h2>
       <p class="body wide reveal">
-        Test environments never match production, so some defects only show under
-        real traffic. Expose the change to a small slice, watch the signals, then
-        promote it — or roll it back before most users notice.
+        Some defects only show under real traffic. Expose a small slice, watch
+        the signals, then promote or roll back.
       </p>
     </div>
     <div class="canary stagger" data-canary>
@@ -568,7 +568,8 @@
         <span class="ladder-ctrl">Approval, dry-run, audit trail, circuit breaker</span>
       </button>
     </div>
-    <p class="body small center-note reveal">Every rung needs data guardrails: approved models, repo and ticket content treated as untrusted, and auditable decisions. And every rung assumes people delegate the work but keep ownership of the result: AI output stays a hypothesis to check, never an answer accepted unread.</p>
+    <p class="principle-note reveal"><b>More autonomy needs stronger independent assurance.</b> An agent that writes the code, writes the tests and declares success is grading itself.</p>
+    <p class="body small center-note reveal">Every rung: approved models, repo and ticket content treated as untrusted, auditable decisions.</p>
   </div>
 </section>
 
@@ -595,12 +596,12 @@
         <ul>
           <li>Connects customer, business and technical context to critical expectations</li>
           <li>Assesses evidence against risk; unknowns are not passes</li>
-          <li>Owns the verdict, can explain it, and blocks release when evidence falls short</li>
+          <li>Can explain the verdict and block release when evidence falls short</li>
         </ul>
       </div>
     </div>
-    <p class="body small center-note reveal">Automation may pause or roll back against pre-agreed thresholds.</p>
-    <p class="independent-example reveal"><b>Why independence matters:</b> if only admins may delete a record, write that expectation first. Otherwise, AI can allow any signed-in user and generate a test that confirms the same mistake—green, but wrong.</p>
+    <p class="body small center-note reveal">Release accountability is shared. QA owns independent assurance and the authority to block.</p>
+    <p class="independent-example reveal"><b>Why independence matters:</b> if only admins may delete a record, write that first. Otherwise AI can let any user delete and generate a test that agrees—green, but wrong.</p>
     <div class="decide reveal" data-decide>
       <span class="decide-end c-cyan">AI&#8209;only</span>
       <div class="decide-track" data-decide-track>
@@ -628,25 +629,25 @@
       <article class="score-lane outcome">
         <span class="score-index">01 <i>Customer outcome</i></span>
         <h3>Did users get a better, safer product?</h3>
-        <div class="score-signal"><b>Escaped defects</b><span>Track severity and source</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8 6.5 6.5M16 8l1.5-1.5M7 13H4m16 0h-3M8 18l-1.5 1.5M16 18l1.5 1.5"/><path d="M8 9.5h8v5a4 4 0 0 1-8 0zM12 5v2M10.5 12h.01M13.5 12h.01"/></svg></div>
-        <div class="score-signal"><b>Post-release impact</b><span>Key journeys and service health</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2.2-6 4.2 12 2.2-6H21"/><path d="M4 4h16v16H4z"/></svg></div>
-        <div class="score-signal"><b>Rollback signal</b><span>Canaries stopped before wider impact</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.6 7.8"/><path d="M4 4v6h6"/></svg></div>
+        <div class="score-signal"><b>Escaped defects</b><span>By severity and source</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8 6.5 6.5M16 8l1.5-1.5M7 13H4m16 0h-3M8 18l-1.5 1.5M16 18l1.5 1.5"/><path d="M8 9.5h8v5a4 4 0 0 1-8 0zM12 5v2M10.5 12h.01M13.5 12h.01"/></svg></div>
+        <div class="score-signal"><b>Change failure rate</b><span>Releases needing a fix or rollback</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2.2-6 4.2 12 2.2-6H21"/><path d="M4 4h16v16H4z"/></svg></div>
+        <div class="score-signal"><b>Time to restore</b><span>From breach back to healthy</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.6 7.8"/><path d="M4 4v6h6"/></svg></div>
       </article>
       <article class="score-lane delivery">
         <span class="score-index">02 <i>Delivery flow</i></span>
         <h3>Can the team trust its feedback?</h3>
         <div class="score-signal"><b>Feedback time</b><span>Commit to trustworthy signal</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6M12 2v3"/></svg></div>
-        <div class="score-signal"><b>Flaky rate</b><span>Plus time to stabilise</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10a4 4 0 1 1-4 4"/><path d="m7 4-3 3 3 3M20 17H10a4 4 0 1 1 4-4"/><path d="m17 14 3 3-3 3"/></svg></div>
-        <div class="score-signal"><b>Pipeline reliability</b><span>Separate product failures from pipeline noise</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h5v5H4zM15 14h5v5h-5z"/><path d="M9 7.5h3a3 3 0 0 1 3 3V14M12 10.5 15 14l3-3.5"/></svg></div>
+        <div class="score-signal"><b>Flaky rate</b><span>And time to stabilise</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10a4 4 0 1 1-4 4"/><path d="m7 4-3 3 3 3M20 17H10a4 4 0 1 1 4-4"/><path d="m17 14 3 3-3 3"/></svg></div>
+        <div class="score-signal"><b>Pipeline reliability</b><span>Product failures vs pipeline noise</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h5v5H4zM15 14h5v5h-5z"/><path d="M9 7.5h3a3 3 0 0 1 3 3V14M12 10.5 15 14l3-3.5"/></svg></div>
       </article>
       <article class="score-lane assurance">
         <span class="score-index">03 <i>Independent assurance</i></span>
         <h3>Is the evidence strong enough to trust?</h3>
-        <div class="score-signal"><b>Risk-weighted proof</b><span>Critical needs traced to evidence</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><circle cx="10.5" cy="10.5" r="2"/><path d="m15.5 15.5 5 5M10.5 1.5v3M1.5 10.5h3"/></svg></div>
-        <div class="score-signal"><b>AI validated</b><span>Changes checked against independently defined expectations, and someone can explain them without the agent</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 7 3v5c0 5-3 9-7 12-4-3-7-7-7-12V5z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></div>
+        <div class="score-signal"><b>Risk-to-evidence</b><span>Critical risks traced to proof</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><circle cx="10.5" cy="10.5" r="2"/><path d="m15.5 15.5 5 5M10.5 1.5v3M1.5 10.5h3"/></svg></div>
+        <div class="score-signal"><b>Independently validated</b><span>AI changes checked by tests not from the same prompt or session</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 7 3v5c0 5-3 9-7 12-4-3-7-7-7-12V5z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></div>
       </article>
     </div>
-    <p class="scorecard-note reveal"><b>A metric only matters if it changes a decision.</b> Choose signals that fit the product and risk; define a baseline, owner, review cadence, threshold and response. For example, stabilise flaky tests instead of retrying them, and pause or roll back when a canary breaches its service objective.</p>
+    <p class="scorecard-note reveal"><b>A metric only matters if it changes a decision.</b> Give each one a baseline, owner, threshold and response.</p>
 
     <!-- mini: tap a metric to reveal whether it's a real signal or vanity -->
     <div class="mini-flip reveal" data-mflip>
@@ -666,17 +667,17 @@
     <h2 class="big reveal">
       Test <span class="hl hl-lime">low</span>, test <span class="hl hl-cyan">early</span>,
       <br />test <span class="hl hl-pink">by risk</span> —
-      <br />let AI accelerate, with QA connecting context and evidence.
+      <br />AI aims higher, never grades itself.
     </h2>
     <div class="stat-row stagger">
       <div class="stat"><b>Low</b><span>lower levels run faster and pinpoint the bug</span></div>
       <div class="stat"><b>Early</b><span>the sooner you catch it, the less it costs</span></div>
       <div class="stat"><b>By&nbsp;risk</b><span>depth matched to blast radius, not everything</span></div>
-      <div class="stat"><b>QA&#8209;assured</b><span>the whole team builds quality; QA connects context to proof</span></div>
+      <div class="stat"><b>QA&#8209;assured</b><span>independent evidence, owned by people</span></div>
     </div>
-    <p class="footnote reveal">An AI-era testing strategy. Quality, built in, released safely, and improved from what production teaches you. Tune the levels, risk tiers, gates and AI autonomy to fit yours.</p>
-    <p class="sources reveal">Principles informed by
-      <a href="https://sre.google/workbook/canarying-releases/" target="_blank" rel="noopener noreferrer">canarying releases</a>,
+    <p class="footnote reveal">Tune the levels, risk tiers, gates and AI autonomy to fit your product.</p>
+    <p class="sources reveal">Informed by
+      <a href="https://martinfowler.com/articles/practical-test-pyramid.html" target="_blank" rel="noopener noreferrer">the practical test pyramid</a>,
       <a href="https://sre.google/resources/practices-and-processes/ai-engineering-reliable-operations/" target="_blank" rel="noopener noreferrer">AI reliability operations</a>, and
       <a href="https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1695965/full" target="_blank" rel="noopener noreferrer">Test Pyramid 2.0</a>.
     </p>
