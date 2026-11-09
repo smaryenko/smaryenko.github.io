@@ -123,17 +123,15 @@
       <p class="kicker c-cyan reveal">The context · machine-speed change</p>
       <h2 class="reveal">AI changes the pace of delivery.</h2>
       <p class="body wide reveal">
-        AI can help understand a codebase, shape requirements, generate changes
-        and tests, and diagnose failures. These are capabilities to use with
-        judgement, not proof that the change is right. More generated change
-        makes independent evidence and risk-based controls more important.
+        AI can understand code, shape requirements, generate changes and tests,
+        and diagnose failures. Speed is the easy win; the bigger one is aiming
+        it at an outcome, not a task.
       </p>
       <p class="slop-note reveal" data-slop>
-        <b>The catch:</b> without standards and process, AI just ships
-        <span class="slop-word">slop</span> faster — more code, more tests, more
-        churn that <em>looks</em> like progress. Unchecked, it grows
-        <b class="c-amber">technical debt</b>, not real productivity. The
-        guardrails below are what turn raw speed into shipped quality.
+        <b>The catch:</b> without guardrails, AI just ships
+        <span class="slop-word">slop</span> faster — churn that <em>looks</em>
+        like progress and grows <b class="c-amber">technical debt</b>. And as
+        output improves, it stops getting a second look.
       </p>
     </div>
     <div class="loop-wrap reveal" data-loop>
@@ -186,7 +184,7 @@
       </div>
       <aside class="tshape-callout">
         <span class="tshape-label">AI solves tasks. QA sees the whole task.</span>
-        <p>AI works from partial context and can miss how a local change ripples across the product end to end.</p>
+        <p>AI works from partial context and can miss how a local change ripples across the product end to end. It does make range cheap: ask it to do what a red team, accessibility expert or SRE would do on a risky change, not to talk like them.</p>
         <div class="tshape-questions">
           <span>What matters?</span>
           <span>What could fail?</span>
@@ -447,7 +445,7 @@
       <div class="obs-gauge-track"><span class="obs-gauge-fill" data-obs-fill></span></div>
       <span class="obs-gauge-read" data-obs-read>Dark box — light up each signal to make it testable.</span>
     </div>
-    <p class="body small center-note reveal">Good observability pays off three times: reliable automated checks, faster diagnosis, and safer canaries.</p>
+    <p class="body small center-note reveal">Good observability pays off three times: reliable automated checks, faster diagnosis, and safer canaries. It is also what lets AI own an outcome rather than a task: it can only keep a journey healthy if it can see, reproduce and verify.</p>
   </div>
 </section>
 
@@ -570,7 +568,7 @@
         <span class="ladder-ctrl">Approval, dry-run, audit trail, circuit breaker</span>
       </button>
     </div>
-    <p class="body small center-note reveal">Every rung needs data guardrails: approved models, repo and ticket content treated as untrusted, and auditable decisions.</p>
+    <p class="body small center-note reveal">Every rung needs data guardrails: approved models, repo and ticket content treated as untrusted, and auditable decisions. And every rung assumes people delegate the work but keep ownership of the result: AI output stays a hypothesis to check, never an answer accepted unread.</p>
   </div>
 </section>
 
@@ -580,7 +578,7 @@
     <div class="col center-head">
       <p class="kicker c-amber reveal">Ownership at machine scale</p>
       <h2 class="reveal">Everyone builds quality. <br /> <span class="hl">QA owns the release verdict.</span></h2>
-      <p class="body wide reveal">QA does not review every generated line. It connects domain context to independent evidence, makes gaps visible, and decides whether the product is ready to release.</p>
+      <p class="body wide reveal">QA does not review every generated line. It connects context to independent evidence and decides whether the product is ready.</p>
     </div>
     <div class="split stagger">
       <div class="split-col ai">
@@ -597,11 +595,11 @@
         <ul>
           <li>Connects customer, business and technical context to critical expectations</li>
           <li>Assesses evidence against risk; unknowns are not passes</li>
-          <li>Owns the quality verdict and blocks release when the evidence is not sufficient</li>
+          <li>Owns the verdict, can explain it, and blocks release when evidence falls short</li>
         </ul>
       </div>
     </div>
-    <p class="body small center-note reveal">Automation may pause or roll back against pre-agreed safety thresholds; QA owns the decision to approve or block release.</p>
+    <p class="body small center-note reveal">Automation may pause or roll back against pre-agreed thresholds.</p>
     <p class="independent-example reveal"><b>Why independence matters:</b> if only admins may delete a record, write that expectation first. Otherwise, AI can allow any signed-in user and generate a test that confirms the same mistake—green, but wrong.</p>
     <div class="decide reveal" data-decide>
       <span class="decide-end c-cyan">AI&#8209;only</span>
@@ -645,7 +643,7 @@
         <span class="score-index">03 <i>Independent assurance</i></span>
         <h3>Is the evidence strong enough to trust?</h3>
         <div class="score-signal"><b>Risk-weighted proof</b><span>Critical needs traced to evidence</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><circle cx="10.5" cy="10.5" r="2"/><path d="m15.5 15.5 5 5M10.5 1.5v3M1.5 10.5h3"/></svg></div>
-        <div class="score-signal"><b>AI validated</b><span>Changes checked against independently defined expectations</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 7 3v5c0 5-3 9-7 12-4-3-7-7-7-12V5z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></div>
+        <div class="score-signal"><b>AI validated</b><span>Changes checked against independently defined expectations, and someone can explain them without the agent</span><svg class="score-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 7 3v5c0 5-3 9-7 12-4-3-7-7-7-12V5z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg></div>
       </article>
     </div>
     <p class="scorecard-note reveal"><b>A metric only matters if it changes a decision.</b> Choose signals that fit the product and risk; define a baseline, owner, review cadence, threshold and response. For example, stabilise flaky tests instead of retrying them, and pause or roll back when a canary breaches its service objective.</p>
